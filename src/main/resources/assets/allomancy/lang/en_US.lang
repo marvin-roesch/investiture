@@ -1,0 +1,40 @@
+itemGroup.allomancy=Allomancy
+allomancy.message.purity=%s%% pure
+
+allomancy.metals.bronze.name=Bronze
+allomancy.metals.brass.name=Brass
+allomancy.metals.copper.name=Copper
+allomancy.metals.zinc.name=Zinc
+allomancy.metals.tin.name=Tin
+allomancy.metals.iron.name=Iron
+allomancy.metals.pewter.name=Pewter
+allomancy.metals.steel.name=Steel
+allomancy.metals.duralumin.name=Duralumin
+allomancy.metals.nicrosil.name=Nicrosil
+allomancy.metals.aluminium.name=Aluminium
+allomancy.metals.chromium.name=Chromium
+allomancy.metals.gold.name=Gold
+allomancy.metals.cadmium.name=Cadmium
+allomancy.metals.electrum.name=Electrum
+allomancy.metals.bendalloy.name=Bendalloy
+
+item.bronze_ingot.name=Bronze Ingot
+item.brass_ingot.name=Brass Ingot
+item.copper_ingot.name=Copper Ingot
+item.zinc_ingot.name=Zinc Ingot
+item.tin_ingot.name=Tin Ingot
+item.pewter_ingot.name=Pewter Ingot
+item.steel_ingot.name=Steel Ingot
+item.duralumin_ingot.name=Duralumin Ingot
+item.nicrosil_ingot.name=Nicrosil Ingot
+item.aluminium_ingot.name=Aluminium Ingot
+item.chromium_ingot.name=Chromium Ingot
+item.cadmium_ingot.name=Cadmium Ingot
+item.electrum_ingot.name=Electrum Ingot
+item.bendalloy_ingot.name=Bendalloy Ingot
+
+tile.copper_ore.name=Copper Ore
+tile.zinc_ore.name=Zinc Ore
+tile.tin_ore.name=Cassiterite
+tile.aluminium_ore.name=Bauxite
+tile.chromium_ore.name=Chromite

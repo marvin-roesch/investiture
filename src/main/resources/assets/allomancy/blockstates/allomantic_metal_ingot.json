@@ -1,0 +1,81 @@
+{
+  "forge_marker": 1,
+  "defaults": {
+    "model": "builtin/generated",
+    "transform": "forge:default-item"
+  },
+  "variants": {
+    "metal": {
+      "bronze": {
+        "textures": {
+          "layer0": "allomancy:items/bronze_ingot"
+        }
+      },
+      "brass": {
+        "textures": {
+          "layer0": "allomancy:items/brass_ingot"
+        }
+      },
+      "copper": {
+        "textures": {
+          "layer0": "allomancy:items/copper_ingot"
+        }
+      },
+      "zinc": {
+        "textures": {
+          "layer0": "allomancy:items/zinc_ingot"
+        }
+      },
+      "tin": {
+        "textures": {
+          "layer0": "allomancy:items/tin_ingot"
+        }
+      },
+      "pewter": {
+        "textures": {
+          "layer0": "allomancy:items/pewter_ingot"
+        }
+      },
+      "steel": {
+        "textures": {
+          "layer0": "allomancy:items/steel_ingot"
+        }
+      },
+      "duralumin": {
+        "textures": {
+          "layer0": "allomancy:items/duralumin_ingot"
+        }
+      },
+      "nicrosil": {
+        "textures": {
+          "layer0": "allomancy:items/nicrosil_ingot"
+        }
+      },
+      "aluminium": {
+        "textures": {
+          "layer0": "allomancy:items/aluminium_ingot"
+        }
+      },
+      "chromium": {
+        "textures": {
+          "layer0": "allomancy:items/chromium_ingot"
+        }
+      },
+      "cadmium": {
+        "textures": {
+          "layer0": "allomancy:items/cadmium_ingot"
+        }
+      },
+      "electrum": {
+        "textures": {
+          "layer0": "allomancy:items/electrum_ingot"
+        }
+      },
+      "bendalloy": {
+        "textures": {
+          "layer0": "allomancy:items/bendalloy_ingot"
+        }
+      }
+    }
+  }
+}

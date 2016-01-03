@@ -1,0 +1,37 @@
+{
+  "forge_marker": 1,
+  "defaults": {
+    "model": "allomancy:cube_ore",
+    "uvlock": true,
+    "transform": "forge:default-block"
+  },
+  "variants": {
+    "metal": {
+      "copper": {
+        "textures": {
+          "layer_metal": "allomancy:blocks/copper_ore"
+        }
+      },
+      "zinc": {
+        "textures": {
+          "layer_metal": "allomancy:blocks/zinc_ore"
+        }
+      },
+      "tin": {
+        "textures": {
+          "layer_metal": "allomancy:blocks/tin_ore"
+        }
+      },
+      "aluminium": {
+        "textures": {
+          "layer_metal": "allomancy:blocks/aluminium_ore"
+        }
+      },
+      "chromium": {
+        "textures": {
+          "layer_metal": "allomancy:blocks/chromium_ore"
+        }
+      }
+    }
+  }
+}
