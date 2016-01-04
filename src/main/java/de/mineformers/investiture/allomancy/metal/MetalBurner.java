@@ -19,48 +19,72 @@ import net.minecraftforge.fml.common.network.ByteBufUtils;
 import java.util.Set;
 
 /**
- * MetalStorage
- *
- * @author PaleoCrafter
+ * Provides metal burning capabilities for both pure and impure metals.
  */
 public class MetalBurner extends MetalStorage
 {
+    /**
+     * Gets the metal burner associated with a given entity, should it be using the facilities provided by this class.
+     *
+     * @param entity the entity
+     * @return the entity's metal burner if it has one, <code>null</code> otherwise
+     */
     public static MetalBurner from(Entity entity)
     {
         return (MetalBurner) entity.getExtendedProperties(Allomancy.NBT.BURNER_ID);
     }
 
-    private final TObjectIntMap<AllomanticMetal> _burningMetals = new TObjectIntHashMap<>();
+    private final TObjectIntMap<AllomanticMetal> burningMetals = new TObjectIntHashMap<>();
     public int burnTime = 20;
 
+    /**
+     * @param metal the metal to check
+     * @return true if the metal is burning, false otherwise
+     */
     public boolean isBurning(AllomanticMetal metal)
     {
-        return _burningMetals.containsKey(metal) && _burningMetals.get(metal) >= 0;
+        return burningMetals.containsKey(metal) && burningMetals.get(metal) >= 0;
     }
 
+    /**
+     * Starts burning a metal.
+     *
+     * @param metal the metal to burn
+     * @return true if the metal burns now or was already burning, false otherwise
+     */
     public boolean startBurning(AllomanticMetal metal)
     {
+        if (isBurning(metal))
+            return true;
         int storedMetal = get(metal);
         int storedImpurity = getImpurity(metal);
         if (storedMetal <= 0 && storedImpurity <= 0)
             return false;
-        _burningMetals.put(metal, 0);
+        burningMetals.put(metal, 0);
         markDirty();
         return true;
     }
 
+    /**
+     * Updates the time a metal has burned, decreasing the stored amount of the metal and optionally applying side effects of burning an impure metal.
+     *
+     * @param entity the entity burning the metal, can be <code>null</code> if no entity is involved
+     * @param metal  the burning metal
+     * @return true if the metal storage was decreased, false otherwise
+     */
     public boolean updateBurnTimer(Entity entity, AllomanticMetal metal)
     {
         if (!isBurning(metal))
             return false;
-        _burningMetals.increment(metal);
-        if (_burningMetals.get(metal) == burnTime)
+        burningMetals.increment(metal);
+        if (burningMetals.get(metal) == burnTime)
         {
-            _burningMetals.put(metal, 0);
+            burningMetals.put(metal, 0);
             if (getImpurity(metal) > 0)
             {
                 removeImpurity(metal, 1);
-                metal.applyImpurityEffects(entity);
+                if (entity != null)
+                    metal.applyImpurityEffects(entity);
             }
             else if (!remove(metal, 1) || get(metal) == 0)
                 stopBurning(metal);
@@ -70,25 +94,41 @@ public class MetalBurner extends MetalStorage
             return false;
     }
 
+    /**
+     * Stops burning a metal.
+     *
+     * @param metal the metal to stop burnign
+     */
     public void stopBurning(AllomanticMetal metal)
     {
         if (isBurning(metal))
         {
-            _burningMetals.remove(metal);
+            burningMetals.remove(metal);
             markDirty();
         }
     }
 
+    /**
+     * @return an unmodifiable view of all burning metals
+     */
     public Set<AllomanticMetal> burningMetals()
     {
-        return FluentIterable.from(_burningMetals.keySet()).filter(this::isBurning).toSet();
+        return FluentIterable.from(burningMetals.keySet()).filter(this::isBurning).toSet();
     }
 
+    /**
+     * @return an unmodifiable view of all burning metals with their respective timers
+     */
     public TObjectIntMap<AllomanticMetal> burnTimers()
     {
-        return TCollections.unmodifiableMap(_burningMetals);
+        return TCollections.unmodifiableMap(burningMetals);
     }
 
+    /**
+     * Copies the contents of a given storage or burner to this one.
+     *
+     * @param from the storage or burner to copy the contents from
+     */
     @Override
     public void copy(MetalStorage from)
     {
@@ -96,16 +136,26 @@ public class MetalBurner extends MetalStorage
         if (from instanceof MetalBurner)
         {
             MetalBurner burner = (MetalBurner) from;
-            _burningMetals.clear();
-            _burningMetals.putAll(burner.burnTimers());
+            burningMetals.clear();
+            burningMetals.putAll(burner.burnTimers());
         }
     }
 
+    /**
+     * Implementation detail that allows subclasses to set burn timers directly without affecting stored metals.
+     * Can be used for persisting the data.
+     *
+     * @param metal the metal the burn timer is associated with
+     * @param value the value of the burn timer
+     */
     protected void setBurnTimer(AllomanticMetal metal, int value)
     {
-        _burningMetals.put(metal, value);
+        burningMetals.put(metal, value);
     }
 
+    /**
+     * Translates a metal burner to and from a byte buffer
+     */
     public static class Translator implements Message.Translator<MetalBurner>
     {
         @Override
@@ -163,9 +213,20 @@ public class MetalBurner extends MetalStorage
         }
     }
 
+    /**
+     * Provides a non-invasive way of making an entity a metal burner.
+     */
     public static class EntityMetalBurner extends MetalBurner implements IExtendedEntityProperties
     {
         private Entity entity;
+
+        /**
+         * @return the entity this burner is associated with
+         */
+        public Entity entity()
+        {
+            return this.entity;
+        }
 
         @Override
         public void init(Entity entity, World world)
@@ -238,6 +299,9 @@ public class MetalBurner extends MetalStorage
             sync();
         }
 
+        /**
+         * Synchronizes this burner's data with all clients.
+         */
         public void sync()
         {
             if (entity != null && !entity.worldObj.isRemote)

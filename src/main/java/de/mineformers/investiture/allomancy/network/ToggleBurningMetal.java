@@ -3,9 +3,7 @@ package de.mineformers.investiture.allomancy.network;
 import de.mineformers.investiture.network.Message;
 
 /**
- * ToggleBurningMetal
- *
- * @author PaleoCrafter
+ * Starts or stops burning a metal for the sending player.
  */
 public class ToggleBurningMetal extends Message
 {

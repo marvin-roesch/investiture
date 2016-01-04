@@ -25,9 +25,9 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 
 /**
- * Allomancy
- *
- * @author PaleoCrafter
+ * The "Allomancy" module is based on the "Mistborn" series of books by Brandon Sanderson.
+ * <p>
+ * The focus of this module are so called allomancers who can burn metals to gain special powers.
  */
 public final class Allomancy implements Manifestation
 {
@@ -64,34 +64,68 @@ public final class Allomancy implements Manifestation
         proxy.postInit(event);
     }
 
+    /**
+     * Container class for all blocks in the Allomancy module.
+     */
     public static class Blocks
     {
         public static AllomanticMetalOre allomantic_ore;
 
+        /**
+         * Adds all blocks to the game's registry.
+         */
         public static void register()
         {
             GameRegistry.registerBlock(allomantic_ore = new AllomanticMetalOre(), AllomanticMetalOre.ItemRepresentation.class);
         }
     }
 
+    /**
+     * Container class for all items in the Allomancy module.
+     */
     public static class Items
     {
         public static AllomanticMetalIngot allomantic_ingot;
 
+        /**
+         * Adds all items to the game's registry.
+         */
         public static void register()
         {
             GameRegistry.registerItem(allomantic_ingot = new AllomanticMetalIngot());
         }
     }
 
+    /**
+     * Container class for all NBT related constants in the Allomancy module.
+     */
     public static class NBT
     {
+        /**
+         * The ID of both the {@link net.minecraftforge.common.IExtendedEntityProperties IEEP} used for storage of a {@link MetalStorage} in an
+         * entity as well as the corresponding NBT compound tag.
+         *
+         * @see de.mineformers.investiture.allomancy.metal.MetalStorage.EntityMetalStorage
+         */
         public static final String STORAGE_ID = "allomancy_metal_storage";
+
+        /**
+         * The ID of both the {@link net.minecraftforge.common.IExtendedEntityProperties IEEP} used for storage of a {@link MetalBurner} in an
+         * entity as well as the corresponding NBT compound tag.
+         */
         public static final String BURNER_ID = "allomancy_metal_burner";
     }
 
+    /**
+     * Container class for all networking related objects in the Allomancy module.
+     */
     public static class CommonNetworking
     {
+        /**
+         * Initialise the Allomancy network sub-module and register
+         * {@link de.mineformers.investiture.network.Message.Translator Translators}, {@link Message Messages}
+         * or {@link de.mineformers.investiture.network.Message.Handler handlers}.
+         */
         public static void init()
         {
             Message.registerTranslator(MetalStorage.class, new MetalStorage.Translator());
@@ -101,10 +135,13 @@ public final class Allomancy implements Manifestation
             Investiture.net().registerMessage(EntityMetalBurnerUpdate.class);
             Investiture.net().registerMessage(ToggleBurningMetal.class);
 
+            // Add handler for toggling the burning of a metal
             Investiture.net().addHandler(ToggleBurningMetal.class, Side.SERVER, (msg, ctx) -> {
                 ctx.schedule(() -> {
                     MetalBurner burner = MetalBurner.from(ctx.player());
                     Optional<AllomanticMetal> optional = AllomanticMetals.get(msg.metal);
+
+                    // Safety measures, in case the client sends bad data
                     if (optional.isPresent() && burner != null)
                     {
                         AllomanticMetal metal = optional.get();

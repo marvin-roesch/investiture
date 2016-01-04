@@ -18,9 +18,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * AllomanticMetalOre
- *
- * @author PaleoCrafter
+ * Used as the ore for all allomantic metals which are not alloys and can be collected directly through mining.
  */
 public class AllomanticMetalOre extends Block
 {
@@ -29,11 +27,20 @@ public class AllomanticMetalOre extends Block
     };
     public static final PropertyString METAL = new PropertyString("metal", NAMES);
 
+    /**
+     * Clamps a given integer to the damage range of the block.
+     *
+     * @param value the value to clamp
+     * @return the value, if it is contained by [0..4], 0, if the value is lower than 0, or 4, if the value is greater than 4
+     */
     public static int clampDamage(int value)
     {
         return MathHelper.clamp_int(value, 0, NAMES.length - 1);
     }
 
+    /**
+     * Creates a new instance of the ore.
+     */
     public AllomanticMetalOre()
     {
         super(Material.rock);
@@ -43,6 +50,12 @@ public class AllomanticMetalOre extends Block
         setRegistryName("allomantic_metal_ore");
     }
 
+    /**
+     * Creates an {@link IBlockState block state} of the ore for the given metal.
+     *
+     * @param metal the metal to create the ore for
+     * @return the block state of the ore
+     */
     public IBlockState fromMetal(String metal)
     {
         return getDefaultState().withProperty(METAL, metal);
@@ -61,6 +74,7 @@ public class AllomanticMetalOre extends Block
     @SideOnly(Side.CLIENT)
     public EnumWorldBlockLayer getBlockLayer()
     {
+        // Required because of the layering of textures in the block model
         return EnumWorldBlockLayer.CUTOUT_MIPPED;
     }
 
@@ -79,7 +93,7 @@ public class AllomanticMetalOre extends Block
     @Override
     public int getMetaFromState(IBlockState state)
     {
-        return Arrays.asList(NAMES).indexOf(state.getValue(METAL));
+        return Arrays.binarySearch(NAMES, state.getValue(METAL));
     }
 
     @Override
@@ -88,6 +102,9 @@ public class AllomanticMetalOre extends Block
         return new BlockState(this, METAL);
     }
 
+    /**
+     * The item representation of this block, used for localisation and storing the block in inventories.
+     */
     public static class ItemRepresentation extends ItemBlock
     {
         public ItemRepresentation(Block block)

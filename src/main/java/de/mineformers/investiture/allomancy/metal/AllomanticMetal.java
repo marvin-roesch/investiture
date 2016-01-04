@@ -10,16 +10,30 @@ import javax.annotation.Nonnull;
 import java.util.Objects;
 
 /**
- * AllomanticMetal
- *
- * @author PaleoCrafter
+ * Interface representing the properties of any allomantic metal.
+ * This is to be used like Vanilla's Blocks and Items, not storing any data itself.
  */
 public interface AllomanticMetal
 {
+    /**
+     * @return the metal's internal ID
+     */
     String id();
 
+    /**
+     * Determines whether the stack can be burned or is impure.
+     *
+     * @param stack the stack to check
+     * @return true if the stack is burnable, false if it is not pure enough
+     */
     boolean canBurn(@Nonnull ItemStack stack);
 
+    /**
+     * Determines the energy value stored in some form of metal.
+     *
+     * @param stack the stack to check
+     * @return the energy value of the stack
+     */
     default int getValue(@Nonnull ItemStack stack)
     {
         if (canBurn(stack))
@@ -28,6 +42,11 @@ public interface AllomanticMetal
             return 0;
     }
 
+    /**
+     * Apply any effects caused by the consumption of impure metals to an entity.
+     *
+     * @param entity the affected entity
+     */
     default void applyImpurityEffects(Entity entity)
     {
         if (entity instanceof EntityLivingBase)
@@ -36,11 +55,17 @@ public interface AllomanticMetal
         }
     }
 
-    default String unlocalizedName()
+    /**
+     * @return the metal's unlocalised name
+     */
+    default String unlocalisedName()
     {
         return "allomancy.metals." + id() + ".name";
     }
 
+    /**
+     * Basic abstract implementation of metals with an ID which also functions as equality measure.
+     */
     abstract class Abstract implements AllomanticMetal
     {
         private final String _id;

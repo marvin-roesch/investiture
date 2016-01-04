@@ -14,9 +14,7 @@ import java.util.Set;
 import static de.mineformers.investiture.allomancy.Allomancy.Items.allomantic_ingot;
 
 /**
- * AllomanticMetals
- *
- * @author PaleoCrafter
+ * Provides access to all allomantic metals, especially the basic 16 ones provided by the Allomancy module itself.
  */
 public final class AllomanticMetals
 {
@@ -38,6 +36,9 @@ public final class AllomanticMetals
     public static final AllomanticMetal ELECTRUM = new SelectiveItemMetal("electrum");
     public static final AllomanticMetal BENDALLOY = new SelectiveItemMetal("bendalloy");
 
+    /**
+     * Register all 16 basic metals
+     */
     public static void init()
     {
         METALS.add(BRONZE);
@@ -58,16 +59,26 @@ public final class AllomanticMetals
         METALS.add(BENDALLOY);
     }
 
+    /**
+     * @param id the ID of the searched metal
+     * @return a present {@link Optional} if the metal exists, {@link Optional#absent()} otherwise
+     */
     public static Optional<AllomanticMetal> get(String id)
     {
         return FluentIterable.from(METALS).firstMatch(m -> m.id().equals(id));
     }
 
+    /**
+     * @return an unmodifiable view of all allomantic metals
+     */
     public static Set<AllomanticMetal> metals()
     {
         return Collections.unmodifiableSet(METALS);
     }
 
+    /**
+     * Simple representation of vanilla metals
+     */
     private final static class VanillaItemMetal extends AllomanticMetal.Abstract
     {
         private final Item item;
@@ -85,6 +96,9 @@ public final class AllomanticMetals
         }
     }
 
+    /**
+     * Simple representation of basic allomantic metals
+     */
     private final static class SelectiveItemMetal extends AllomanticMetal.Abstract implements MetalEffects
     {
         SelectiveItemMetal(@Nonnull String id)
@@ -105,6 +119,7 @@ public final class AllomanticMetals
         @Override
         public boolean canBurn(@Nonnull ItemStack stack)
         {
+            // Only pure metals are burnable
             return getValue(stack) > 0 && allomantic_ingot.getPurity(stack) >= 100;
         }
 

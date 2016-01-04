@@ -13,12 +13,13 @@ import java.util.Random;
 import java.util.stream.Collectors;
 
 /**
- * MetalGenerator
- *
- * @author PaleoCrafter
+ * Generates ores for all allomantic metals.
  */
 public class MetalGenerator implements IWorldGenerator
 {
+    /**
+     * Container class for each ore's configuration
+     */
     private static class Ore
     {
         public final int minY;
@@ -35,6 +36,7 @@ public class MetalGenerator implements IWorldGenerator
         }
     }
 
+    // Should be replaced by real config
     private final static Map<String, Ore> ORES = ImmutableMap.of(
         "copper", new Ore(0, 64, 20, 9),
         "zinc", new Ore(0, 64, 20, 9),

@@ -4,9 +4,7 @@ import de.mineformers.investiture.allomancy.metal.MetalStorage;
 import de.mineformers.investiture.network.Message;
 
 /**
- * EntityMetalStorageUpdate
- *
- * @author PaleoCrafter
+ * Updates a metal storage.
  */
 public class EntityMetalStorageUpdate extends Message
 {

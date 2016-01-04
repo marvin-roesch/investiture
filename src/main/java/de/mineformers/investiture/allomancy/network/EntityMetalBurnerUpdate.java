@@ -4,9 +4,7 @@ import de.mineformers.investiture.allomancy.metal.MetalBurner;
 import de.mineformers.investiture.network.Message;
 
 /**
- * EntityMetalBurnerUpdate
- *
- * @author PaleoCrafter
+ * Updates a metal burner's storage and burn timers.
  */
 public class EntityMetalBurnerUpdate extends Message
 {
