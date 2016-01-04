@@ -1,16 +1,19 @@
 [
-{
-  "modid": "allomancy",
-  "name": "Allomancy",
-  "description": "Example placeholder mod.",
-  "version": "${version}",
-  "mcversion": "${mcversion}",
-  "url": "",
-  "updateUrl": "",
-  "authorList": ["ExampleDude"],
-  "credits": "The Forge and FML guys, for making this example",
-  "logoFile": "",
-  "screenshots": [],
-  "dependencies": []
-}
+  {
+    "modid": "investiture",
+    "name": "Investiture",
+    "description": "Everything revolving around Brandon Sanderson's Cosmere.",
+    "version": "${version}",
+    "mcversion": "${mcversion}",
+    "url": "",
+    "updateUrl": "",
+    "authorList": [
+      "PaleoCrafter",
+      "ollieread"
+    ],
+    "credits": "Brandon Sanderson, for creating this great universe",
+    "logoFile": "",
+    "screenshots": [],
+    "dependencies": []
+  }
 ]
