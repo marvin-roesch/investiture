@@ -1,6 +1,5 @@
 package de.mineformers.allomancy.network;
 
-import com.google.common.collect.FluentIterable;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.network.NetHandlerPlayClient;
@@ -10,11 +9,6 @@ import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * Message
@@ -38,23 +32,23 @@ public class Message implements IMessage {
 
     public interface Translator<T> {
         @SuppressWarnings("unchecked")
-        default void serialize(Object value, ByteBuf buffer) {
+        default void serialise(Object value, ByteBuf buffer) {
             buffer.writeBoolean(value != null);
             if (value != null)
-                serializeImpl((T) value, buffer);
+                serialiseImpl((T) value, buffer);
         }
 
 
-        default T deserialize(ByteBuf buffer) {
+        default T deserialise(ByteBuf buffer) {
             if (!buffer.readBoolean())
                 return null;
             else
-                return deserializeImpl(buffer);
+                return deserialiseImpl(buffer);
         }
 
-        void serializeImpl(T value, ByteBuf buffer);
+        void serialiseImpl(T value, ByteBuf buffer);
 
-        T deserializeImpl(ByteBuf buffer);
+        T deserialiseImpl(ByteBuf buffer);
     }
 
     public static class Context {

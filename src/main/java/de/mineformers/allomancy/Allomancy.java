@@ -1,13 +1,23 @@
 package de.mineformers.allomancy;
 
+import com.google.common.base.Optional;
 import de.mineformers.allomancy.block.AllomanticMetalOre;
+import de.mineformers.allomancy.core.EntityHandler;
 import de.mineformers.allomancy.core.Proxy;
 import de.mineformers.allomancy.item.AllomanticMetalIngot;
+import de.mineformers.allomancy.metal.AllomanticMetal;
 import de.mineformers.allomancy.metal.AllomanticMetals;
+import de.mineformers.allomancy.metal.MetalBurner;
+import de.mineformers.allomancy.metal.MetalStorage;
 import de.mineformers.allomancy.network.FunctionalNetwork;
+import de.mineformers.allomancy.network.Message;
+import de.mineformers.allomancy.network.messages.EntityMetalBurnerUpdate;
+import de.mineformers.allomancy.network.messages.EntityMetalStorageUpdate;
+import de.mineformers.allomancy.network.messages.ToggleBurningMetal;
 import de.mineformers.allomancy.world.MetalGenerator;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
@@ -59,6 +69,9 @@ public class Allomancy {
         Items.register();
         GameRegistry.registerWorldGenerator(new MetalGenerator(), 0);
         AllomanticMetals.init();
+
+        MinecraftForge.EVENT_BUS.register(new EntityHandler());
+
         proxy.preInit(event);
 
         CommonNetworking.init();
@@ -98,7 +111,25 @@ public class Allomancy {
 
     public static class CommonNetworking {
         public static void init() {
+            Message.registerTranslator(MetalStorage.class, new MetalStorage.Translator());
+            Message.registerTranslator(MetalBurner.class, new MetalBurner.Translator());
 
+            net().registerMessage(EntityMetalStorageUpdate.class);
+            net().registerMessage(EntityMetalBurnerUpdate.class);
+            net().registerMessage(ToggleBurningMetal.class);
+
+            net().addHandler(ToggleBurningMetal.class, Side.SERVER, (msg, ctx) -> {
+                MetalBurner burner = MetalBurner.from(ctx.player());
+                Optional<AllomanticMetal> optional = AllomanticMetals.get(msg.metal);
+                if (optional.isPresent() && burner != null) {
+                    AllomanticMetal metal = optional.get();
+                    if (burner.isBurning(metal))
+                        burner.stopBurning(metal);
+                    else
+                        burner.startBurning(metal);
+                }
+                return null;
+            });
         }
     }
 }

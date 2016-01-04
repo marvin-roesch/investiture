@@ -1,6 +1,5 @@
 package de.mineformers.allomancy.network;
 
-import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import io.netty.channel.*;
@@ -12,7 +11,9 @@ import net.minecraftforge.fml.common.FMLLog;
 import net.minecraftforge.fml.common.network.FMLEmbeddedChannel;
 import net.minecraftforge.fml.common.network.FMLOutboundHandler;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
-import net.minecraftforge.fml.common.network.simpleimpl.*;
+import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
+import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
+import net.minecraftforge.fml.common.network.simpleimpl.SimpleIndexedCodec;
 import net.minecraftforge.fml.relauncher.Side;
 import org.apache.logging.log4j.Level;
 
@@ -42,6 +43,7 @@ public class FunctionalNetwork {
             throw Throwables.propagate(e);
         }
     }
+
     private EnumMap<Side, FMLEmbeddedChannel> channels;
     private SimpleIndexedCodec packetCodec;
     private int lastDiscriminator = 0;
@@ -78,11 +80,11 @@ public class FunctionalNetwork {
     public <IN extends Message> void registerMessage(Class<IN> requestMessageType, int discriminator) {
         packetCodec.addDiscriminator(discriminator, requestMessageType);
         Serialization.INSTANCE.registerMessage(requestMessageType);
-        if(lastDiscriminator < discriminator)
+        if (lastDiscriminator < discriminator)
             lastDiscriminator = discriminator;
     }
 
-    public <IN extends Message, OUT extends Message> void addHandler(Class<IN> type, Message.Handler<? super IN, ? extends OUT> handler, Side side) {
+    public <IN extends Message, OUT extends Message> void addHandler(Class<IN> type, Side side, Message.Handler<? super IN, ? extends OUT> handler) {
         Wrapper<IN, OUT> wrapped = getHandlerWrapper(handler, side, type);
         FMLEmbeddedChannel channel = channels.get(side);
         String tp = channel.findChannelHandlerNameForType(SimpleIndexedCodec.class);
@@ -169,28 +171,24 @@ public class FunctionalNetwork {
         private final Message.Handler<? super IN, ? extends OUT> messageHandler;
         private final Side side;
 
-        public Wrapper(Message.Handler<? super IN, ? extends OUT> handler, Side side, Class<IN> requestType)
-        {
+        public Wrapper(Message.Handler<? super IN, ? extends OUT> handler, Side side, Class<IN> requestType) {
             super(requestType);
             messageHandler = Preconditions.checkNotNull(handler, "IMessageHandler must not be null");
             this.side = side;
         }
 
         @Override
-        protected void channelRead0(ChannelHandlerContext ctx, IN msg) throws Exception
-        {
+        protected void channelRead0(ChannelHandlerContext ctx, IN msg) throws Exception {
             INetHandler netHandler = ctx.channel().attr(NetworkRegistry.NET_HANDLER).get();
             OUT result = messageHandler.handle(msg, new Message.Context(netHandler, side));
-            if (result != null)
-            {
+            if (result != null) {
                 ctx.channel().attr(FMLOutboundHandler.FML_MESSAGETARGET).set(FMLOutboundHandler.OutboundTarget.REPLY);
                 ctx.writeAndFlush(result).addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
             }
         }
 
         @Override
-        public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception
-        {
+        public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
             FMLLog.log(Level.ERROR, cause, "SimpleChannelHandlerWrapper exception");
             super.exceptionCaught(ctx, cause);
         }

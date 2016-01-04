@@ -1,6 +1,5 @@
 package de.mineformers.allomancy.metal;
 
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 
 import javax.annotation.Nonnull;
@@ -17,14 +16,14 @@ public interface AllomanticMetal {
     boolean canBurn(@Nonnull ItemStack stack);
 
     default int getValue(@Nonnull ItemStack stack) {
-        if(canBurn(stack))
+        if (canBurn(stack))
             return stack.stackSize;
         else
             return 0;
     }
 
     default String unlocalizedName() {
-        return "allomancy.metal." + id() + ".name";
+        return "allomancy.metals." + id() + ".name";
     }
 
     abstract class AbstractAllomanticMetal implements AllomanticMetal {
@@ -48,7 +47,7 @@ public interface AllomanticMetal {
         public boolean equals(Object obj) {
             if (this == obj)
                 return true;
-            if(obj == null)
+            if (obj == null)
                 return false;
             if (getClass() != obj.getClass())
                 return false;

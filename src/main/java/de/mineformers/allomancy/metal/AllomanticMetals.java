@@ -7,10 +7,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static de.mineformers.allomancy.Allomancy.Items.allomantic_ingot;
 
@@ -20,7 +17,7 @@ import static de.mineformers.allomancy.Allomancy.Items.allomantic_ingot;
  * @author PaleoCrafter
  */
 public final class AllomanticMetals {
-    private static final List<AllomanticMetal> METALS = new ArrayList<>();
+    private static final Set<AllomanticMetal> METALS = new HashSet<>();
     public static final AllomanticMetal BRONZE = new SelectiveItemMetal("bronze");
     public static final AllomanticMetal BRASS = new SelectiveItemMetal("brass");
     public static final AllomanticMetal COPPER = new SelectiveItemMetal("copper");
@@ -61,8 +58,8 @@ public final class AllomanticMetals {
         return FluentIterable.from(METALS).firstMatch(m -> m.id().equals(id));
     }
 
-    public static List<AllomanticMetal> metals() {
-        return Collections.unmodifiableList(METALS);
+    public static Set<AllomanticMetal> metals() {
+        return Collections.unmodifiableSet(METALS);
     }
 
     private final static class VanillaItemMetal extends AllomanticMetal.AbstractAllomanticMetal {

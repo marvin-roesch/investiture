@@ -30,145 +30,145 @@ class Serialization {
     private Serialization() {
         addTranslator(String.class, new Message.Translator<String>() {
             @Override
-            public void serializeImpl(String value, ByteBuf buffer) {
+            public void serialiseImpl(String value, ByteBuf buffer) {
                 ByteBufUtils.writeUTF8String(buffer, value);
             }
 
             @Override
-            public String deserializeImpl(ByteBuf buffer) {
+            public String deserialiseImpl(ByteBuf buffer) {
                 return ByteBufUtils.readUTF8String(buffer);
             }
         });
 
         addTranslator(Integer.TYPE, new Message.Translator<Integer>() {
             @Override
-            public void serializeImpl(Integer value, ByteBuf buffer) {
+            public void serialiseImpl(Integer value, ByteBuf buffer) {
                 buffer.writeInt(value);
             }
 
             @Override
-            public Integer deserializeImpl(ByteBuf buffer) {
+            public Integer deserialiseImpl(ByteBuf buffer) {
                 return buffer.readInt();
             }
         });
 
         addTranslator(Byte.TYPE, new Message.Translator<Byte>() {
             @Override
-            public void serializeImpl(Byte value, ByteBuf buffer) {
+            public void serialiseImpl(Byte value, ByteBuf buffer) {
                 buffer.writeByte(value);
             }
 
             @Override
-            public Byte deserializeImpl(ByteBuf buffer) {
+            public Byte deserialiseImpl(ByteBuf buffer) {
                 return buffer.readByte();
             }
         });
 
         addTranslator(Short.TYPE, new Message.Translator<Short>() {
             @Override
-            public void serializeImpl(
+            public void serialiseImpl(
                     Short value, ByteBuf buffer) {
                 buffer.writeShort(value);
             }
 
             @Override
-            public Short deserializeImpl(ByteBuf buffer) {
+            public Short deserialiseImpl(ByteBuf buffer) {
                 return buffer.readShort();
             }
         });
 
         addTranslator(Long.TYPE, new Message.Translator<Long>() {
             @Override
-            public void serializeImpl(Long value, ByteBuf buffer) {
+            public void serialiseImpl(Long value, ByteBuf buffer) {
                 buffer.writeLong(value);
             }
 
             @Override
-            public Long deserializeImpl(ByteBuf buffer) {
+            public Long deserialiseImpl(ByteBuf buffer) {
                 return buffer.readLong();
             }
         });
 
         addTranslator(Character.TYPE, new Message.Translator<Character>() {
             @Override
-            public void serializeImpl(Character value, ByteBuf buffer) {
+            public void serialiseImpl(Character value, ByteBuf buffer) {
                 buffer.writeChar(value);
             }
 
             @Override
-            public Character deserializeImpl(ByteBuf buffer) {
+            public Character deserialiseImpl(ByteBuf buffer) {
                 return buffer.readChar();
             }
         });
 
         addTranslator(Boolean.TYPE, new Message.Translator<Boolean>() {
             @Override
-            public void serializeImpl(Boolean value, ByteBuf buffer) {
+            public void serialiseImpl(Boolean value, ByteBuf buffer) {
                 buffer.writeBoolean(value);
             }
 
             @Override
-            public Boolean deserializeImpl(ByteBuf buffer) {
+            public Boolean deserialiseImpl(ByteBuf buffer) {
                 return buffer.readBoolean();
             }
         });
 
         addTranslator(Float.TYPE, new Message.Translator<Float>() {
             @Override
-            public void serializeImpl(Float value, ByteBuf buffer) {
+            public void serialiseImpl(Float value, ByteBuf buffer) {
                 buffer.writeFloat(value);
             }
 
             @Override
-            public Float deserializeImpl(ByteBuf buffer) {
+            public Float deserialiseImpl(ByteBuf buffer) {
                 return buffer.readFloat();
             }
         });
 
         addTranslator(Double.TYPE, new Message.Translator<Double>() {
             @Override
-            public void serializeImpl(Double value, ByteBuf buffer) {
+            public void serialiseImpl(Double value, ByteBuf buffer) {
                 buffer.writeDouble(value);
             }
 
             @Override
-            public Double deserializeImpl(ByteBuf buffer) {
+            public Double deserialiseImpl(ByteBuf buffer) {
                 return buffer.readDouble();
             }
         });
 
         addTranslator(ItemStack.class, new Message.Translator<ItemStack>() {
             @Override
-            public void serializeImpl(ItemStack value, ByteBuf buffer) {
+            public void serialiseImpl(ItemStack value, ByteBuf buffer) {
                 ByteBufUtils.writeItemStack(buffer, value);
             }
 
             @Override
-            public ItemStack deserializeImpl(ByteBuf buffer) {
+            public ItemStack deserialiseImpl(ByteBuf buffer) {
                 return ByteBufUtils.readItemStack(buffer);
             }
         });
 
         addTranslator(NBTTagCompound.class, new Message.Translator<NBTTagCompound>() {
             @Override
-            public void serializeImpl(NBTTagCompound value, ByteBuf buffer) {
+            public void serialiseImpl(NBTTagCompound value, ByteBuf buffer) {
                 ByteBufUtils.writeTag(buffer, value);
             }
 
             @Override
-            public NBTTagCompound deserializeImpl(ByteBuf buffer) {
+            public NBTTagCompound deserialiseImpl(ByteBuf buffer) {
                 return ByteBufUtils.readTag(buffer);
             }
         });
 
         addTranslator(EnumFacing.class, new Message.Translator<EnumFacing>() {
             @Override
-            public void serializeImpl(EnumFacing value, ByteBuf buffer) {
+            public void serialiseImpl(EnumFacing value, ByteBuf buffer) {
                 buffer.writeInt(value.ordinal());
             }
 
             @Override
-            public EnumFacing deserializeImpl(ByteBuf buffer) {
+            public EnumFacing deserialiseImpl(ByteBuf buffer) {
                 return EnumFacing.values()[buffer.readInt()];
             }
         });
@@ -207,7 +207,7 @@ class Serialization {
             Message.Translator<?> translator = fieldTranslators.get(className, f.getName());
             f.setAccessible(true);
             try {
-                translator.serialize(f.get(message), buffer);
+                translator.serialise(f.get(message), buffer);
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }
@@ -221,7 +221,7 @@ class Serialization {
             Message.Translator<?> translator = fieldTranslators.get(className, f.getName());
             f.setAccessible(true);
             try {
-                f.set(message, translator.deserialize(buffer));
+                f.set(message, translator.deserialise(buffer));
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }
