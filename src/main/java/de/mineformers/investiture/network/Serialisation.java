@@ -17,9 +17,10 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 /**
- * Serialisation
- *
- * @author PaleoCrafter
+ * Internal handler for all networking serialisation needs.
+ * <p>
+ * WARNING: This class is an implementation detail and not supposed to be called by anything directly but {@link Message}, so binary incompatible
+ * API changes can occur at random.
  */
 class Serialisation
 {
@@ -28,8 +29,14 @@ class Serialisation
     private Map<String, Field[]> fields = new WeakHashMap<>();
     private Table<String, String, Message.Translator<?>> fieldTranslators = HashBasedTable.create();
 
+    /**
+     * Constructor that registers default serialisation.
+     * <p>
+     * It's private because there should only ever be one {@link Serialisation#INSTANCE instance} of this class.
+     */
     private Serialisation()
     {
+        // String translator
         addTranslator(String.class, new Message.Translator<String>()
         {
             @Override
@@ -45,6 +52,7 @@ class Serialisation
             }
         });
 
+        // int translator
         addTranslator(Integer.TYPE, new Message.Translator<Integer>()
         {
             @Override
@@ -60,6 +68,7 @@ class Serialisation
             }
         });
 
+        // byte translator
         addTranslator(Byte.TYPE, new Message.Translator<Byte>()
         {
             @Override
@@ -75,6 +84,7 @@ class Serialisation
             }
         });
 
+        // short translator
         addTranslator(Short.TYPE, new Message.Translator<Short>()
         {
             @Override
@@ -91,6 +101,7 @@ class Serialisation
             }
         });
 
+        // long translator
         addTranslator(Long.TYPE, new Message.Translator<Long>()
         {
             @Override
@@ -106,6 +117,7 @@ class Serialisation
             }
         });
 
+        // char translator
         addTranslator(Character.TYPE, new Message.Translator<Character>()
         {
             @Override
@@ -121,6 +133,7 @@ class Serialisation
             }
         });
 
+        // boolean translator
         addTranslator(Boolean.TYPE, new Message.Translator<Boolean>()
         {
             @Override
@@ -136,6 +149,7 @@ class Serialisation
             }
         });
 
+        // float translator
         addTranslator(Float.TYPE, new Message.Translator<Float>()
         {
             @Override
@@ -151,6 +165,7 @@ class Serialisation
             }
         });
 
+        // double translator
         addTranslator(Double.TYPE, new Message.Translator<Double>()
         {
             @Override
@@ -166,6 +181,7 @@ class Serialisation
             }
         });
 
+        // ItemStack translator
         addTranslator(ItemStack.class, new Message.Translator<ItemStack>()
         {
             @Override
@@ -181,6 +197,7 @@ class Serialisation
             }
         });
 
+        // NBT compound translator
         addTranslator(NBTTagCompound.class, new Message.Translator<NBTTagCompound>()
         {
             @Override
@@ -196,6 +213,7 @@ class Serialisation
             }
         });
 
+        // Direction translator
         addTranslator(EnumFacing.class, new Message.Translator<EnumFacing>()
         {
             @Override
@@ -212,43 +230,77 @@ class Serialisation
         });
     }
 
+    /**
+     * Internal method for adding a translator to the framework.
+     *
+     * @param type       the type the translator supports
+     * @param translator the translator
+     */
     void addTranslator(Class<?> type, Message.Translator<?> translator)
     {
         translators.put(type, translator);
     }
 
+    /**
+     * Finds a translator for a given type. If there is no direct translation available, the first translator that can handle a super class of the
+     * type will be used.
+     *
+     * @param type the type to find a translator for
+     * @return a translator for the given type, either one that directly supports the type or one for a super type
+     */
     private Message.Translator<?> findTranslator(Class<?> type)
     {
+        // Direct translation available, short circuit
         if (translators.containsKey(type))
             return translators.get(type);
+
+        // No direct translation available, we have to find one that fits the type nonetheless
         Optional<Message.Translator<?>> fit = FluentIterable.from(translators.entrySet())
                                                             .firstMatch(e -> e.getKey().isAssignableFrom(type))
                                                             .transform(Map.Entry::getValue);
         if (fit.isPresent())
             return fit.get();
         else
-            throw new RuntimeException("There is no translator for type " + type + " consider writing one.");
+            // There doesn't seem to be a translator for this type, we can't handle this particular situation gracefully
+            throw new RuntimeException("There is no translator for type " + type.getName() + ", consider writing one.");
     }
 
-    <T extends Message> void registerMessage(Class<T> clazz)
+    /**
+     * Registers a message to the serialisation framework. Allows faster serialisation due to caching of the results of intensive reflective
+     * operations.
+     *
+     * @param type the class representing the type of the message
+     * @param <T>  the type of the message
+     */
+    <T extends Message> void registerMessage(Class<T> type)
     {
-        Field[] fs = clazz.getDeclaredFields();
+        Field[] fs = type.getDeclaredFields();
+        // Sort fields by name to prevent disparities between client and server
         Arrays.sort(fs, (f1, f2) -> f1.getName().compareTo(f2.getName()));
-        fields.put(clazz.getName(), fs);
+        // Cache fields for the given type, looking them up reflectively is costly
+        fields.put(type.getName(), fs);
         for (Field f : fs)
         {
+            // Cache the translator for each field, prevents disparities between different points in time
             f.setAccessible(true);
-            fieldTranslators.put(clazz.getName(), f.getName(), findTranslator(f.getType()));
+            fieldTranslators.put(type.getName(), f.getName(), findTranslator(f.getType()));
         }
     }
 
-    void serializeFrom(Message message, ByteBuf buffer)
+    /**
+     * Serialises each field of a message to a byte buffer, utilising translators that fit each field's type best.
+     *
+     * @param message the message to serialise
+     * @param buffer the buffer to serialise the message into
+     */
+    void serialiseFrom(Message message, ByteBuf buffer)
     {
         String className = message.getClass().getName();
         Field[] fields = this.fields.get(className);
         for (Field f : fields)
         {
             Message.Translator<?> translator = fieldTranslators.get(className, f.getName());
+            // Fields might be private
             f.setAccessible(true);
             try
             {
@@ -256,18 +308,26 @@ class Serialisation
             }
             catch (IllegalAccessException e)
             {
+                // Should never happen
                 e.printStackTrace();
             }
         }
     }
 
-    void deserializeTo(ByteBuf buffer, Message message)
+    /**
+     * Deserialises the contents of a byte buffer into a message, writing each field utilising translators.
+     *
+     * @param buffer the buffer to deserialise from
+     * @param message the message to deserialise into
+     */
+    void deserialiseTo(ByteBuf buffer, Message message)
     {
         String className = message.getClass().getName();
         Field[] fields = this.fields.get(className);
         for (Field f : fields)
         {
             Message.Translator<?> translator = fieldTranslators.get(className, f.getName());
+            // Fields might be private
             f.setAccessible(true);
             try
             {
@@ -275,6 +335,7 @@ class Serialisation
             }
             catch (IllegalAccessException e)
             {
+                // Should never happen
                 e.printStackTrace();
             }
         }

@@ -18,9 +18,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import java.util.List;
 
 /**
- * Investiture
- *
- * @author PaleoCrafter
+ * Main entry point for the Investiture mod
  */
 @Mod(modid = Investiture.MOD_ID, name = "Investiture", version = Investiture.MOD_VERSION)
 public final class Investiture
@@ -48,6 +46,9 @@ public final class Investiture
         serverSide = "de.mineformers.investiture.core.ServerSide")
     public static Proxy proxy;
 
+    /**
+     * @return the network used by Investiture
+     */
     public static FunctionalNetwork net()
     {
         return instance.network;
@@ -56,14 +57,25 @@ public final class Investiture
     private FunctionalNetwork network;
     private static final List<Manifestation> modules = ImmutableList.of(new Allomancy());
 
+    /**
+     * Fired during the pre-initialisation phase. Should be used for registering blocks, items etc.
+     *
+     * @param event the event that triggers this method
+     */
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event)
     {
         network = FunctionalNetwork.create(MOD_ID);
+        // Delegate event to modules
         modules.forEach(m -> m.preInit(event));
         proxy.preInit(event);
     }
 
+    /**
+     * Fired during the initialisation phase. Should be used for registering recipes.
+     *
+     * @param event the event that triggers this method
+     */
     @Mod.EventHandler
     public void init(FMLInitializationEvent event)
     {
@@ -71,6 +83,11 @@ public final class Investiture
         proxy.init(event);
     }
 
+    /**
+     * Fired during the post-initialisation phase. Should be used for all kinds of interaction with other mods.
+     *
+     * @param event the event that triggers this method
+     */
     @Mod.EventHandler
     public void postInit(FMLPostInitializationEvent event)
     {

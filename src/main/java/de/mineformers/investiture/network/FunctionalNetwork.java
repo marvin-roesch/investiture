@@ -21,19 +21,31 @@ import java.lang.reflect.Method;
 import java.util.EnumMap;
 
 /**
- * FunctionalNetwork
- *
- * @author PaleoCrafter
+ * Provides packet handling with a functional API.
+ * Messages and handlers get registered separately and a discriminator does not have to be provided.
+ * <p>
+ * Acquire an instance through {@link FunctionalNetwork#create(String)}.
+ * <p>
+ * Most of this is a straight copy from Forge's {@link net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper simpleimpl}, so
+ * credits go to cpw.
  */
 public class FunctionalNetwork
 {
-    private static Class<?> defaultChannelPipeline;
-    private static Method generateName;
-
+    /**
+     * Creates a network with a specific channel name.
+     *
+     * @param channelName the name of the channel to use
+     * @return a network ready for registering messages etc.
+     */
     public static FunctionalNetwork create(String channelName)
     {
         return new FunctionalNetwork(channelName);
     }
+
+    // Copied from Forge, new in 1.8
+    // Seems to have to do with generating names for the packet handlers
+    private static Class<?> defaultChannelPipeline;
+    private static Method generateName;
 
     static
     {
@@ -54,12 +66,24 @@ public class FunctionalNetwork
     private SimpleIndexedCodec packetCodec;
     private int lastDiscriminator = 0;
 
+    /**
+     * Creates an instance of the class. Private because {@link FunctionalNetwork#create(String)} is the way to acquire an instance.
+     *
+     * @param channelName the name of the channel
+     */
     private FunctionalNetwork(String channelName)
     {
         packetCodec = new SimpleIndexedCodec();
         channels = NetworkRegistry.INSTANCE.newChannel(channelName, packetCodec);
     }
 
+    /**
+     * Generates a name for a given handler.
+     *
+     * @param pipeline the pipeline used for generating the name
+     * @param handler  the handler to generate a name for
+     * @return a name for the handler
+     */
     private String generateName(ChannelPipeline pipeline, ChannelHandler handler)
     {
         try
@@ -74,42 +98,42 @@ public class FunctionalNetwork
     }
 
     /**
-     * Register a message which will have the supplied discriminator byte.
+     * Register a message which will take the next discriminator byte available.
      *
-     * @param requestMessageType the message type
+     * @param type the message type
      */
-    public <IN extends Message> void registerMessage(Class<IN> requestMessageType)
+    public <IN extends Message> void registerMessage(Class<IN> type)
     {
-        registerMessage(requestMessageType, lastDiscriminator++);
+        registerMessage(type, lastDiscriminator++);
     }
 
     /**
      * Register a message which will have the supplied discriminator byte.
      *
-     * @param requestMessageType the message type
-     * @param discriminator      a discriminator byte
+     * @param type          the message type
+     * @param discriminator a discriminator byte
      */
-    public <IN extends Message> void registerMessage(Class<IN> requestMessageType, int discriminator)
+    public <IN extends Message> void registerMessage(Class<IN> type, int discriminator)
     {
-        packetCodec.addDiscriminator(discriminator, requestMessageType);
-        Serialisation.INSTANCE.registerMessage(requestMessageType);
+        packetCodec.addDiscriminator(discriminator, type);
+        Serialisation.INSTANCE.registerMessage(type);
         if (lastDiscriminator < discriminator)
             lastDiscriminator = discriminator;
     }
 
-    public <IN extends Message, OUT extends Message> void addHandler(
-        Class<IN> type, Side side, Message.Handler<? super IN, ? extends OUT> handler)
+    /**
+     * Adds a handler for a message.
+     *
+     * @param type    the class of the message
+     * @param side    the side the handler is supposed to run on
+     * @param handler the handler
+     */
+    public <IN extends Message, OUT extends Message> void addHandler(Class<IN> type, Side side, Message.Handler<? super IN, ? extends OUT> handler)
     {
-        Wrapper<IN, OUT> wrapped = getHandlerWrapper(type, side, handler);
+        Wrapper<IN, OUT> wrapped = new Wrapper<>(handler, side, type);
         FMLEmbeddedChannel channel = channels.get(side);
         String tp = channel.findChannelHandlerNameForType(SimpleIndexedCodec.class);
         channel.pipeline().addAfter(tp, generateName(channel.pipeline(), wrapped), wrapped);
-    }
-
-    private <IN extends Message, OUT extends Message> Wrapper<IN, OUT> getHandlerWrapper(
-        Class<IN> type, Side side, Message.Handler<? super IN, ? extends OUT> handler)
-    {
-        return new Wrapper<>(handler, side, type);
     }
 
     /**
@@ -119,7 +143,7 @@ public class FunctionalNetwork
      * @param message The message to translate into packet form
      * @return A minecraft {@link Packet} suitable for use in minecraft APIs
      */
-    public Packet<?> getPacketFrom(IMessage message)
+    public Packet<?> getPacketFrom(Message message)
     {
         return channels.get(Side.SERVER).generatePacketFrom(message);
     }
@@ -190,6 +214,9 @@ public class FunctionalNetwork
         channels.get(Side.CLIENT).writeAndFlush(message).addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
     }
 
+    /**
+     * Internal class acting as interface between {@link de.mineformers.investiture.network.Message.Handler Handlers} and Netty.
+     */
     private static class Wrapper<IN extends Message, OUT extends Message> extends SimpleChannelInboundHandler<IN>
     {
         private final Message.Handler<? super IN, ? extends OUT> messageHandler;

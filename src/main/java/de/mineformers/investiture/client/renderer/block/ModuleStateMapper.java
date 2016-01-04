@@ -6,9 +6,8 @@ import net.minecraft.client.renderer.block.statemap.StateMapperBase;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 
 /**
- * ModuleStateMapper
- *
- * @author PaleoCrafter
+ * A state mapper that is specific to a given Investiture module.
+ * This is a required "hack" to give modules their own resource domain without being a mod on their own.
  */
 public class ModuleStateMapper extends StateMapperBase
 {

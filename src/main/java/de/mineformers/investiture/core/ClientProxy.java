@@ -1,9 +1,7 @@
 package de.mineformers.investiture.core;
 
 /**
- * ClientProxy
- *
- * @author PaleoCrafter
+ * Handles all Investiture-level operations specific to the dedicated client.
  */
 public class ClientProxy implements Proxy
 {
