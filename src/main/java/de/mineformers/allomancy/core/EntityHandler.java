@@ -15,16 +15,19 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
  *
  * @author PaleoCrafter
  */
-public class EntityHandler {
+public class EntityHandler
+{
     @SubscribeEvent
-    public void onConstructing(EntityEvent.EntityConstructing event) {
+    public void onConstructing(EntityEvent.EntityConstructing event)
+    {
         if (event.entity instanceof EntityPlayer)
             if (MetalBurner.from(event.entity) == null)
                 event.entity.registerExtendedProperties(Allomancy.NBT.BURNER_ID, new MetalBurner.EntityMetalBurner());
     }
 
     @SubscribeEvent
-    public void onClone(PlayerEvent.Clone event) {
+    public void onClone(PlayerEvent.Clone event)
+    {
         MetalBurner oldStorage = MetalBurner.from(event.original);
         MetalBurner newStorage = MetalBurner.from(event.entity);
 
@@ -32,14 +35,18 @@ public class EntityHandler {
     }
 
     @SubscribeEvent
-    public void onLogin(PlayerLoggedInEvent event) {
+    public void onLogin(PlayerLoggedInEvent event)
+    {
         ((MetalBurner.EntityMetalBurner) event.player.getExtendedProperties(Allomancy.NBT.BURNER_ID)).sync();
     }
 
     @SubscribeEvent
-    public void onInteract(PlayerInteractEvent event) {
-        if (!event.entity.worldObj.isRemote && event.entityPlayer.getHeldItem() != null) {
-            if (event.action == PlayerInteractEvent.Action.RIGHT_CLICK_AIR) {
+    public void onInteract(PlayerInteractEvent event)
+    {
+        if (!event.entity.worldObj.isRemote && event.entityPlayer.getHeldItem() != null)
+        {
+            if (event.action == PlayerInteractEvent.Action.RIGHT_CLICK_AIR)
+            {
                 MetalBurner metals = MetalBurner.from(event.entity);
                 int consumed = metals.consume(event.entityPlayer.getHeldItem());
                 event.entityPlayer.getHeldItem().stackSize -= consumed;
@@ -48,7 +55,8 @@ public class EntityHandler {
     }
 
     @SubscribeEvent
-    public void onPlayerTick(TickEvent.PlayerTickEvent event) {
+    public void onPlayerTick(TickEvent.PlayerTickEvent event)
+    {
         if (event.player.worldObj.isRemote || event.phase == TickEvent.Phase.END)
             return;
 

@@ -8,7 +8,8 @@ import org.lwjgl.input.Keyboard;
  *
  * @author PaleoCrafter
  */
-public class KeyBindings {
+public class KeyBindings
+{
     public static final KeyBinding SHOW_DIAL =
-            new KeyBinding("key.showDial", Keyboard.KEY_F, "key.categories.allomancy");
+        new KeyBinding("key.showDial", Keyboard.KEY_F, "key.categories.allomancy");
 }

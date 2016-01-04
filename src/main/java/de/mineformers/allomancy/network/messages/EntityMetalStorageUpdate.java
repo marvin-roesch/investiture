@@ -8,14 +8,17 @@ import de.mineformers.allomancy.network.Message;
  *
  * @author PaleoCrafter
  */
-public class EntityMetalStorageUpdate extends Message {
+public class EntityMetalStorageUpdate extends Message
+{
     public int entity;
     public MetalStorage storage;
 
-    public EntityMetalStorageUpdate() {
+    public EntityMetalStorageUpdate()
+    {
     }
 
-    public EntityMetalStorageUpdate(int entity, MetalStorage storage) {
+    public EntityMetalStorageUpdate(int entity, MetalStorage storage)
+    {
         this.entity = entity;
         this.storage = storage;
     }

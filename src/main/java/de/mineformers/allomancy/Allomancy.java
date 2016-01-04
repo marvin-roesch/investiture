@@ -33,37 +33,41 @@ import net.minecraftforge.fml.relauncher.SideOnly;
  * @author PaleoCrafter
  */
 @Mod(modid = Allomancy.MOD_ID, name = "Allomancy", version = Allomancy.MOD_VERSION)
-public class Allomancy {
+public class Allomancy
+{
     public static final String MOD_ID = "allomancy";
     public static final String MOD_VERSION = "0.0.1";
-    public static final CreativeTabs CREATIVE_TAB = new CreativeTabs(CreativeTabs.getNextID(), MOD_ID) {
+    public static final CreativeTabs CREATIVE_TAB = new CreativeTabs(CreativeTabs.getNextID(), MOD_ID)
+    {
         @Override
         @SideOnly(Side.CLIENT)
-        public Item getTabIconItem() {
+        public Item getTabIconItem()
+        {
             return Items.allomantic_ingot;
         }
 
         @Override
-        public int getIconItemDamage() {
+        public int getIconItemDamage()
+        {
             return 8;
         }
     };
-
     @Mod.Instance(MOD_ID)
     public static Allomancy instance;
-
     @SidedProxy(modId = MOD_ID, clientSide = "de.mineformers.allomancy.core.ClientProxy",
-            serverSide = "de.mineformers.allomancy.core.ServerSide")
+        serverSide = "de.mineformers.allomancy.core.ServerSide")
     public static Proxy proxy;
 
-    public static FunctionalNetwork net() {
+    public static FunctionalNetwork net()
+    {
         return instance.network;
     }
 
     private FunctionalNetwork network;
 
     @Mod.EventHandler
-    public void preInit(FMLPreInitializationEvent event) {
+    public void preInit(FMLPreInitializationEvent event)
+    {
         network = FunctionalNetwork.create(MOD_ID);
         Blocks.register();
         Items.register();
@@ -78,39 +82,48 @@ public class Allomancy {
     }
 
     @Mod.EventHandler
-    public void init(FMLInitializationEvent event) {
+    public void init(FMLInitializationEvent event)
+    {
         proxy.init(event);
     }
 
     @Mod.EventHandler
-    public void postInit(FMLPostInitializationEvent event) {
+    public void postInit(FMLPostInitializationEvent event)
+    {
         proxy.postInit(event);
     }
 
-    public static class Blocks {
+    public static class Blocks
+    {
         public static AllomanticMetalOre allomantic_ore;
 
-        public static void register() {
+        public static void register()
+        {
             GameRegistry.registerBlock(allomantic_ore = new AllomanticMetalOre(),
-                    AllomanticMetalOre.ItemRepresentation.class);
+                                       AllomanticMetalOre.ItemRepresentation.class);
         }
     }
 
-    public static class Items {
+    public static class Items
+    {
         public static AllomanticMetalIngot allomantic_ingot;
 
-        public static void register() {
+        public static void register()
+        {
             GameRegistry.registerItem(allomantic_ingot = new AllomanticMetalIngot());
         }
     }
 
-    public static class NBT {
+    public static class NBT
+    {
         public static final String STORAGE_ID = "allomancy_metal_storage";
         public static final String BURNER_ID = "allomancy_metal_burner";
     }
 
-    public static class CommonNetworking {
-        public static void init() {
+    public static class CommonNetworking
+    {
+        public static void init()
+        {
             Message.registerTranslator(MetalStorage.class, new MetalStorage.Translator());
             Message.registerTranslator(MetalBurner.class, new MetalBurner.Translator());
 
@@ -122,7 +135,8 @@ public class Allomancy {
                 ctx.schedule(() -> {
                     MetalBurner burner = MetalBurner.from(ctx.player());
                     Optional<AllomanticMetal> optional = AllomanticMetals.get(msg.metal);
-                    if (optional.isPresent() && burner != null) {
+                    if (optional.isPresent() && burner != null)
+                    {
                         AllomanticMetal metal = optional.get();
                         if (burner.isBurning(metal))
                             burner.stopBurning(metal);

@@ -5,5 +5,6 @@ package de.mineformers.allomancy.core;
  *
  * @author PaleoCrafter
  */
-public class ServerProxy implements Proxy {
+public class ServerProxy implements Proxy
+{
 }

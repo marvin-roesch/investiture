@@ -28,36 +28,39 @@ import java.util.List;
  *
  * @author PaleoCrafter
  */
-public class ClientProxy implements Proxy {
+public class ClientProxy implements Proxy
+{
     @Override
-    public void preInit(FMLPreInitializationEvent event) {
+    public void preInit(FMLPreInitializationEvent event)
+    {
         MinecraftForge.EVENT_BUS.register(new MetalHUD());
 
         final List<ModelResourceLocation> ingotResources =
-                FluentIterable.from(Arrays.asList(AllomanticMetalIngot.NAMES))
-                        .transform(n -> new ModelResourceLocation(Allomancy.MOD_ID +
-                                ":allomantic_metal_ingot", "metal=" + n)).toList();
+            FluentIterable.from(Arrays.asList(AllomanticMetalIngot.NAMES))
+                          .transform(n -> new ModelResourceLocation(Allomancy.MOD_ID + ":allomantic_metal_ingot", "metal=" + n))
+                          .toList();
 
         ModelLoader.setCustomMeshDefinition(Allomancy.Items.allomantic_ingot,
-                stack -> ingotResources.get(AllomanticMetalIngot.clampDamage(stack.getItemDamage())));
+                                            stack -> ingotResources.get(AllomanticMetalIngot.clampDamage(stack.getItemDamage())));
         ModelBakery.registerItemVariants(Allomancy.Items.allomantic_ingot,
-                ingotResources.toArray(new ModelResourceLocation[ingotResources.size()]));
+                                         ingotResources.toArray(new ModelResourceLocation[ingotResources.size()]));
 
         final List<ModelResourceLocation> oreResources =
-                FluentIterable.from(Arrays.asList(AllomanticMetalOre.NAMES))
-                        .transform(n -> new ModelResourceLocation(Allomancy.MOD_ID +
-                                ":allomantic_metal_ore", "metal=" + n)).toList();
+            FluentIterable.from(Arrays.asList(AllomanticMetalOre.NAMES))
+                          .transform(n -> new ModelResourceLocation(Allomancy.MOD_ID + ":allomantic_metal_ore", "metal=" + n))
+                          .toList();
 
         ModelLoader.setCustomMeshDefinition(Item.getItemFromBlock(Allomancy.Blocks.allomantic_ore),
-                stack -> oreResources.get(AllomanticMetalOre.clampDamage(stack.getItemDamage())));
+                                            stack -> oreResources.get(AllomanticMetalOre.clampDamage(stack.getItemDamage())));
         ModelBakery.registerItemVariants(Item.getItemFromBlock(Allomancy.Blocks.allomantic_ore),
-                oreResources.toArray(new ModelResourceLocation[oreResources.size()]));
+                                         oreResources.toArray(new ModelResourceLocation[oreResources.size()]));
 
         ClientRegistry.registerKeyBinding(KeyBindings.SHOW_DIAL);
 
         Allomancy.net().addHandler(EntityMetalStorageUpdate.class, Side.CLIENT, (msg, ctx) -> {
             ctx.schedule(() -> {
-                if (ctx.player() != null) {
+                if (ctx.player() != null)
+                {
                     Entity entity = ctx.player().worldObj.getEntityByID(msg.entity);
                     MetalStorage.from(entity).copy(msg.storage);
                 }
@@ -67,7 +70,8 @@ public class ClientProxy implements Proxy {
 
         Allomancy.net().addHandler(EntityMetalBurnerUpdate.class, Side.CLIENT, (msg, ctx) -> {
             ctx.schedule(() -> {
-                if (ctx.player() != null) {
+                if (ctx.player() != null)
+                {
                     Entity entity = ctx.player().worldObj.getEntityByID(msg.entity);
                     MetalBurner.from(entity).copy(msg.burner);
                 }

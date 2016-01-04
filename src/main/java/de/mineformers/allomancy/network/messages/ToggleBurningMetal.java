@@ -7,13 +7,16 @@ import de.mineformers.allomancy.network.Message;
  *
  * @author PaleoCrafter
  */
-public class ToggleBurningMetal extends Message {
+public class ToggleBurningMetal extends Message
+{
     public String metal;
 
-    public ToggleBurningMetal() {
+    public ToggleBurningMetal()
+    {
     }
 
-    public ToggleBurningMetal(String metal) {
+    public ToggleBurningMetal(String metal)
+    {
         this.metal = metal;
     }
 }

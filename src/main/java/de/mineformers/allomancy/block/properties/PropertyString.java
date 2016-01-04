@@ -10,21 +10,25 @@ import java.util.Collection;
  *
  * @author PaleoCrafter
  */
-public class PropertyString extends PropertyHelper<String> {
+public class PropertyString extends PropertyHelper<String>
+{
     private Collection<String> allowedValues;
 
-    public PropertyString(String name, String... allowedValues) {
+    public PropertyString(String name, String... allowedValues)
+    {
         super(name, String.class);
         this.allowedValues = Arrays.asList(allowedValues);
     }
 
     @Override
-    public String getName(String value) {
+    public String getName(String value)
+    {
         return value;
     }
 
     @Override
-    public Collection<String> getAllowedValues() {
+    public Collection<String> getAllowedValues()
+    {
         return allowedValues;
     }
 }

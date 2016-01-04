@@ -9,13 +9,17 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
  *
  * @author PaleoCrafter
  */
-public interface Proxy {
-    default void preInit(FMLPreInitializationEvent event) {
+public interface Proxy
+{
+    default void preInit(FMLPreInitializationEvent event)
+    {
     }
 
-    default void init(FMLInitializationEvent event) {
+    default void init(FMLInitializationEvent event)
+    {
     }
 
-    default void postInit(FMLPostInitializationEvent event) {
+    default void postInit(FMLPostInitializationEvent event)
+    {
     }
 }

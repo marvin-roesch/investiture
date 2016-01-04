@@ -5,7 +5,8 @@ package de.mineformers.allomancy.metal;
  *
  * @author PaleoCrafter
  */
-public interface MetalEffects extends AllomanticMetal {
+public interface MetalEffects extends AllomanticMetal
+{
     void startBurning(MetalBurner burner);
 
     void stopBurning(MetalBurner burner);

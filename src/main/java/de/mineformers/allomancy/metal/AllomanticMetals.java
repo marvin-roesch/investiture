@@ -7,7 +7,9 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 
 import javax.annotation.Nonnull;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import static de.mineformers.allomancy.Allomancy.Items.allomantic_ingot;
 
@@ -16,7 +18,8 @@ import static de.mineformers.allomancy.Allomancy.Items.allomantic_ingot;
  *
  * @author PaleoCrafter
  */
-public final class AllomanticMetals {
+public final class AllomanticMetals
+{
     private static final Set<AllomanticMetal> METALS = new HashSet<>();
     public static final AllomanticMetal BRONZE = new SelectiveItemMetal("bronze");
     public static final AllomanticMetal BRASS = new SelectiveItemMetal("brass");
@@ -35,7 +38,8 @@ public final class AllomanticMetals {
     public static final AllomanticMetal ELECTRUM = new SelectiveItemMetal("electrum");
     public static final AllomanticMetal BENDALLOY = new SelectiveItemMetal("bendalloy");
 
-    public static void init() {
+    public static void init()
+    {
         METALS.add(BRONZE);
         METALS.add(BRASS);
         METALS.add(COPPER);
@@ -54,48 +58,59 @@ public final class AllomanticMetals {
         METALS.add(BENDALLOY);
     }
 
-    public static Optional<AllomanticMetal> get(String id) {
+    public static Optional<AllomanticMetal> get(String id)
+    {
         return FluentIterable.from(METALS).firstMatch(m -> m.id().equals(id));
     }
 
-    public static Set<AllomanticMetal> metals() {
+    public static Set<AllomanticMetal> metals()
+    {
         return Collections.unmodifiableSet(METALS);
     }
 
-    private final static class VanillaItemMetal extends AllomanticMetal.Abstract {
+    private final static class VanillaItemMetal extends AllomanticMetal.Abstract
+    {
         private final Item item;
 
-        VanillaItemMetal(@Nonnull String id, @Nonnull Item item) {
+        VanillaItemMetal(@Nonnull String id, @Nonnull Item item)
+        {
             super(id);
             this.item = item;
         }
 
         @Override
-        public boolean canBurn(@Nonnull ItemStack stack) {
+        public boolean canBurn(@Nonnull ItemStack stack)
+        {
             return stack.getItem() == item;
         }
     }
 
-    private final static class SelectiveItemMetal extends AllomanticMetal.Abstract implements MetalEffects {
-        SelectiveItemMetal(@Nonnull String id) {
+    private final static class SelectiveItemMetal extends AllomanticMetal.Abstract implements MetalEffects
+    {
+        SelectiveItemMetal(@Nonnull String id)
+        {
             super(id);
         }
 
         @Override
-        public void startBurning(MetalBurner burner) {
+        public void startBurning(MetalBurner burner)
+        {
         }
 
         @Override
-        public void stopBurning(MetalBurner burner) {
+        public void stopBurning(MetalBurner burner)
+        {
         }
 
         @Override
-        public boolean canBurn(@Nonnull ItemStack stack) {
+        public boolean canBurn(@Nonnull ItemStack stack)
+        {
             return getValue(stack) > 0 && allomantic_ingot.getPurity(stack) >= 100;
         }
 
         @Override
-        public int getValue(@Nonnull ItemStack stack) {
+        public int getValue(@Nonnull ItemStack stack)
+        {
             if (stack.getItem() == allomantic_ingot && allomantic_ingot.getName(stack).equals(id()))
                 return stack.stackSize;
             else

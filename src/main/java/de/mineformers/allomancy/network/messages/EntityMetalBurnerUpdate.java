@@ -8,14 +8,17 @@ import de.mineformers.allomancy.network.Message;
  *
  * @author PaleoCrafter
  */
-public class EntityMetalBurnerUpdate extends Message {
+public class EntityMetalBurnerUpdate extends Message
+{
     public int entity;
     public MetalBurner burner;
 
-    public EntityMetalBurnerUpdate() {
+    public EntityMetalBurnerUpdate()
+    {
     }
 
-    public EntityMetalBurnerUpdate(int entity, MetalBurner burner) {
+    public EntityMetalBurnerUpdate(int entity, MetalBurner burner)
+    {
         this.entity = entity;
         this.burner = burner;
     }
