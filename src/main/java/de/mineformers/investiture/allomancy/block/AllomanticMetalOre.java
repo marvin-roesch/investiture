@@ -93,7 +93,7 @@ public class AllomanticMetalOre extends Block
     @Override
     public int getMetaFromState(IBlockState state)
     {
-        return Arrays.binarySearch(NAMES, state.getValue(METAL));
+        return Arrays.asList(NAMES).indexOf(state.getValue(METAL));
     }
 
     @Override
