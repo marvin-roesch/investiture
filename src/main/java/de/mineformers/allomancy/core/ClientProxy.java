@@ -57,18 +57,22 @@ public class ClientProxy implements Proxy {
         ClientRegistry.registerKeyBinding(KeyBindings.SHOW_DIAL);
 
         Allomancy.net().addHandler(EntityMetalStorageUpdate.class, Side.CLIENT, (msg, ctx) -> {
-            if (ctx.player() != null) {
-                Entity entity = ctx.player().worldObj.getEntityByID(msg.entity);
-                MetalStorage.from(entity).copy(msg.storage);
-            }
+            ctx.schedule(() -> {
+                if (ctx.player() != null) {
+                    Entity entity = ctx.player().worldObj.getEntityByID(msg.entity);
+                    MetalStorage.from(entity).copy(msg.storage);
+                }
+            });
             return null;
         });
 
         Allomancy.net().addHandler(EntityMetalBurnerUpdate.class, Side.CLIENT, (msg, ctx) -> {
-            if (ctx.player() != null) {
-                Entity entity = ctx.player().worldObj.getEntityByID(msg.entity);
-                MetalBurner.from(entity).copy(msg.burner);
-            }
+            ctx.schedule(() -> {
+                if (ctx.player() != null) {
+                    Entity entity = ctx.player().worldObj.getEntityByID(msg.entity);
+                    MetalBurner.from(entity).copy(msg.burner);
+                }
+            });
             return null;
         });
     }

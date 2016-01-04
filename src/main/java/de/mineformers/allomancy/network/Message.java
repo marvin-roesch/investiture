@@ -2,10 +2,12 @@ package de.mineformers.allomancy.network;
 
 import io.netty.buffer.ByteBuf;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.client.network.NetHandlerPlayClient;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.network.INetHandler;
 import net.minecraft.network.NetHandlerPlayServer;
+import net.minecraft.world.WorldServer;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -65,6 +67,13 @@ public class Message implements IMessage {
                 return Minecraft.getMinecraft().thePlayer;
             else
                 return serverHandler().playerEntity;
+        }
+
+        public void schedule(Runnable f) {
+            if(!(netHandler instanceof NetHandlerPlayServer))
+                Minecraft.getMinecraft().addScheduledTask(f);
+            else
+                ((WorldServer) serverHandler().playerEntity.worldObj).addScheduledTask(f);
         }
 
         @SideOnly(Side.CLIENT)

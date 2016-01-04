@@ -119,15 +119,17 @@ public class Allomancy {
             net().registerMessage(ToggleBurningMetal.class);
 
             net().addHandler(ToggleBurningMetal.class, Side.SERVER, (msg, ctx) -> {
-                MetalBurner burner = MetalBurner.from(ctx.player());
-                Optional<AllomanticMetal> optional = AllomanticMetals.get(msg.metal);
-                if (optional.isPresent() && burner != null) {
-                    AllomanticMetal metal = optional.get();
-                    if (burner.isBurning(metal))
-                        burner.stopBurning(metal);
-                    else
-                        burner.startBurning(metal);
-                }
+                ctx.schedule(() -> {
+                    MetalBurner burner = MetalBurner.from(ctx.player());
+                    Optional<AllomanticMetal> optional = AllomanticMetals.get(msg.metal);
+                    if (optional.isPresent() && burner != null) {
+                        AllomanticMetal metal = optional.get();
+                        if (burner.isBurning(metal))
+                            burner.stopBurning(metal);
+                        else
+                            burner.startBurning(metal);
+                    }
+                });
                 return null;
             });
         }
