@@ -179,20 +179,20 @@ public class MetalSelectionHUD
     {
         GlStateManager.color(1, 1, 1, 1);
         MetalBurner burner = MetalBurner.from(Minecraft.getMinecraft().thePlayer);
-        // The icon shader will replace the colors of the metal icons entirely, depending on the amount stored of the respective metal
+        // The icon shader will replace the colours of the metal icons entirely, depending on the amount stored of the respective metal
         iconShader.activate();
         iconShader.setUniformInt("tex", 0);
         iconShader.setUniformFloat("deltaBrightness", 0.1f);
-        iconShader.setUniform("hoveredColor", new Vec3(171 / 255f, 137 / 255f, 19 / 255f));
-        iconShader.setUniform("metalColor", new Vec3(171 / 255f, 137 / 255f, 19 / 255f));
-        iconShader.setUniform("impurityColor", new Vec3(141 / 255f, 19 / 255f, 171 / 255f));
+        iconShader.setUniform("hoveredColour", new Vec3(171 / 255f, 137 / 255f, 19 / 255f));
+        iconShader.setUniform("metalColour", new Vec3(171 / 255f, 137 / 255f, 19 / 255f));
+        iconShader.setUniform("impurityColour", new Vec3(141 / 255f, 19 / 255f, 171 / 255f));
         for (int i = 0; i < METALS.length / 2; i++)
         {
             double angle = PI / 4 * (i + 0.5);
             AllomanticMetal innerMetal = AllomanticMetals.get(METALS[i * 2]).get();
             iconShader.setUniformBool("hovered", hoveredMetal.orNull() == innerMetal);
-            // Change the main color of the icon if the metal is burning
-            iconShader.setUniform("backColor", burner.isBurning(innerMetal) ? new Vec3(205 / 255f, 43 / 255f, 0)
+            // Change the main colour of the icon if the metal is burning
+            iconShader.setUniform("backColour", burner.isBurning(innerMetal) ? new Vec3(205 / 255f, 43 / 255f, 0)
                                                                             : new Vec3(0.1f, 0.1f, 0.1f));
             iconShader.setUniformFloat("metalLevel", (float) burner.get(innerMetal) / MetalStorage.MAX_STORAGE);
             iconShader.setUniformFloat("impurityLevel", (float) burner.getImpurity(innerMetal) / MetalStorage.MAX_STORAGE);
@@ -205,8 +205,8 @@ public class MetalSelectionHUD
 
             AllomanticMetal outerMetal = AllomanticMetals.get(METALS[i * 2 + 1]).get();
             iconShader.setUniformBool("hovered", hoveredMetal.orNull() == outerMetal);
-            // Change the main color of the icon if the metal is burning
-            iconShader.setUniform("backColor", burner.isBurning(outerMetal) ? new Vec3(205 / 255f, 43 / 255f, 0)
+            // Change the main colour of the icon if the metal is burning
+            iconShader.setUniform("backColour", burner.isBurning(outerMetal) ? new Vec3(205 / 255f, 43 / 255f, 0)
                                                                             : new Vec3(0.1f, 0.1f, 0.1f));
             iconShader.setUniformFloat("metalLevel", (float) burner.get(outerMetal) / MetalStorage.MAX_STORAGE);
             iconShader.setUniformFloat("impurityLevel", (float) burner.getImpurity(outerMetal) / MetalStorage.MAX_STORAGE);
