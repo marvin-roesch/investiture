@@ -2,10 +2,16 @@
 
 uniform sampler2D tex;
 uniform float deltaBrightness;
-uniform vec3 normalColor;
+
+uniform vec3 backColor;
+uniform vec3 impurityColor;
+uniform vec3 metalColor;
 uniform vec3 hoveredColor;
+
 uniform bool hovered;
-uniform float level;
+
+uniform float metalLevel;
+uniform float impurityLevel;
 
 vec3 rgb2hsv(vec3 c) {
     vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
@@ -27,15 +33,31 @@ void main() {
     vec2 texcoord = vec2(gl_TexCoord[0]);
     vec4 color = texture2D(tex, texcoord);
 
-    vec3 c1 = rgb2hsv(normalColor);
-    vec3 c1Bottom = hsv2rgb(vec3(c1.x, c1.y, c1.z - deltaBrightness));
-    vec3 c2 = rgb2hsv(hoveredColor);
-    vec3 c2Bottom = hsv2rgb(vec3(c2.x, c2.y, c2.z - deltaBrightness));
+    vec3 backHSV = rgb2hsv(backColor);
+    vec3 backColorEnd = hsv2rgb(vec3(backHSV.x, backHSV.y, backHSV.z - deltaBrightness));
 
-    bool useHoveredColor = hovered && level <= texcoord.y;
+    vec3 metalHSV = rgb2hsv(metalColor);
+    vec3 metalColorEnd = hsv2rgb(vec3(metalHSV.x, metalHSV.y, metalHSV.z - deltaBrightness));
 
-    vec3 colorTopLeft = useHoveredColor ? hoveredColor : normalColor;
-    vec3 colorBottomRight = useHoveredColor ? c2Bottom : c1Bottom;
+    vec3 impurityHSV = rgb2hsv(impurityColor);
+    vec3 impurityColorEnd = hsv2rgb(vec3(impurityHSV.x, impurityHSV.y, impurityHSV.z - deltaBrightness));
+
+    vec3 hoverHSV = rgb2hsv(hoveredColor);
+    vec3 hoverColorEnd = hsv2rgb(vec3(hoverHSV.x, hoverHSV.y, hoverHSV.z - deltaBrightness));
+
+    vec3 colorTopLeft = vec3(0, 0, 0);
+    vec3 colorBottomRight = vec3(0, 0, 0);
+
+    if((1 - texcoord.y) <= metalLevel) {
+        colorTopLeft = metalColor;
+        colorBottomRight = metalColorEnd;
+    } else if((1 - texcoord.y - metalLevel) <= impurityLevel) {
+        colorTopLeft = impurityColor;
+        colorBottomRight = impurityColorEnd;
+    } else {
+        colorTopLeft = backColor;
+        colorBottomRight = backColorEnd;
+    }
 
     float a = texcoord.x + texcoord.y;
     float b = 2;

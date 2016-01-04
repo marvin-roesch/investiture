@@ -63,6 +63,9 @@ public class AllomanticMetalIngot extends Item {
             ItemStack stack = new ItemStack(item, 1, dmg);
             getCompound(stack).setInteger("purity", 100);
             subItems.add(stack);
+            ItemStack impureStack = new ItemStack(item, 1, dmg);
+            getCompound(impureStack).setInteger("purity", 50);
+            subItems.add(impureStack);
         }
     }
 

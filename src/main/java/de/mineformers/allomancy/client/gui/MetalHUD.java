@@ -7,6 +7,7 @@ import de.mineformers.allomancy.client.render.Shader;
 import de.mineformers.allomancy.metal.AllomanticMetal;
 import de.mineformers.allomancy.metal.AllomanticMetals;
 import de.mineformers.allomancy.metal.MetalBurner;
+import de.mineformers.allomancy.metal.MetalStorage;
 import de.mineformers.allomancy.network.messages.ToggleBurningMetal;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
@@ -111,16 +112,19 @@ public class MetalHUD {
         iconShader.activate();
         iconShader.setUniformInt("tex", 0);
         iconShader.setUniformFloat("deltaBrightness", 0.1f);
-        iconShader.setUniformFloat("level", 0.5f);
         iconShader.setUniform("hoveredColor", new Vec3(171 / 255f, 137 / 255f, 19 / 255f));
+        iconShader.setUniform("metalColor", new Vec3(171 / 255f, 137 / 255f, 19 / 255f));
+        iconShader.setUniform("impurityColor", new Vec3(141 / 255f, 19 / 255f, 171 / 255f));
         for (int i = 0; i < METALS.length / 2; i++) {
             double angle = Math.PI / 4 * (i + 0.5);
             AllomanticMetal innerMetal = AllomanticMetals.get(METALS[i * 2]).get();
             iconShader.setUniformBool("hovered", hoveredMetal.orNull() == innerMetal);
-            iconShader.setUniform("normalColor",
+            iconShader.setUniform("backColor",
                     burner.isBurning(innerMetal) ?
                             new Vec3(205 / 255f, 43 / 255f, 0) :
                             new Vec3(0.1f, 0.1f, 0.1f));
+            iconShader.setUniformFloat("metalLevel", (float) burner.get(innerMetal) / MetalStorage.MAX_STORAGE);
+            iconShader.setUniformFloat("impurityLevel", (float) burner.getImpurity(innerMetal) / MetalStorage.MAX_STORAGE);
             Minecraft.getMinecraft().getTextureManager().bindTexture(METAL_TEXTURES[i * 2]);
             rect(
                     centerX + (int) (Math.cos(angle) * 40) - 8,
@@ -128,10 +132,12 @@ public class MetalHUD {
 
             AllomanticMetal outerMetal = AllomanticMetals.get(METALS[i * 2 + 1]).get();
             iconShader.setUniformBool("hovered", hoveredMetal.orNull() == outerMetal);
-            iconShader.setUniform("normalColor",
+            iconShader.setUniform("backColor",
                     burner.isBurning(outerMetal) ?
                             new Vec3(205 / 255f, 43 / 255f, 0) :
                             new Vec3(0.1f, 0.1f, 0.1f));
+            iconShader.setUniformFloat("metalLevel", (float) burner.get(outerMetal) / MetalStorage.MAX_STORAGE);
+            iconShader.setUniformFloat("impurityLevel", (float) burner.getImpurity(outerMetal) / MetalStorage.MAX_STORAGE);
             Minecraft.getMinecraft().getTextureManager().bindTexture(METAL_TEXTURES[i * 2 + 1]);
             rect(
                     centerX + (int) (Math.cos(angle) * 75) - 8,

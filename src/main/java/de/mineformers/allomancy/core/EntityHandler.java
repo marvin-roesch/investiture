@@ -41,8 +41,8 @@ public class EntityHandler {
         if (!event.entity.worldObj.isRemote && event.entityPlayer.getHeldItem() != null) {
             if (event.action == PlayerInteractEvent.Action.RIGHT_CLICK_AIR) {
                 MetalBurner metals = MetalBurner.from(event.entity);
-                if (metals.consume(event.entityPlayer.getHeldItem()))
-                    event.entityPlayer.destroyCurrentEquippedItem();
+                int consumed = metals.consume(event.entityPlayer.getHeldItem());
+                event.entityPlayer.getHeldItem().stackSize -= consumed;
             }
         }
     }
@@ -53,6 +53,6 @@ public class EntityHandler {
             return;
 
         MetalBurner metals = MetalBurner.from(event.player);
-        metals.burningMetals().forEach(metals::updateBurnTimer);
+        metals.burningMetals().forEach(m -> metals.updateBurnTimer(event.player, m));
     }
 }

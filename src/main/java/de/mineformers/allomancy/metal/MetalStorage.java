@@ -25,18 +25,30 @@ public class MetalStorage {
         return (MetalStorage) entity.getExtendedProperties(Allomancy.NBT.STORAGE_ID);
     }
 
+    public static final int MAX_STORAGE = 100;
+
     private final TObjectIntMap<AllomanticMetal> _consumedMetals = new TObjectIntHashMap<>();
-    private int _impurities;
+    private final TObjectIntMap<AllomanticMetal> _impurities = new TObjectIntHashMap<>();
 
     public int get(AllomanticMetal metal) {
-        if (_consumedMetals.containsKey(metal))
-            return _consumedMetals.get(metal);
-        return 0;
+        if (!_consumedMetals.containsKey(metal))
+            return 0;
+        return _consumedMetals.get(metal);
     }
 
-    public void store(AllomanticMetal metal, int amount) {
-        _consumedMetals.adjustOrPutValue(metal, amount, amount);
+    private int store(TObjectIntMap<AllomanticMetal> map, AllomanticMetal metal, int amount) {
+        int storedMetal = get(metal);
+        int storedImpurity = getImpurity(metal);
+        if (storedMetal >= MAX_STORAGE || storedImpurity >= MAX_STORAGE || amount <= 0)
+            return 0;
+        int storedAmount = Math.min(amount, MAX_STORAGE - storedMetal - storedImpurity);
+        map.adjustOrPutValue(metal, storedAmount, storedAmount);
         markDirty();
+        return storedAmount;
+    }
+
+    public int store(AllomanticMetal metal, int amount) {
+        return store(_consumedMetals, metal, amount);
     }
 
     public boolean remove(AllomanticMetal metal, int amount) {
@@ -52,44 +64,43 @@ public class MetalStorage {
         return TCollections.unmodifiableMap(_consumedMetals);
     }
 
-    public void addImpurity(int amount) {
-        _impurities += amount;
+    public int getImpurity(AllomanticMetal metal) {
+        if (!_impurities.containsKey(metal))
+            return 0;
+        return _impurities.get(metal);
+    }
+
+    public int storeImpurity(AllomanticMetal metal, int amount) {
+        return store(_impurities, metal, amount);
+    }
+
+    public boolean removeImpurity(AllomanticMetal metal, int amount) {
+        int storage = getImpurity(metal);
+        if (storage < amount)
+            return false;
+        _impurities.adjustValue(metal, -amount);
         markDirty();
+        return true;
     }
 
-    public void removeImpurity(int amount) {
-        int oldImpurities = _impurities;
-        _impurities = Math.max(_impurities - amount, 0);
-        if (_impurities != oldImpurities)
-            markDirty();
+    public TObjectIntMap<AllomanticMetal> impurities() {
+        return TCollections.unmodifiableMap(_impurities);
     }
 
-    public int impurities() {
-        return _impurities;
-    }
-
-    public boolean consume(ItemStack stack) {
+    public int consume(ItemStack stack) {
         for (AllomanticMetal metal : AllomanticMetals.metals()) {
             int value = metal.getValue(stack);
-            if (value > 0) {
-                if (metal.canBurn(stack))
-                    store(metal, value);
-                else
-                    addImpurity(1);
-                return true;
-            }
+            if (value > 0)
+                return metal.canBurn(stack) ? store(metal, value) : storeImpurity(metal, value);
         }
-        return false;
+        return -1;
     }
 
     public void copy(MetalStorage from) {
         _consumedMetals.clear();
         _consumedMetals.putAll(from.consumedMetals());
-        _impurities = from.impurities();
-    }
-
-    protected void setImpurity(int value) {
-        _impurities = value;
+        _impurities.clear();
+        _impurities.putAll(from.impurities());
     }
 
     protected void markDirty() {
@@ -105,19 +116,30 @@ public class MetalStorage {
                 return true;
             });
 
-            buffer.writeInt(value.impurities());
+            buffer.writeInt(value.impurities().size());
+            value.impurities().forEachEntry((metal, amount) -> {
+                ByteBufUtils.writeUTF8String(buffer, metal.id());
+                buffer.writeInt(amount);
+                return true;
+            });
         }
 
         @Override
         public MetalStorage deserialiseImpl(ByteBuf buffer) {
             MetalStorage storage = new MetalStorage();
-            for (int i = 0; i < buffer.readInt(); i++) {
+
+            int consumedCount = buffer.readInt();
+            for (int i = 0; i < consumedCount; i++) {
                 Optional<AllomanticMetal> metal = AllomanticMetals.get(ByteBufUtils.readUTF8String(buffer));
-                if (metal.isPresent())
-                    storage.store(metal.get(), buffer.readInt());
+                storage.store(metal.get(), buffer.readInt());
             }
 
-            storage.addImpurity(buffer.readInt());
+            int impurityCount = buffer.readInt();
+            for (int i = 0; i < impurityCount; i++) {
+                Optional<AllomanticMetal> metal = AllomanticMetals.get(ByteBufUtils.readUTF8String(buffer));
+                storage.storeImpurity(metal.get(), buffer.readInt());
+            }
+
             return storage;
         }
     }
@@ -133,15 +155,21 @@ public class MetalStorage {
         @Override
         public void saveNBTData(NBTTagCompound compound) {
             NBTTagCompound root = new NBTTagCompound();
-            NBTTagCompound storage = new NBTTagCompound();
 
+            NBTTagCompound storage = new NBTTagCompound();
             consumedMetals().forEachEntry((metal, value) -> {
                 storage.setInteger(metal.id(), value);
                 return true;
             });
             root.setTag("metals", storage);
 
-            root.setInteger("impurities", impurities());
+            NBTTagCompound impurities = new NBTTagCompound();
+            impurities().forEachEntry((metal, value) -> {
+                impurities.setInteger(metal.id(), value);
+                return true;
+            });
+            root.setTag("impurities", impurities);
+
             compound.setTag(Allomancy.NBT.STORAGE_ID, root);
         }
 
@@ -156,7 +184,12 @@ public class MetalStorage {
                     store(metal.get(), storage.getInteger(id));
             }
 
-            setImpurity(root.getInteger("impurities"));
+            NBTTagCompound impurities = root.getCompoundTag("impurities");
+            for (String id : impurities.getKeySet()) {
+                Optional<AllomanticMetal> metal = AllomanticMetals.get(id);
+                if (metal.isPresent())
+                    storeImpurity(metal.get(), impurities.getInteger(id));
+            }
         }
 
         @Override

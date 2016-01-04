@@ -62,7 +62,7 @@ public final class AllomanticMetals {
         return Collections.unmodifiableSet(METALS);
     }
 
-    private final static class VanillaItemMetal extends AllomanticMetal.AbstractAllomanticMetal {
+    private final static class VanillaItemMetal extends AllomanticMetal.Abstract {
         private final Item item;
 
         VanillaItemMetal(@Nonnull String id, @Nonnull Item item) {
@@ -76,9 +76,17 @@ public final class AllomanticMetals {
         }
     }
 
-    private final static class SelectiveItemMetal extends AllomanticMetal.AbstractAllomanticMetal {
+    private final static class SelectiveItemMetal extends AllomanticMetal.Abstract implements MetalEffects {
         SelectiveItemMetal(@Nonnull String id) {
             super(id);
+        }
+
+        @Override
+        public void startBurning(MetalBurner burner) {
+        }
+
+        @Override
+        public void stopBurning(MetalBurner burner) {
         }
 
         @Override

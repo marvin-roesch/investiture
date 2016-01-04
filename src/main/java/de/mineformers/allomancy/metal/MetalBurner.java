@@ -28,28 +28,32 @@ public class MetalBurner extends MetalStorage {
     }
 
     private final TObjectIntMap<AllomanticMetal> _burningMetals = new TObjectIntHashMap<>();
-    public int burnTime;
+    public int burnTime = 20;
 
     public boolean isBurning(AllomanticMetal metal) {
-        return _burningMetals.containsKey(metal) && _burningMetals.get(metal) > 0;
+        return _burningMetals.containsKey(metal) && _burningMetals.get(metal) >= 0;
     }
 
     public boolean startBurning(AllomanticMetal metal) {
-        int storage = get(metal);
-        if (storage <= 0)
+        int storedMetal = get(metal);
+        int storedImpurity = getImpurity(metal);
+        if (storedMetal <= 0 && storedImpurity <= 0)
             return false;
         _burningMetals.put(metal, 0);
         markDirty();
         return true;
     }
 
-    public boolean updateBurnTimer(AllomanticMetal metal) {
+    public boolean updateBurnTimer(Entity entity, AllomanticMetal metal) {
         if (!isBurning(metal))
             return false;
         _burningMetals.increment(metal);
         if (_burningMetals.get(metal) == burnTime) {
             _burningMetals.put(metal, 0);
-            if (!remove(metal, 1) || get(metal) == 0)
+            if (getImpurity(metal) > 0) {
+                removeImpurity(metal, 1);
+                metal.applyImpurityEffects(entity);
+            } else if (!remove(metal, 1) || get(metal) == 0)
                 stopBurning(metal);
             return true;
         } else
@@ -102,25 +106,36 @@ public class MetalBurner extends MetalStorage {
                 return true;
             });
 
-            buffer.writeInt(value.impurities());
+            buffer.writeInt(value.impurities().size());
+            value.impurities().forEachEntry((metal, amount) -> {
+                ByteBufUtils.writeUTF8String(buffer, metal.id());
+                buffer.writeInt(amount);
+                return true;
+            });
         }
 
         @Override
         public MetalBurner deserialiseImpl(ByteBuf buffer) {
             MetalBurner burner = new MetalBurner();
-            for (int i = 0; i < buffer.readInt(); i++) {
+
+            int consumedCount = buffer.readInt();
+            for (int i = 0; i < consumedCount; i++) {
                 Optional<AllomanticMetal> metal = AllomanticMetals.get(ByteBufUtils.readUTF8String(buffer));
-                if (metal.isPresent())
-                    burner.store(metal.get(), buffer.readInt());
+                burner.store(metal.get(), buffer.readInt());
             }
 
-            for (int i = 0; i < buffer.readInt(); i++) {
+            int burningCount = buffer.readInt();
+            for (int i = 0; i < burningCount; i++) {
                 Optional<AllomanticMetal> metal = AllomanticMetals.get(ByteBufUtils.readUTF8String(buffer));
-                if (metal.isPresent())
-                    burner.setBurnTimer(metal.get(), buffer.readInt());
+                burner.setBurnTimer(metal.get(), buffer.readInt());
             }
 
-            burner.addImpurity(buffer.readInt());
+            int impurityCount = buffer.readInt();
+            for (int i = 0; i < impurityCount; i++) {
+                Optional<AllomanticMetal> metal = AllomanticMetals.get(ByteBufUtils.readUTF8String(buffer));
+                burner.storeImpurity(metal.get(), buffer.readInt());
+            }
+
             return burner;
         }
     }
@@ -151,7 +166,13 @@ public class MetalBurner extends MetalStorage {
             });
             root.setTag("timers", timers);
 
-            root.setInteger("impurities", impurities());
+            NBTTagCompound impurities = new NBTTagCompound();
+            impurities().forEachEntry((metal, value) -> {
+                impurities.setInteger(metal.id(), value);
+                return true;
+            });
+            root.setTag("impurities", impurities);
+
             compound.setTag(Allomancy.NBT.BURNER_ID, root);
         }
 
@@ -173,7 +194,12 @@ public class MetalBurner extends MetalStorage {
                     setBurnTimer(metal.get(), timers.getInteger(id));
             }
 
-            setImpurity(root.getInteger("impurities"));
+            NBTTagCompound impurities = root.getCompoundTag("impurities");
+            for (String id : impurities.getKeySet()) {
+                Optional<AllomanticMetal> metal = AllomanticMetals.get(id);
+                if (metal.isPresent())
+                    storeImpurity(metal.get(), impurities.getInteger(id));
+            }
         }
 
         @Override
