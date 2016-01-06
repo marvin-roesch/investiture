@@ -3,6 +3,7 @@ package de.mineformers.investiture.allomancy;
 import com.google.common.base.Optional;
 import de.mineformers.investiture.Investiture;
 import de.mineformers.investiture.allomancy.block.AllomanticMetalOre;
+import de.mineformers.investiture.allomancy.block.MetalExtractor;
 import de.mineformers.investiture.allomancy.core.EntityHandler;
 import de.mineformers.investiture.allomancy.item.AllomanticMetalIngot;
 import de.mineformers.investiture.allomancy.metal.AllomanticMetal;
@@ -11,7 +12,10 @@ import de.mineformers.investiture.allomancy.metal.MetalBurner;
 import de.mineformers.investiture.allomancy.metal.MetalStorage;
 import de.mineformers.investiture.allomancy.network.EntityMetalBurnerUpdate;
 import de.mineformers.investiture.allomancy.network.EntityMetalStorageUpdate;
+import de.mineformers.investiture.allomancy.network.MetalExtractorUpdate;
 import de.mineformers.investiture.allomancy.network.ToggleBurningMetal;
+import de.mineformers.investiture.allomancy.tileentity.TileMetalExtractorMaster;
+import de.mineformers.investiture.allomancy.tileentity.TileMetalExtractorSlave;
 import de.mineformers.investiture.allomancy.world.MetalGenerator;
 import de.mineformers.investiture.core.Manifestation;
 import de.mineformers.investiture.core.Proxy;
@@ -70,6 +74,7 @@ public final class Allomancy implements Manifestation
     public static class Blocks
     {
         public static AllomanticMetalOre allomantic_ore;
+        public static MetalExtractor metal_extractor;
 
         /**
          * Adds all blocks to the game's registry.
@@ -77,6 +82,9 @@ public final class Allomancy implements Manifestation
         public static void register()
         {
             GameRegistry.registerBlock(allomantic_ore = new AllomanticMetalOre(), AllomanticMetalOre.ItemRepresentation.class);
+            GameRegistry.registerBlock(metal_extractor = new MetalExtractor(), MetalExtractor.ItemRepresentation.class);
+            GameRegistry.registerTileEntity(TileMetalExtractorMaster.class, "allomancy:metal_extractor_master");
+            GameRegistry.registerTileEntity(TileMetalExtractorSlave.class, "allomancy:metal_extractor_slave");
         }
     }
 
@@ -134,6 +142,7 @@ public final class Allomancy implements Manifestation
             Investiture.net().registerMessage(EntityMetalStorageUpdate.class);
             Investiture.net().registerMessage(EntityMetalBurnerUpdate.class);
             Investiture.net().registerMessage(ToggleBurningMetal.class);
+            Investiture.net().registerMessage(MetalExtractorUpdate.class);
 
             // Add handler for toggling the burning of a metal
             Investiture.net().addHandler(ToggleBurningMetal.class, Side.SERVER, (msg, ctx) -> {

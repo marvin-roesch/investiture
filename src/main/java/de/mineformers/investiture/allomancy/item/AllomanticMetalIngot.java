@@ -71,7 +71,7 @@ public class AllomanticMetalIngot extends Item
      */
     public int getPurity(ItemStack stack)
     {
-        return getCompound(stack).getInteger("purity");
+        return getCompound(stack).getInteger("Purity");
     }
 
     @Override
@@ -91,12 +91,12 @@ public class AllomanticMetalIngot extends Item
         {
             // Add 100% pure metal to creative tab
             ItemStack stack = new ItemStack(item, 1, dmg);
-            getCompound(stack).setInteger("purity", 100);
+            getCompound(stack).setInteger("Purity", 100);
             subItems.add(stack);
 
             // Add 50% pure metal to creative tab
             ItemStack impureStack = new ItemStack(item, 1, dmg);
-            getCompound(impureStack).setInteger("purity", 50);
+            getCompound(impureStack).setInteger("Purity", 50);
             subItems.add(impureStack);
         }
     }

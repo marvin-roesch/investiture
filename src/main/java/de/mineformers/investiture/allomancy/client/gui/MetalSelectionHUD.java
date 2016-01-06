@@ -285,7 +285,6 @@ public class MetalSelectionHUD
         }
 
         mag = sqrt(mouseX * mouseX + mouseY * mouseY);
-        System.out.println(toDegrees(atan2(mouseY, mouseX)));
         double angle = (450 + toDegrees(atan2(mouseX, mouseY))) % 360;
 
         // Rest the hovered metal and check each metal individually

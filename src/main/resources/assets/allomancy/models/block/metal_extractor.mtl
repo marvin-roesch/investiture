@@ -1,0 +1,14 @@
+# Blender MTL File: 'metal_extractor.blend'
+# Material Count: 4
+
+newmtl grinder
+Kd 1 1 1
+illum 2
+
+newmtl frame
+Kd 1 1 1
+illum 2
+
+newmtl glass
+Kd 1 1 1
+illum 2

@@ -7,6 +7,7 @@ import com.google.common.collect.Table;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
 import net.minecraftforge.fml.common.network.ByteBufUtils;
 
@@ -228,6 +229,22 @@ class Serialisation
                 return EnumFacing.values()[buffer.readInt()];
             }
         });
+
+        // Position translator
+        addTranslator(BlockPos.class, new Message.Translator<BlockPos>()
+        {
+            @Override
+            public void serialiseImpl(BlockPos value, ByteBuf buffer)
+            {
+                buffer.writeLong(value.toLong());
+            }
+
+            @Override
+            public BlockPos deserialiseImpl(ByteBuf buffer)
+            {
+                return BlockPos.fromLong(buffer.readLong());
+            }
+        });
     }
 
     /**
@@ -274,7 +291,7 @@ class Serialisation
      */
     <T extends Message> void registerMessage(Class<T> type)
     {
-        Field[] fs = type.getDeclaredFields();
+        Field[] fs = type.getFields();
         // Sort fields by name to prevent disparities between client and server
         Arrays.sort(fs, (f1, f2) -> f1.getName().compareTo(f2.getName()));
         // Cache fields for the given type, looking them up reflectively is costly
@@ -291,7 +308,7 @@ class Serialisation
      * Serialises each field of a message to a byte buffer, utilising translators that fit each field's type best.
      *
      * @param message the message to serialise
-     * @param buffer the buffer to serialise the message into
+     * @param buffer  the buffer to serialise the message into
      */
     void serialiseFrom(Message message, ByteBuf buffer)
     {
@@ -317,7 +334,7 @@ class Serialisation
     /**
      * Deserialises the contents of a byte buffer into a message, writing each field utilising translators.
      *
-     * @param buffer the buffer to deserialise from
+     * @param buffer  the buffer to deserialise from
      * @param message the message to deserialise into
      */
     void deserialiseTo(ByteBuf buffer, Message message)

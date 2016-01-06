@@ -70,7 +70,8 @@ public class EntityHandler
             {
                 MetalBurner metals = MetalBurner.from(event.entity);
                 int consumed = metals.consume(event.entityPlayer.getHeldItem());
-                event.entityPlayer.getHeldItem().stackSize -= consumed;
+                if (consumed >= 0)
+                    event.entityPlayer.getHeldItem().stackSize -= consumed;
             }
         }
     }

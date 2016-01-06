@@ -1,0 +1,43 @@
+{
+  "forge_marker": 1,
+  "defaults": {
+    "model": "cube_all",
+    "uvlock": true,
+    "transform": "forge:default-block"
+  },
+  "variants": {
+    "part": {
+      "frame": {
+        "textures": {
+          "all": "allomancy:blocks/metal_extractor_frame"
+        }
+      },
+      "grinder": {
+        "textures": {
+          "all": "allomancy:blocks/metal_extractor_grinder"
+        }
+      },
+      "glass": {
+        "textures": {
+          "all": "allomancy:blocks/metal_extractor_glass"
+        }
+      },
+      "controller": {
+        "textures": {
+          "all": "allomancy:blocks/metal_extractor_controller"
+        }
+      }
+    },
+    "built": {
+      "true": {
+        "textures": {
+          "particle": "allomancy:blocks/metal_extractor_frame"
+        },
+        "model": "builtin/generated"
+      },
+      "false": {
+        "model": "cube_all"
+      }
+    }
+  }
+}
