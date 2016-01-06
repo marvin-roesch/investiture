@@ -14,6 +14,8 @@ import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.List;
 
@@ -54,7 +56,15 @@ public final class Investiture
         return instance.network;
     }
 
+    /**
+     * @return Investiture's logger
+     */
+    public static Logger log() {
+        return instance.log;
+    }
+
     private FunctionalNetwork network;
+    private Logger log;
     private static final List<Manifestation> modules = ImmutableList.of(new Allomancy());
 
     /**
@@ -66,8 +76,12 @@ public final class Investiture
     public void preInit(FMLPreInitializationEvent event)
     {
         network = FunctionalNetwork.create(MOD_ID);
+        log = LogManager.getLogger(MOD_ID);
         // Delegate event to modules
-        modules.forEach(m -> m.preInit(event));
+        modules.forEach(m -> {
+            log().info("Running pre-initialisation for module '" + m.id() + "'");
+            m.preInit(event);
+        });
         proxy.preInit(event);
     }
 
@@ -79,7 +93,11 @@ public final class Investiture
     @Mod.EventHandler
     public void init(FMLInitializationEvent event)
     {
-        modules.forEach(m -> m.init(event));
+        // Delegate event to modules
+        modules.forEach(m -> {
+            log().info("Running initialisation for module '" + m.id() + "'");
+            m.init(event);
+        });
         proxy.init(event);
     }
 
@@ -91,7 +109,11 @@ public final class Investiture
     @Mod.EventHandler
     public void postInit(FMLPostInitializationEvent event)
     {
-        modules.forEach(m -> m.postInit(event));
+        // Delegate event to modules
+        modules.forEach(m -> {
+            log().info("Running post-initialisation for module '" + m.id() + "'");
+            m.postInit(event);
+        });
         proxy.postInit(event);
     }
 }

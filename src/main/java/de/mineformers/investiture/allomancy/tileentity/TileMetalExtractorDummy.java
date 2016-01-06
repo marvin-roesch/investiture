@@ -3,6 +3,7 @@ package de.mineformers.investiture.allomancy.tileentity;
 import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
+import com.sun.istack.internal.Nullable;
 import de.mineformers.investiture.Investiture;
 import de.mineformers.investiture.allomancy.block.MetalExtractor;
 import de.mineformers.investiture.allomancy.block.MetalExtractor.Part;
@@ -28,7 +29,7 @@ import static de.mineformers.investiture.allomancy.block.MetalExtractor.Part.*;
 /**
  * Stores the multi-block's master position
  */
-public class TileMetalExtractorSlave extends TileEntity
+public class TileMetalExtractorDummy extends TileEntity
 {
     private BlockPos master = BlockPos.ORIGIN;
 
@@ -59,5 +60,13 @@ public class TileMetalExtractorSlave extends TileEntity
 
     public BlockPos getMasterPosition() {
         return pos.add(master);
+    }
+
+    @Nullable
+    public TileMetalExtractorMaster getMaster() {
+        TileEntity te = worldObj.getTileEntity(getMasterPosition());
+        if(te instanceof TileMetalExtractorMaster)
+            return (TileMetalExtractorMaster) te;
+        return null;
     }
 }

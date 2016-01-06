@@ -56,8 +56,8 @@ public class ClientProxy implements Proxy
         ModelBakery.registerItemVariants(Allomancy.Items.allomantic_ingot,
                                          ingotResources.toArray(new ModelResourceLocation[ingotResources.size()]));
 
-        registerBlockResources(Allomancy.Blocks.allomantic_ore);
-        registerBlockResources(Allomancy.Blocks.metal_extractor, ModuleStateMap.builder().ignore(MetalExtractor.MASTER));
+        registerBlockResources(Allomancy.DOMAIN, Allomancy.Blocks.allomantic_ore);
+        registerBlockResources(Allomancy.DOMAIN, Allomancy.Blocks.metal_extractor, ModuleStateMap.builder().ignore(MetalExtractor.MASTER));
 
         // Register key bindings
         ClientRegistry.registerKeyBinding(KeyBindings.SHOW_DIAL);
@@ -98,27 +98,6 @@ public class ClientProxy implements Proxy
     @Override
     public void init(FMLInitializationEvent event)
     {
-    }
-
-    @Override
-    public void postInit(FMLPostInitializationEvent event)
-    {
         ClientRegistry.bindTileEntitySpecialRenderer(TileMetalExtractorMaster.class, new MetalExtractorRenderer());
-    }
-
-    private void registerBlockResources(Block block, ModuleStateMap.Builder map)
-    {
-        Item item = Item.getItemFromBlock(block);
-        List<IBlockState> states = block.getBlockState().getValidStates();
-        ModuleStateMap mapper = map.withDomain(Allomancy.DOMAIN).build();
-        final Map<IBlockState, ModelResourceLocation> resources = FluentIterable.from(states).toMap(mapper::getModelResourceLocation);
-        ModelLoader.setCustomMeshDefinition(item, stack -> resources.get(block.getStateFromMeta(stack.getItemDamage())));
-        ModelBakery.registerItemVariants(item, resources.values().toArray(new ModelResourceLocation[resources.size()]));
-        ModelLoader.setCustomStateMapper(block, mapper);
-    }
-
-    private void registerBlockResources(Block block)
-    {
-        registerBlockResources(block, ModuleStateMap.builder());
     }
 }

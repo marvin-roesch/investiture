@@ -8,15 +8,18 @@ import de.mineformers.investiture.allomancy.Allomancy;
 import de.mineformers.investiture.allomancy.block.MetalExtractor;
 import de.mineformers.investiture.allomancy.block.MetalExtractor.Part;
 import de.mineformers.investiture.allomancy.network.MetalExtractorUpdate;
+import de.mineformers.investiture.inventory.SimpleInventory;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Items;
+import net.minecraft.inventory.ISidedInventory;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagLong;
 import net.minecraft.network.Packet;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.util.*;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
@@ -28,11 +31,35 @@ import static de.mineformers.investiture.allomancy.block.MetalExtractor.Part.*;
 /**
  * Provides the logic of the metal extractor
  */
-public class TileMetalExtractorMaster extends TileEntity
+public class TileMetalExtractorMaster extends TileEntity implements SimpleInventory, ISidedInventory, ITickable
 {
+    public static final int INPUT_SLOT = 0;
+    public static final int OUTPUT_SLOT = 1;
+
     private EnumFacing orientation = EnumFacing.NORTH;
     private boolean validMultiBlock = false;
+    private boolean checkedValidity = false;
     private ImmutableList<BlockPos> children = ImmutableList.of();
+    private ItemStack[] inventory = new ItemStack[2];
+    private int outputCounter = 0;
+
+    @Override
+    public void update()
+    {
+        if(worldObj.isRemote)
+            return;
+        if(!checkedValidity) {
+            validMultiBlock = validateMultiBlock();
+            checkedValidity = true;
+        }
+        if(isValidMultiBlock()) {
+            outputCounter++;
+            if(outputCounter == 20) {
+                moveStack(INPUT_SLOT, OUTPUT_SLOT);
+                outputCounter = 0;
+            }
+        }
+    }
 
     @Override
     public void writeToNBT(NBTTagCompound compound)
@@ -44,6 +71,7 @@ public class TileMetalExtractorMaster extends TileEntity
         compound.setTag("Children", children);
         compound.setBoolean("ValidMultiBlock", validMultiBlock);
         compound.setInteger("Orientation", orientation.getHorizontalIndex());
+        writeInventoryToNBT(compound);
     }
 
     @Override
@@ -57,6 +85,7 @@ public class TileMetalExtractorMaster extends TileEntity
         this.children = childrenBuilder.build();
         this.validMultiBlock = compound.getBoolean("ValidMultiBlock");
         this.orientation = EnumFacing.getHorizontal(compound.getInteger("Orientation"));
+        readInventoryFromNBT(compound);
     }
 
     private static final Part[][][] multiBlock = {
@@ -120,7 +149,7 @@ public class TileMetalExtractorMaster extends TileEntity
                     {
                         BlockPos childPos = corner.offset(horizontal, width).up(y).offset(orientation.get(), depth);
                         IBlockState state = worldObj.getBlockState(childPos);
-                        if (state.getBlock() != this.getBlockType() && state.getValue(MetalExtractor.PART) != row[width])
+                        if (state.getBlock() != this.getBlockType() || state.getValue(MetalExtractor.PART) != row[width])
                             return false;
                         if (!pos.equals(childPos))
                             childrenBuilder.add(childPos.subtract(pos));
@@ -132,7 +161,7 @@ public class TileMetalExtractorMaster extends TileEntity
             for (BlockPos child : children)
             {
                 worldObj.setBlockState(pos.add(child), worldObj.getBlockState(pos.add(child)).withProperty(MetalExtractor.BUILT, true));
-                ((TileMetalExtractorSlave) worldObj.getTileEntity(pos.add(child))).setMasterPosition(pos);
+                ((TileMetalExtractorDummy) worldObj.getTileEntity(pos.add(child))).setMasterPosition(pos);
             }
             this.validMultiBlock = true;
             Investiture.net().sendToAllAround(new MetalExtractorUpdate(pos, true, orientation.get()),
@@ -160,11 +189,9 @@ public class TileMetalExtractorMaster extends TileEntity
     @Override
     public AxisAlignedBB getRenderBoundingBox()
     {
-        BlockPos min = pos.offset(getHorizontal().getOpposite(), 2).down();
-        BlockPos max = pos.offset(getHorizontal(), 3).up(5).offset(orientation, 6);
         return new AxisAlignedBB(
-            Math.min(min.getX(), max.getX()), Math.min(min.getY(), max.getY()), Math.min(min.getZ(), max.getZ()),
-            Math.max(min.getX(), max.getX()), Math.max(min.getY(), max.getY()), Math.max(min.getZ(), max.getZ())
+            pos.getX() - 6, pos.getY() - 2, pos.getZ() - 6,
+            pos.getX() + 6, pos.getY() + 5, pos.getZ() + 6
         );
     }
 
@@ -192,12 +219,113 @@ public class TileMetalExtractorMaster extends TileEntity
     @Override
     public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newSate)
     {
-        return true;
+        return oldState != newSate;
     }
 
     @Override
     public Packet getDescriptionPacket()
     {
         return Investiture.net().getPacketFrom(new MetalExtractorUpdate(pos, validMultiBlock, orientation));
+    }
+
+    @Override
+    public int[] getSlotsForFace(EnumFacing side)
+    {
+        if(side == orientation)
+            return new int[] {OUTPUT_SLOT};
+        else if(side == orientation.getOpposite())
+            return new int[] {INPUT_SLOT};
+        return new int[0];
+    }
+
+    @Override
+    public boolean canInsertItem(int index, ItemStack stack, EnumFacing direction)
+    {
+        return direction == orientation.getOpposite() && index == INPUT_SLOT && isItemValidForSlot(index, stack);
+    }
+
+    @Override
+    public boolean canExtractItem(int index, ItemStack stack, EnumFacing direction)
+    {
+        return direction == orientation && index == OUTPUT_SLOT;
+    }
+
+    @Override
+    public boolean isItemValidForSlot(int index, ItemStack stack)
+    {
+        return stack.getItem() == Items.apple;
+    }
+
+    @Override
+    public int getSizeInventory()
+    {
+        return inventory.length;
+    }
+
+    @Override
+    public ItemStack getStackInSlot(int index)
+    {
+        return inventory[index];
+    }
+
+    @Override
+    public void setInventorySlotContents(int index, ItemStack stack)
+    {
+        inventory[index] = stack;
+        markDirty();
+    }
+
+    @Override
+    public boolean isUseableByPlayer(EntityPlayer player)
+    {
+        return false;
+    }
+
+    @Override
+    public void openInventory(EntityPlayer player)
+    {
+
+    }
+
+    @Override
+    public void closeInventory(EntityPlayer player)
+    {
+
+    }
+
+    @Override
+    public int getField(int id)
+    {
+        return 0;
+    }
+
+    @Override
+    public void setField(int id, int value)
+    {
+
+    }
+
+    @Override
+    public int getFieldCount()
+    {
+        return 0;
+    }
+
+    @Override
+    public String getName()
+    {
+        return null;
+    }
+
+    @Override
+    public boolean hasCustomName()
+    {
+        return false;
+    }
+
+    @Override
+    public IChatComponent getDisplayName()
+    {
+        return null;
     }
 }
