@@ -3,10 +3,10 @@ package de.mineformers.investiture.allomancy.item;
 /**
  * Used as the ingot for all allomantic metals that are not provided by Vanilla Minecaft.
  */
-public class AllomanticMetalNugget extends AllomanticMetalItem.Abstract
+public class AllomanticMetalNugget extends AllomanticMetalItem
 {
     public static final String[] NAMES = {
-        "bronze", "brass", "copper", "zinc", "tin", "pewter", "steel", "iron", "lead", "nickel", "silver", "bismuth", "cadmium",
+        "bronze", "brass", "copper", "zinc", "tin", "pewter", "steel", "iron", "lead", "nickel", "silver", "bismuth", "gold",
         "duralumin", "nicrosil", "aluminium", "chromium", "cadmium", "electrum", "bendalloy"
     };
 
