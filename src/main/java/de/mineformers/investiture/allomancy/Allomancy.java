@@ -4,7 +4,9 @@ import com.google.common.base.Optional;
 import de.mineformers.investiture.Investiture;
 import de.mineformers.investiture.allomancy.block.AllomanticMetalOre;
 import de.mineformers.investiture.allomancy.core.EntityHandler;
+import de.mineformers.investiture.allomancy.item.AllomanticMetalBead;
 import de.mineformers.investiture.allomancy.item.AllomanticMetalIngot;
+import de.mineformers.investiture.allomancy.item.AllomanticMetalNugget;
 import de.mineformers.investiture.allomancy.metal.AllomanticMetal;
 import de.mineformers.investiture.allomancy.metal.AllomanticMetals;
 import de.mineformers.investiture.allomancy.metal.MetalBurner;
@@ -86,6 +88,8 @@ public final class Allomancy implements Manifestation
     public static class Items
     {
         public static AllomanticMetalIngot allomantic_ingot;
+        public static AllomanticMetalNugget allomantic_nugget;
+        public static AllomanticMetalBead allomantic_bead;
 
         /**
          * Adds all items to the game's registry.
@@ -93,6 +97,8 @@ public final class Allomancy implements Manifestation
         public static void register()
         {
             GameRegistry.registerItem(allomantic_ingot = new AllomanticMetalIngot());
+            GameRegistry.registerItem(allomantic_nugget = new AllomanticMetalNugget());
+            GameRegistry.registerItem(allomantic_bead = new AllomanticMetalBead());
         }
     }
 

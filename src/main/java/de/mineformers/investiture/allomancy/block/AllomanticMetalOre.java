@@ -23,7 +23,7 @@ import java.util.List;
 public class AllomanticMetalOre extends Block
 {
     public static final String[] NAMES = {
-        "copper", "zinc", "tin", "aluminium", "chromium"
+        "copper", "zinc", "tin", "aluminium", "chromium", "silver", "bismuth", "lead"
     };
     public static final PropertyString METAL = new PropertyString("metal", NAMES);
 
