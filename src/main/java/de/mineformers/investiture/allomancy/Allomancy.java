@@ -5,6 +5,8 @@ import de.mineformers.investiture.Investiture;
 import de.mineformers.investiture.allomancy.block.AllomanticMetalOre;
 import de.mineformers.investiture.allomancy.block.MetalExtractor;
 import de.mineformers.investiture.allomancy.core.EntityHandler;
+import de.mineformers.investiture.allomancy.extractor.ExtractorRecipe;
+import de.mineformers.investiture.allomancy.extractor.ExtractorRecipes;
 import de.mineformers.investiture.allomancy.item.AllomanticMetalIngot;
 import de.mineformers.investiture.allomancy.metal.AllomanticMetal;
 import de.mineformers.investiture.allomancy.metal.AllomanticMetals;
@@ -21,6 +23,9 @@ import de.mineformers.investiture.allomancy.world.MetalGenerator;
 import de.mineformers.investiture.core.Manifestation;
 import de.mineformers.investiture.core.Proxy;
 import de.mineformers.investiture.network.Message;
+import net.minecraft.init.Blocks;
+import net.minecraft.init.Items;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.SidedProxy;
@@ -62,6 +67,8 @@ public final class Allomancy implements Manifestation
     {
         Blocks.register();
         Items.register();
+        ExtractorRecipes.register(new ItemStack(net.minecraft.init.Blocks.iron_ore), new ItemStack(net.minecraft.init.Items.iron_ingot));
+        ExtractorRecipes.register(new ItemStack(net.minecraft.init.Blocks.gold_ore), new ItemStack(net.minecraft.init.Items.gold_ingot));
         GameRegistry.registerWorldGenerator(new MetalGenerator(), 0);
         AllomanticMetals.init();
 

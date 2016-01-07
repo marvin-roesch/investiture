@@ -1,6 +1,7 @@
 package de.mineformers.investiture.allomancy.tileentity;
 
 import com.google.common.base.Optional;
+import com.google.common.collect.EvictingQueue;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -8,6 +9,8 @@ import de.mineformers.investiture.Investiture;
 import de.mineformers.investiture.allomancy.Allomancy;
 import de.mineformers.investiture.allomancy.block.MetalExtractor;
 import de.mineformers.investiture.allomancy.block.MetalExtractor.Part;
+import de.mineformers.investiture.allomancy.extractor.ExtractorOutput;
+import de.mineformers.investiture.allomancy.extractor.ExtractorRecipes;
 import de.mineformers.investiture.allomancy.network.MetalExtractorUpdate;
 import de.mineformers.investiture.inventory.SimpleInventory;
 import de.mineformers.investiture.multiblock.BlockRecipe;
@@ -15,7 +18,6 @@ import de.mineformers.investiture.multiblock.MultiBlock;
 import net.minecraft.block.state.BlockWorldState;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Items;
 import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -38,15 +40,30 @@ import static de.mineformers.investiture.allomancy.block.MetalExtractor.Part.*;
  */
 public class TileMetalExtractorMaster extends TileEntity implements SimpleInventory, ISidedInventory, ITickable
 {
+    private static class Processor
+    {
+        public final ItemStack input;
+        public final ExtractorOutput output;
+        public int timer;
+
+        public Processor(ItemStack input, ExtractorOutput output, int timer)
+        {
+            this.input = input;
+            this.output = output;
+            this.timer = timer;
+        }
+    }
+
     public static final int INPUT_SLOT = 0;
-    public static final int OUTPUT_SLOT = 1;
+    public static final int PRIMARY_OUTPUT_SLOT = 1;
+    public static final int SECONDARY_OUTPUT_SLOT = 2;
 
     private EnumFacing orientation = EnumFacing.NORTH;
     private boolean validMultiBlock = false;
     private boolean checkedValidity = false;
     private ImmutableList<BlockPos> children = ImmutableList.of();
-    private ItemStack[] inventory = new ItemStack[2];
-    private int outputCounter = 0;
+    private ItemStack[] inventory = new ItemStack[3];
+    private EvictingQueue<Processor> processing = EvictingQueue.create(3);
 
     @Override
     public void update()
@@ -60,11 +77,58 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
         }
         if (isValidMultiBlock())
         {
-            outputCounter++;
-            if (outputCounter == 20)
+            if (inventory[PRIMARY_OUTPUT_SLOT] != null && inventory[PRIMARY_OUTPUT_SLOT].stackSize == 0)
+                inventory[PRIMARY_OUTPUT_SLOT] = null;
+            if (inventory[SECONDARY_OUTPUT_SLOT] != null && inventory[SECONDARY_OUTPUT_SLOT].stackSize == 0)
+                inventory[SECONDARY_OUTPUT_SLOT] = null;
+            for (Processor process : processing)
+                process.timer++;
+            if (!processing.isEmpty())
             {
-                moveStack(INPUT_SLOT, OUTPUT_SLOT);
-                outputCounter = 0;
+                Processor current = processing.peek();
+                if (current.timer == 40)
+                {
+                    ItemStack primaryOutput = current.output.getPrimaryResult().copy();
+                    ItemStack secondaryOutput = current.output.getSecondaryResult().copy();
+                    ItemStack primaryFit = null;
+                    if (inventory[PRIMARY_OUTPUT_SLOT] == null)
+                    {
+                        primaryFit = primaryOutput;
+                    }
+                    else if (inventory[PRIMARY_OUTPUT_SLOT].isItemEqual(secondaryOutput) &&
+                        inventory[PRIMARY_OUTPUT_SLOT].stackSize < inventory[PRIMARY_OUTPUT_SLOT].getMaxStackSize())
+                    {
+                        primaryFit = inventory[PRIMARY_OUTPUT_SLOT].copy();
+                        primaryFit.stackSize++;
+                    }
+                    if (primaryFit != null && Math.random() <= current.output.getSecondaryChance())
+                    {
+                        if (inventory[SECONDARY_OUTPUT_SLOT] == null)
+                        {
+                            inventory[PRIMARY_OUTPUT_SLOT] = primaryFit;
+                            inventory[SECONDARY_OUTPUT_SLOT] = secondaryOutput;
+                            processing.poll();
+                        }
+                        else if (inventory[SECONDARY_OUTPUT_SLOT].isItemEqual(secondaryOutput) &&
+                            inventory[SECONDARY_OUTPUT_SLOT].stackSize < inventory[SECONDARY_OUTPUT_SLOT].getMaxStackSize())
+                        {
+                            inventory[PRIMARY_OUTPUT_SLOT] = primaryFit;
+                            inventory[SECONDARY_OUTPUT_SLOT].stackSize++;
+                            processing.poll();
+                        }
+                    } else if(primaryFit != null) {
+                        inventory[PRIMARY_OUTPUT_SLOT] = primaryFit;
+                        processing.poll();
+                    }
+                }
+            }
+            if (inventory[INPUT_SLOT] != null && processing.remainingCapacity() > 0)
+            {
+                Optional<Optional<ExtractorOutput>> output = FluentIterable.from(ExtractorRecipes.recipes())
+                                                                 .transform(r -> r.match(inventory[INPUT_SLOT]))
+                                                                 .firstMatch(Optional::isPresent);
+                if (output.isPresent() && output.get().isPresent())
+                    processing.offer(new Processor(decrStackSize(INPUT_SLOT, 1), output.get().get(), 0));
             }
         }
     }
@@ -225,7 +289,7 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
     public int[] getSlotsForFace(EnumFacing side)
     {
         if (side == orientation)
-            return new int[]{OUTPUT_SLOT};
+            return new int[]{PRIMARY_OUTPUT_SLOT, SECONDARY_OUTPUT_SLOT};
         else if (side == orientation.getOpposite())
             return new int[]{INPUT_SLOT};
         return new int[0];
@@ -240,13 +304,13 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
     @Override
     public boolean canExtractItem(int index, ItemStack stack, EnumFacing direction)
     {
-        return direction == orientation && index == OUTPUT_SLOT;
+        return direction == orientation && (index == PRIMARY_OUTPUT_SLOT || index == SECONDARY_OUTPUT_SLOT);
     }
 
     @Override
     public boolean isItemValidForSlot(int index, ItemStack stack)
     {
-        return stack.getItem() == Items.apple;
+        return index != INPUT_SLOT || ExtractorRecipes.recipes().stream().anyMatch(e -> e.match(stack).isPresent());
     }
 
     @Override
