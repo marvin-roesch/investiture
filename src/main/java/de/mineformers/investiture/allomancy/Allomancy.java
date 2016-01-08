@@ -3,6 +3,7 @@ package de.mineformers.investiture.allomancy;
 import com.google.common.base.Optional;
 import de.mineformers.investiture.Investiture;
 import de.mineformers.investiture.allomancy.block.AllomanticMetalOre;
+import de.mineformers.investiture.allomancy.block.MetalExtractor;
 import de.mineformers.investiture.allomancy.core.EntityHandler;
 import de.mineformers.investiture.allomancy.item.*;
 import de.mineformers.investiture.allomancy.metal.AllomanticMetal;
@@ -11,11 +12,16 @@ import de.mineformers.investiture.allomancy.metal.MetalBurner;
 import de.mineformers.investiture.allomancy.metal.MetalStorage;
 import de.mineformers.investiture.allomancy.network.EntityMetalBurnerUpdate;
 import de.mineformers.investiture.allomancy.network.EntityMetalStorageUpdate;
+import de.mineformers.investiture.allomancy.network.MetalExtractorUpdate;
 import de.mineformers.investiture.allomancy.network.ToggleBurningMetal;
+import de.mineformers.investiture.allomancy.tileentity.TileMetalExtractorMaster;
+import de.mineformers.investiture.allomancy.tileentity.TileMetalExtractorDummy;
+import de.mineformers.investiture.allomancy.tileentity.TileMetalExtractorOutput;
 import de.mineformers.investiture.allomancy.world.MetalGenerator;
 import de.mineformers.investiture.core.Manifestation;
 import de.mineformers.investiture.core.Proxy;
 import de.mineformers.investiture.network.Message;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
@@ -36,6 +42,20 @@ public final class Allomancy implements Manifestation
         clientSide = "de.mineformers.investiture.allomancy.core.ClientProxy",
         serverSide = "de.mineformers.investiture.allomancy.core.ServerSide")
     public static Proxy proxy;
+
+    /**
+     * @param path the path of the resource
+     * @return a resource location pointing at the given path in allomancy's resource domain
+     */
+    public static ResourceLocation resource(String path) {
+        return new ResourceLocation(DOMAIN, path);
+    }
+
+    @Override
+    public String id()
+    {
+        return DOMAIN;
+    }
 
     @Override
     public void preInit(FMLPreInitializationEvent event)
@@ -70,6 +90,7 @@ public final class Allomancy implements Manifestation
     public static class Blocks
     {
         public static AllomanticMetalOre allomantic_ore;
+        public static MetalExtractor metal_extractor;
 
         /**
          * Adds all blocks to the game's registry.
@@ -77,6 +98,10 @@ public final class Allomancy implements Manifestation
         public static void register()
         {
             GameRegistry.registerBlock(allomantic_ore = new AllomanticMetalOre(), AllomanticMetalOre.ItemRepresentation.class);
+            GameRegistry.registerBlock(metal_extractor = new MetalExtractor(), MetalExtractor.ItemRepresentation.class);
+            GameRegistry.registerTileEntity(TileMetalExtractorMaster.class, "allomancy:metal_extractor_master");
+            GameRegistry.registerTileEntity(TileMetalExtractorDummy.class, "allomancy:metal_extractor_slave");
+            GameRegistry.registerTileEntity(TileMetalExtractorOutput.class, "allomancy:metal_extractor_output");
         }
     }
 
@@ -142,6 +167,7 @@ public final class Allomancy implements Manifestation
             Investiture.net().registerMessage(EntityMetalStorageUpdate.class);
             Investiture.net().registerMessage(EntityMetalBurnerUpdate.class);
             Investiture.net().registerMessage(ToggleBurningMetal.class);
+            Investiture.net().registerMessage(MetalExtractorUpdate.class);
 
             // Add handler for toggling the burning of a metal
             Investiture.net().addHandler(ToggleBurningMetal.class, Side.SERVER, (msg, ctx) -> {

@@ -41,6 +41,26 @@
           "layer0": "allomancy:items/steel_ingot"
         }
       },
+      "lead": {
+        "textures": {
+          "layer0": "allomancy:items/lead_ingot"
+        }
+      },
+      "nickel": {
+        "textures": {
+          "layer0": "allomancy:items/nickel_ingot"
+        }
+      },
+      "silver": {
+        "textures": {
+          "layer0": "allomancy:items/silver_ingot"
+        }
+      },
+      "bismuth": {
+        "textures": {
+          "layer0": "allomancy:items/bismuth_ingot"
+        }
+      },
       "duralumin": {
         "textures": {
           "layer0": "allomancy:items/duralumin_ingot"

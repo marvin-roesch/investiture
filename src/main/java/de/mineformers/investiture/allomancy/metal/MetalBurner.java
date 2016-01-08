@@ -244,21 +244,21 @@ public class MetalBurner extends MetalStorage
                 storage.setInteger(metal.id(), value);
                 return true;
             });
-            root.setTag("metals", storage);
+            root.setTag("Metals", storage);
 
             NBTTagCompound timers = new NBTTagCompound();
             burnTimers().forEachEntry((metal, value) -> {
                 timers.setInteger(metal.id(), value);
                 return true;
             });
-            root.setTag("timers", timers);
+            root.setTag("Timers", timers);
 
             NBTTagCompound impurities = new NBTTagCompound();
             impurities().forEachEntry((metal, value) -> {
                 impurities.setInteger(metal.id(), value);
                 return true;
             });
-            root.setTag("impurities", impurities);
+            root.setTag("Impurities", impurities);
 
             compound.setTag(Allomancy.NBT.BURNER_ID, root);
         }
@@ -268,7 +268,7 @@ public class MetalBurner extends MetalStorage
         {
             NBTTagCompound root = compound.getCompoundTag(Allomancy.NBT.BURNER_ID);
 
-            NBTTagCompound storage = root.getCompoundTag("metals");
+            NBTTagCompound storage = root.getCompoundTag("Metals");
             for (String id : storage.getKeySet())
             {
                 Optional<AllomanticMetal> metal = AllomanticMetals.get(id);
@@ -276,7 +276,7 @@ public class MetalBurner extends MetalStorage
                     store(metal.get(), storage.getInteger(id));
             }
 
-            NBTTagCompound timers = root.getCompoundTag("timers");
+            NBTTagCompound timers = root.getCompoundTag("Timers");
             for (String id : timers.getKeySet())
             {
                 Optional<AllomanticMetal> metal = AllomanticMetals.get(id);
@@ -284,7 +284,7 @@ public class MetalBurner extends MetalStorage
                     setBurnTimer(metal.get(), timers.getInteger(id));
             }
 
-            NBTTagCompound impurities = root.getCompoundTag("impurities");
+            NBTTagCompound impurities = root.getCompoundTag("Impurities");
             for (String id : impurities.getKeySet())
             {
                 Optional<AllomanticMetal> metal = AllomanticMetals.get(id);

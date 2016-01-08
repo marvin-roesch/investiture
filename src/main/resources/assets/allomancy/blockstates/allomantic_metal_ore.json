@@ -31,6 +31,21 @@
         "textures": {
           "layer_metal": "allomancy:blocks/chromium_ore"
         }
+      },
+      "silver": {
+        "textures": {
+          "layer_metal": "allomancy:blocks/silver_ore"
+        }
+      },
+      "bismuth": {
+        "textures": {
+          "layer_metal": "allomancy:blocks/bismuth_ore"
+        }
+      },
+      "lead": {
+        "textures": {
+          "layer_metal": "allomancy:blocks/lead_ore"
+        }
       }
     }
   }

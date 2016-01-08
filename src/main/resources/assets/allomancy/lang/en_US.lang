@@ -33,7 +33,12 @@ item.electrum_ingot.name=Electrum Ingot
 item.bendalloy_ingot.name=Bendalloy Ingot
 
 tile.copper_ore.name=Copper Ore
-tile.zinc_ore.name=Zinc Ore
+tile.zinc_ore.name=Sphalerite
 tile.tin_ore.name=Cassiterite
 tile.aluminium_ore.name=Bauxite
 tile.chromium_ore.name=Chromite
+
+tile.metal_extractor.frame.name=Extractor Frame
+tile.metal_extractor.grinder.name=Extractor Grind Stone
+tile.metal_extractor.glass.name=Extractor Glass
+tile.metal_extractor.controller.name=Extractor Controller

@@ -270,14 +270,14 @@ public class MetalStorage
                 storage.setInteger(metal.id(), value);
                 return true;
             });
-            root.setTag("metals", storage);
+            root.setTag("Metals", storage);
 
             NBTTagCompound impurities = new NBTTagCompound();
             impurities().forEachEntry((metal, value) -> {
                 impurities.setInteger(metal.id(), value);
                 return true;
             });
-            root.setTag("impurities", impurities);
+            root.setTag("Impurities", impurities);
 
             compound.setTag(Allomancy.NBT.STORAGE_ID, root);
         }
@@ -287,7 +287,7 @@ public class MetalStorage
         {
             NBTTagCompound root = compound.getCompoundTag(Allomancy.NBT.STORAGE_ID);
 
-            NBTTagCompound storage = root.getCompoundTag("metals");
+            NBTTagCompound storage = root.getCompoundTag("Metals");
             for (String id : storage.getKeySet())
             {
                 Optional<AllomanticMetal> metal = AllomanticMetals.get(id);
@@ -295,7 +295,7 @@ public class MetalStorage
                     store(metal.get(), storage.getInteger(id));
             }
 
-            NBTTagCompound impurities = root.getCompoundTag("impurities");
+            NBTTagCompound impurities = root.getCompoundTag("Impurities");
             for (String id : impurities.getKeySet())
             {
                 Optional<AllomanticMetal> metal = AllomanticMetals.get(id);

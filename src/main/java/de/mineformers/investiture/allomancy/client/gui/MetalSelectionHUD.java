@@ -10,6 +10,7 @@ import de.mineformers.investiture.allomancy.metal.MetalStorage;
 import de.mineformers.investiture.allomancy.network.ToggleBurningMetal;
 import de.mineformers.investiture.client.KeyBindings;
 import de.mineformers.investiture.client.renderer.Shader;
+import de.mineformers.investiture.client.util.Rendering;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.ScaledResolution;
@@ -80,7 +81,7 @@ public class MetalSelectionHUD
 
         // Draws the wheel's background texture (the red metal part)
         Minecraft.getMinecraft().getTextureManager().bindTexture(WHEEL_BG_TEXTURE);
-        rect(centreX - 100, centreY - 100, 0, 0, 1, 1, 200, 200);
+        Rendering.drawRectangle(centreX - 100, centreY - 100, 0, 0, 1, 1, 200, 200);
 
         // Disable the alpha test such that everything will get drawn as translucently as desired
         GlStateManager.disableAlpha();
@@ -91,7 +92,7 @@ public class MetalSelectionHUD
 
         // Draw the wheel's frame
         Minecraft.getMinecraft().getTextureManager().bindTexture(WHEEL_TEXTURE);
-        rect(centreX - 100, centreY - 100, 0, 0, 1, 1, 200, 200);
+        Rendering.drawRectangle(centreX - 100, centreY - 100, 0, 0, 1, 1, 200, 200);
 
         // Draw the hovered metal's name in the circle's centre
         FontRenderer font = Minecraft.getMinecraft().fontRendererObj;
@@ -200,7 +201,7 @@ public class MetalSelectionHUD
             // The textures in the array are aligned in pairs of two
             Minecraft.getMinecraft().getTextureManager().bindTexture(METAL_TEXTURES[i * 2]);
             // Draw the inner icon 40 units away from the circle's centre
-            rect(centreX + (int) (cos(angle) * 40) - 8,
+            Rendering.drawRectangle(centreX + (int) (cos(angle) * 40) - 8,
                  centreY - (int) (sin(angle) * 40) - 8, 0, 0, 1, 1, 16, 16);
 
             AllomanticMetal outerMetal = AllomanticMetals.get(METALS[i * 2 + 1]).get();
@@ -214,8 +215,8 @@ public class MetalSelectionHUD
             // The textures in the array are aligned in pairs of two
             Minecraft.getMinecraft().getTextureManager().bindTexture(METAL_TEXTURES[i * 2 + 1]);
             // Draw the outer icon 75 units away from the circle's centre
-            rect(centreX + (int) (cos(angle) * 75) - 8,
-                 centreY - (int) (sin(angle) * 75) - 8, 0, 0, 1, 1, 16, 16);
+            Rendering.drawRectangle(centreX + (int) (cos(angle) * 75) - 8,
+                                    centreY - (int) (sin(angle) * 75) - 8, 0, 0, 1, 1, 16, 16);
         }
         iconShader.deactivate();
     }
@@ -285,7 +286,6 @@ public class MetalSelectionHUD
         }
 
         mag = sqrt(mouseX * mouseX + mouseY * mouseY);
-        System.out.println(toDegrees(atan2(mouseY, mouseX)));
         double angle = (450 + toDegrees(atan2(mouseX, mouseY))) % 360;
 
         // Rest the hovered metal and check each metal individually
@@ -304,37 +304,5 @@ public class MetalSelectionHUD
 
         // We don't want anybody else interfering with our handling.
         event.setCanceled(true);
-    }
-
-    /**
-     * Draws a rectangle to the screen.
-     *
-     * @param x the rectangle's upper left-hand corner's x coordinate
-     * @param y the rectangle's upper left-hand corner's y coordinate
-     * @param uMin the u (horizontal) coordinate of the rectangle's upper left-hand corner in the texture
-     * @param vMin the v (vertical) coordinate of the rectangle's lower right-hand corner in the texture
-     * @param uMax the u (horizontal) coordinate of the rectangle's upper left-hand corner in the texture
-     * @param vMax the v (vertical) coordinate of the rectangle's lower right-hand corner in the texture
-     * @param width the rectangle's width on screen
-     * @param height the rectangle's height on screen
-     */
-    public void rect(int x, int y, float uMin, float vMin, float uMax, float vMax, int width, int height)
-    {
-        Tessellator tessellator = Tessellator.getInstance();
-        WorldRenderer worldrenderer = tessellator.getWorldRenderer();
-        worldrenderer.begin(7, DefaultVertexFormats.POSITION_TEX);
-        worldrenderer.pos(x, y + height, 0)
-                     .tex(uMin, vMax)
-                     .endVertex();
-        worldrenderer.pos(x + width, y + height, 0)
-                     .tex(uMax, vMax)
-                     .endVertex();
-        worldrenderer.pos(x + width, y, 0)
-                     .tex(uMax, vMin)
-                     .endVertex();
-        worldrenderer.pos(x, y, 0)
-                     .tex(uMin, vMin)
-                     .endVertex();
-        tessellator.draw();
     }
 }

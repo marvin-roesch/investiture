@@ -1,5 +1,6 @@
 package de.mineformers.investiture.allomancy.block;
 
+import de.mineformers.investiture.Investiture;
 import de.mineformers.investiture.block.properties.PropertyString;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
@@ -44,9 +45,10 @@ public class AllomanticMetalOre extends Block
     public AllomanticMetalOre()
     {
         super(Material.rock);
+
         setDefaultState(blockState.getBaseState().withProperty(METAL, NAMES[0]));
         setUnlocalizedName("allomantic_metal_ore");
-        setCreativeTab(CreativeTabs.tabBlock);
+        setCreativeTab(Investiture.CREATIVE_TAB);
         setRegistryName("allomantic_metal_ore");
     }
 
