@@ -7,7 +7,7 @@ public class AllomanticMetalChunk extends AllomanticMetalItem
 {
     public static final String[] NAMES = {
         "copper", "tin", "zinc", "iron", "lead", "aluminium", "chromium", "gold", "cadmium", "silver",
-        "bismuth", "lead"
+        "bismuth"
     };
 
     /**

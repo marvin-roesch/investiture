@@ -1,0 +1,71 @@
+{
+  "forge_marker": 1,
+  "defaults": {
+    "model": "builtin/generated",
+    "transform": "forge:default-item"
+  },
+  "variants": {
+    "metal": {
+      "copper": {
+        "textures": {
+          "layer0": "allomancy:items/chunk/copper"
+        }
+      },
+      "zinc": {
+        "textures": {
+          "layer0": "allomancy:items/chunk/zinc"
+        }
+      },
+      "tin": {
+        "textures": {
+          "layer0": "allomancy:items/chunk/tin"
+        }
+      },
+      "iron": {
+        "textures": {
+          "layer0": "allomancy:items/chunk/iron"
+        }
+      },
+      "steel": {
+        "textures": {
+          "layer0": "allomancy:items/chunk/steel"
+        }
+      },
+      "lead": {
+        "textures": {
+          "layer0": "allomancy:items/chunk/lead"
+        }
+      },
+      "silver": {
+        "textures": {
+          "layer0": "allomancy:items/chunk/silver"
+        }
+      },
+      "bismuth": {
+        "textures": {
+          "layer0": "allomancy:items/chunk/bismuth"
+        }
+      },
+      "aluminium": {
+        "textures": {
+          "layer0": "allomancy:items/chunk/aluminium"
+        }
+      },
+      "cadmium": {
+        "textures": {
+          "layer0": "allomancy:items/chunk/cadmium"
+        }
+      },
+      "chromium": {
+        "textures": {
+          "layer0": "allomancy:items/chunk/chromium"
+        }
+      },
+      "gold": {
+        "textures": {
+          "layer0": "allomancy:items/chunk/gold"
+        }
+      }
+    }
+  }
+}

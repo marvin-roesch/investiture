@@ -6,7 +6,7 @@ package de.mineformers.investiture.allomancy.item;
 public class AllomanticMetalNugget extends AllomanticMetalItem
 {
     public static final String[] NAMES = {
-        "bronze", "brass", "copper", "zinc", "tin", "pewter", "steel", "iron", "lead", "nickel", "silver", "bismuth", "gold",
+        "bronze", "brass", "copper", "zinc", "tin", "pewter", "steel", "iron", "lead", "nickel", "silver", "bismuth",
         "duralumin", "nicrosil", "aluminium", "chromium", "cadmium", "electrum", "bendalloy"
     };
 

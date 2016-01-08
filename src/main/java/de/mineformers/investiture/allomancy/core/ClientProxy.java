@@ -6,7 +6,7 @@ import de.mineformers.investiture.allomancy.Allomancy;
 import de.mineformers.investiture.allomancy.block.MetalExtractor;
 import de.mineformers.investiture.allomancy.client.gui.MetalSelectionHUD;
 import de.mineformers.investiture.allomancy.client.renderer.tileentity.MetalExtractorRenderer;
-import de.mineformers.investiture.allomancy.item.AllomanticMetalIngot;
+import de.mineformers.investiture.allomancy.item.*;
 import de.mineformers.investiture.allomancy.metal.MetalBurner;
 import de.mineformers.investiture.allomancy.metal.MetalStorage;
 import de.mineformers.investiture.allomancy.network.EntityMetalBurnerUpdate;
@@ -55,6 +55,46 @@ public class ClientProxy implements Proxy
                                             stack -> ingotResources.get(Allomancy.Items.allomantic_ingot.clampDamage(stack.getItemDamage())));
         ModelBakery.registerItemVariants(Allomancy.Items.allomantic_ingot,
                                          ingotResources.toArray(new ModelResourceLocation[ingotResources.size()]));
+
+        // Assign models to each allomantic metal nugget
+        final List<ModelResourceLocation> nuggetResources =
+                FluentIterable.from(Arrays.asList(AllomanticMetalNugget.NAMES))
+                        .transform(n -> new ModelResourceLocation(Allomancy.DOMAIN + ":allomantic_metal_nugget", "metal=" + n))
+                        .toList();
+        ModelLoader.setCustomMeshDefinition(Allomancy.Items.allomantic_nugget,
+                stack -> nuggetResources.get(Allomancy.Items.allomantic_nugget.clampDamage(stack.getItemDamage())));
+        ModelBakery.registerItemVariants(Allomancy.Items.allomantic_nugget,
+                nuggetResources.toArray(new ModelResourceLocation[nuggetResources.size()]));
+
+        // Assign models to each allomantic metal bead
+        final List<ModelResourceLocation> beadResources =
+                FluentIterable.from(Arrays.asList(AllomanticMetalBead.NAMES))
+                        .transform(n -> new ModelResourceLocation(Allomancy.DOMAIN + ":allomantic_metal_bead", "metal=" + n))
+                        .toList();
+        ModelLoader.setCustomMeshDefinition(Allomancy.Items.allomantic_bead,
+                stack -> beadResources.get(Allomancy.Items.allomantic_bead.clampDamage(stack.getItemDamage())));
+        ModelBakery.registerItemVariants(Allomancy.Items.allomantic_bead,
+                beadResources.toArray(new ModelResourceLocation[beadResources.size()]));
+
+        // Assign models to each allomantic metal chunk
+        final List<ModelResourceLocation> chunkResources =
+                FluentIterable.from(Arrays.asList(AllomanticMetalChunk.NAMES))
+                        .transform(n -> new ModelResourceLocation(Allomancy.DOMAIN + ":allomantic_metal_chunk", "metal=" + n))
+                        .toList();
+        ModelLoader.setCustomMeshDefinition(Allomancy.Items.allomantic_chunk,
+                stack -> chunkResources.get(Allomancy.Items.allomantic_chunk.clampDamage(stack.getItemDamage())));
+        ModelBakery.registerItemVariants(Allomancy.Items.allomantic_chunk,
+                chunkResources.toArray(new ModelResourceLocation[chunkResources.size()]));
+
+        // Assign models to each allomantic metal dust
+        final List<ModelResourceLocation> dustResources =
+                FluentIterable.from(Arrays.asList(AllomanticMetalDust.NAMES))
+                        .transform(n -> new ModelResourceLocation(Allomancy.DOMAIN + ":allomantic_metal_dust", "metal=" + n))
+                        .toList();
+        ModelLoader.setCustomMeshDefinition(Allomancy.Items.allomantic_dust,
+                stack -> dustResources.get(Allomancy.Items.allomantic_dust.clampDamage(stack.getItemDamage())));
+        ModelBakery.registerItemVariants(Allomancy.Items.allomantic_dust,
+                dustResources.toArray(new ModelResourceLocation[dustResources.size()]));
 
         registerBlockResources(Allomancy.DOMAIN, Allomancy.Blocks.allomantic_ore);
         registerBlockResources(Allomancy.DOMAIN, Allomancy.Blocks.metal_extractor, ModuleStateMap.builder().ignore(MetalExtractor.MASTER));

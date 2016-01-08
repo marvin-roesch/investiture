@@ -8,92 +8,102 @@
     "metal": {
       "bronze": {
         "textures": {
-          "layer0": "allomancy:items/ingot/bronze"
+          "layer0": "allomancy:items/bead/bronze"
         }
       },
       "brass": {
         "textures": {
-          "layer0": "allomancy:items/ingot/brass"
+          "layer0": "allomancy:items/bead/brass"
         }
       },
       "copper": {
         "textures": {
-          "layer0": "allomancy:items/ingot/copper"
+          "layer0": "allomancy:items/bead/copper"
         }
       },
       "zinc": {
         "textures": {
-          "layer0": "allomancy:items/ingot/zinc"
+          "layer0": "allomancy:items/bead/zinc"
         }
       },
       "tin": {
         "textures": {
-          "layer0": "allomancy:items/ingot/tin"
+          "layer0": "allomancy:items/bead/tin"
         }
       },
       "pewter": {
         "textures": {
-          "layer0": "allomancy:items/ingot/pewter"
+          "layer0": "allomancy:items/bead/pewter"
         }
       },
       "steel": {
         "textures": {
-          "layer0": "allomancy:items/ingot/steel"
+          "layer0": "allomancy:items/bead/steel"
+        }
+      },
+      "iron": {
+        "textures": {
+          "layer0": "allomancy:items/bead/iron"
         }
       },
       "lead": {
         "textures": {
-          "layer0": "allomancy:items/ingot/lead"
+          "layer0": "allomancy:items/bead/lead"
         }
       },
       "nickel": {
         "textures": {
-          "layer0": "allomancy:items/ingot/nickel"
+          "layer0": "allomancy:items/bead/nickel"
         }
       },
       "silver": {
         "textures": {
-          "layer0": "allomancy:items/ingot/silver"
+          "layer0": "allomancy:items/bead/silver"
         }
       },
       "bismuth": {
         "textures": {
-          "layer0": "allomancy:items/ingot/bismuth"
+          "layer0": "allomancy:items/bead/bismuth"
         }
       },
       "duralumin": {
         "textures": {
-          "layer0": "allomancy:items/ingot/duralumin"
+          "layer0": "allomancy:items/bead/duralumin"
         }
       },
       "nicrosil": {
         "textures": {
-          "layer0": "allomancy:items/ingot/nicrosil"
+          "layer0": "allomancy:items/bead/nicrosil"
         }
       },
       "aluminium": {
         "textures": {
-          "layer0": "allomancy:items/ingot/aluminium"
+          "layer0": "allomancy:items/bead/aluminium"
         }
       },
       "chromium": {
         "textures": {
-          "layer0": "allomancy:items/ingot/chromium"
+          "layer0": "allomancy:items/bead/chromium"
         }
       },
       "cadmium": {
         "textures": {
-          "layer0": "allomancy:items/ingot/cadmium"
+          "layer0": "allomancy:items/bead/cadmium"
         }
       },
       "electrum": {
         "textures": {
-          "layer0": "allomancy:items/ingot/electrum"
+          "layer0": "allomancy:items/bead/electrum"
         }
       },
       "bendalloy": {
         "textures": {
-          "layer0": "allomancy:items/ingot/bendalloy"
+          "layer0": "allomancy:items/bead/bendalloy"
+        }
+      },
+      "gold": {
+        "textures": {
+          "layer0": "allomancy:items/bead/gold"
         }
       }
     }

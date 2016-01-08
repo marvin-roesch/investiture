@@ -21,6 +21,7 @@ import de.mineformers.investiture.allomancy.world.MetalGenerator;
 import de.mineformers.investiture.core.Manifestation;
 import de.mineformers.investiture.core.Proxy;
 import de.mineformers.investiture.network.Message;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.SidedProxy;
@@ -29,6 +30,8 @@ import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.oredict.OreDictionary;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * The "Allomancy" module is based on the "Mistborn" series of books by Brandon Sanderson.
@@ -102,6 +105,11 @@ public final class Allomancy implements Manifestation
             GameRegistry.registerTileEntity(TileMetalExtractorMaster.class, "allomancy:metal_extractor_master");
             GameRegistry.registerTileEntity(TileMetalExtractorDummy.class, "allomancy:metal_extractor_slave");
             GameRegistry.registerTileEntity(TileMetalExtractorOutput.class, "allomancy:metal_extractor_output");
+
+            // Add ores to the ore dictionary
+            for(int i = 0; i < AllomanticMetalOre.NAMES.length; i++) {
+                OreDictionary.registerOre(String.format("ore%s", StringUtils.capitalize(AllomanticMetalOre.NAMES[i])), new ItemStack(allomantic_ore, 1, i));
+            }
         }
     }
 
@@ -126,6 +134,21 @@ public final class Allomancy implements Manifestation
             GameRegistry.registerItem(allomantic_bead = new AllomanticMetalBead());
             GameRegistry.registerItem(allomantic_chunk = new AllomanticMetalChunk());
             GameRegistry.registerItem(allomantic_dust = new AllomanticMetalDust());
+
+            // Add items to the ore dictionary
+            for(int i = 0; i < AllomanticMetalIngot.NAMES.length; i++) {
+                OreDictionary.registerOre(String.format("ingot%s", StringUtils.capitalize(AllomanticMetalIngot.NAMES[i])), new ItemStack(allomantic_ingot, 1, i));
+            }
+            for(int i = 0; i < AllomanticMetalNugget.NAMES.length; i++) {
+                OreDictionary.registerOre(String.format("nugget%s", StringUtils.capitalize(AllomanticMetalNugget.NAMES[i])), new ItemStack(allomantic_nugget, 1, i));
+            }
+            for(int i = 0; i < AllomanticMetalChunk.NAMES.length; i++) {
+                OreDictionary.registerOre(String.format("ore%s", StringUtils.capitalize(AllomanticMetalChunk.NAMES[i])), new ItemStack(allomantic_chunk, 1, i));
+                OreDictionary.registerOre(String.format("chunk%s", StringUtils.capitalize(AllomanticMetalChunk.NAMES[i])), new ItemStack(allomantic_chunk, 1, i));
+            }
+            for(int i = 0; i < AllomanticMetalDust.NAMES.length; i++) {
+                OreDictionary.registerOre(String.format("ingot%s", StringUtils.capitalize(AllomanticMetalDust.NAMES[i])), new ItemStack(allomantic_dust, 1, i));
+            }
         }
     }
 
