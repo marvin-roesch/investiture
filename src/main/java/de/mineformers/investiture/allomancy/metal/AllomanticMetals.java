@@ -19,22 +19,29 @@ import static de.mineformers.investiture.allomancy.Allomancy.Items.allomantic_in
 public final class AllomanticMetals
 {
     private static final Set<AllomanticMetal> METALS = new HashSet<>();
-    public static final AllomanticMetal BRONZE = new SelectiveItemMetal("bronze");
-    public static final AllomanticMetal BRASS = new SelectiveItemMetal("brass");
+    // Base metals
     public static final AllomanticMetal COPPER = new SelectiveItemMetal("copper");
     public static final AllomanticMetal ZINC = new SelectiveItemMetal("zinc");
     public static final AllomanticMetal TIN = new SelectiveItemMetal("tin");
     public static final AllomanticMetal IRON = new VanillaItemMetal("iron", Items.iron_ingot);
-    public static final AllomanticMetal PEWTER = new SelectiveItemMetal("pewter");
-    public static final AllomanticMetal STEEL = new SelectiveItemMetal("steel");
-    public static final AllomanticMetal DURALUMIN = new SelectiveItemMetal("duralumin");
-    public static final AllomanticMetal NICROSIL = new SelectiveItemMetal("nicrosil");
     public static final AllomanticMetal ALUMINIUM = new SelectiveItemMetal("aluminium");
     public static final AllomanticMetal CHROMIUM = new SelectiveItemMetal("chromium");
     public static final AllomanticMetal GOLD = new VanillaItemMetal("gold", Items.gold_ingot);
     public static final AllomanticMetal CADMIUM = new SelectiveItemMetal("cadmium");
-    public static final AllomanticMetal ELECTRUM = new SelectiveItemMetal("electrum");
-    public static final AllomanticMetal BENDALLOY = new SelectiveItemMetal("bendalloy");
+    public static final AllomanticMetal LEAD = new SelectiveItemMetal("lead");
+    public static final AllomanticMetal BISMUTH = new SelectiveItemMetal("bismuth");
+    public static final AllomanticMetal SILVER = new SelectiveItemMetal("silver");
+    public static final AllomanticMetal NICKEL = new SelectiveItemMetal("nickel");
+    public static final AllomanticMetal CARBON = new VanillaItemMetal("CARBON", Items.coal); // not a metal
+    // Alloy metals
+    public static final AllomanticAlloy BRONZE = new AlloyItemMetal("bronze", COPPER, 0.75F, TIN, 0.25F);
+    public static final AllomanticAlloy BRASS = new AlloyItemMetal("brass", COPPER, 0.65F, ZINC, 0.35F);
+    public static final AllomanticAlloy PEWTER = new AlloyItemMetal("pewter", TIN, 0.91F, LEAD, 0.09F);
+    public static final AllomanticAlloy STEEL = new AlloyItemMetal("steel", IRON, 0.98F, CARBON, 0.02F);
+    public static final AllomanticAlloy DURALUMIN = new AlloyItemMetal("duralumin", ALUMINIUM, 0.96F, COPPER, 0.04F);
+    public static final AllomanticAlloy NICROSIL = new AlloyItemMetal("nicrosil", NICKEL, 0.86F, CHROMIUM, 0.14F);
+    public static final AllomanticAlloy ELECTRUM = new AlloyItemMetal("electrum", GOLD, 0.45F, SILVER, 0.55F);
+    public static final AllomanticAlloy BENDALLOY = new AlloyItemMetal("bendalloy", BISMUTH, 0.5F, LEAD, 0.27F, TIN, 0.13F, CADMIUM, 0.1F);
 
     /**
      * Register all 16 basic metals
@@ -57,6 +64,10 @@ public final class AllomanticMetals
         METALS.add(CADMIUM);
         METALS.add(ELECTRUM);
         METALS.add(BENDALLOY);
+        METALS.add(LEAD);
+        METALS.add(BISMUTH);
+        METALS.add(SILVER);
+        METALS.add(NICKEL);
     }
 
     /**
@@ -131,5 +142,44 @@ public final class AllomanticMetals
             else
                 return 0;
         }
+    }
+
+    /**
+     * Simple representation of alloy allomantic metals
+     */
+    private final static class AlloyItemMetal extends AllomanticAlloy.AbstractAlloy implements MetalEffects
+    {
+
+        AlloyItemMetal(@Nonnull String id, AllomanticMetal alloy, Object... components)
+        {
+            super(id, alloy, components);
+        }
+
+        @Override
+        public void startBurning(MetalBurner burner)
+        {
+        }
+
+        @Override
+        public void stopBurning(MetalBurner burner)
+        {
+        }
+
+        @Override
+        public boolean canBurn(@Nonnull ItemStack stack)
+        {
+            // Only pure metals are burnable
+            return getValue(stack) > 0 && allomantic_ingot.getPurity(stack) >= 100;
+        }
+
+        @Override
+        public int getValue(@Nonnull ItemStack stack)
+        {
+            if (stack.getItem() == allomantic_ingot && allomantic_ingot.getName(stack).equals(id()))
+                return stack.stackSize;
+            else
+                return 0;
+        }
+
     }
 }

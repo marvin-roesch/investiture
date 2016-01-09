@@ -18,4 +18,9 @@ public class AllomanticMetalChunk extends AllomanticMetalItem
         super("allomantic_metal_chunk", "chunk", NAMES);
     }
 
+    public Type getItemType()
+    {
+        return Type.CHUNK;
+    }
+
 }

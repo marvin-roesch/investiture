@@ -18,4 +18,9 @@ public class AllomanticMetalDust extends AllomanticMetalItem
         super("allomantic_metal_dust", "dust", NAMES);
     }
 
+    public Type getItemType()
+    {
+        return Type.DUST;
+    }
+
 }

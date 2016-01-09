@@ -18,4 +18,9 @@ public class AllomanticMetalNugget extends AllomanticMetalItem
         super("allomantic_metal_nugget", "nugget", NAMES);
     }
 
+    public Type getItemType()
+    {
+        return Type.NUGGET;
+    }
+
 }

@@ -18,4 +18,9 @@ public class AllomanticMetalBead extends AllomanticMetalItem
         super("allomantic_metal_bead", "bead", NAMES);
     }
 
+    public Type getItemType()
+    {
+        return Type.BEAD;
+    }
+
 }

@@ -18,4 +18,9 @@ public class AllomanticMetalIngot extends AllomanticMetalItem
         super("allomantic_metal_ingot", "ingot", NAMES);
     }
 
+    public Type getItemType()
+    {
+        return Type.INGOT;
+    }
+
 }

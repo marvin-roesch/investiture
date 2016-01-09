@@ -1,6 +1,9 @@
 package de.mineformers.investiture.allomancy.item;
 
+import com.google.common.base.Optional;
 import de.mineformers.investiture.Investiture;
+import de.mineformers.investiture.allomancy.metal.AllomanticMetal;
+import de.mineformers.investiture.allomancy.metal.AllomanticMetals;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
@@ -77,6 +80,12 @@ abstract class AllomanticMetalItem extends Item
         return getCompound(stack).getInteger("purity");
     }
 
+    public ItemStack setPurity(ItemStack stack, int purity)
+    {
+        getCompound(stack).setInteger("purity", purity);
+        return stack;
+    }
+
     @SideOnly(Side.CLIENT)
     public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced)
     {
@@ -105,6 +114,30 @@ abstract class AllomanticMetalItem extends Item
     public String getUnlocalizedName(ItemStack stack)
     {
         return String.format("item.%s_%s", getName(stack), this.name);
+    }
+
+    public AllomanticMetal getMetal(ItemStack stack)
+    {
+        Optional<AllomanticMetal> metal = AllomanticMetals.get(getName(stack));
+
+        if(metal.isPresent()) {
+            return metal.get();
+        }
+
+        return null;
+    }
+
+    abstract public Type getItemType();
+
+    public enum Type {
+        NUGGET(1), BEAD(0.5F), INGOT(9), DUST(9), CHUNK(9);
+
+        public final float conversion;
+
+        Type(float conversion)
+        {
+            this.conversion = conversion;
+        }
     }
 
 }
