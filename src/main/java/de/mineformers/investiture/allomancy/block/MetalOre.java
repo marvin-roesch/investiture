@@ -21,7 +21,7 @@ import java.util.List;
 /**
  * Used as the ore for all allomantic metals which are not alloys and can be collected directly through mining.
  */
-public class AllomanticMetalOre extends Block
+public class MetalOre extends Block
 {
     public static final String[] NAMES = {
         "copper", "zinc", "tin", "aluminium", "chromium", "silver", "bismuth", "lead"
@@ -42,7 +42,7 @@ public class AllomanticMetalOre extends Block
     /**
      * Creates a new instance of the ore.
      */
-    public AllomanticMetalOre()
+    public MetalOre()
     {
         super(Material.rock);
 

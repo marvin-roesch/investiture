@@ -36,14 +36,14 @@ public class MetalStorage
      * Sensible default for metal storage
      */
     public static final int MAX_STORAGE = 100;
-    private final TObjectIntMap<AllomanticMetal> consumedMetals = new TObjectIntHashMap<>();
-    private final TObjectIntMap<AllomanticMetal> impurities = new TObjectIntHashMap<>();
+    private final TObjectIntMap<Metal> consumedMetals = new TObjectIntHashMap<>();
+    private final TObjectIntMap<Metal> impurities = new TObjectIntHashMap<>();
 
     /**
      * @param metal the metal to check
      * @return the amount stored of a given metal in its pure form
      */
-    public int get(AllomanticMetal metal)
+    public int get(Metal metal)
     {
         if (!consumedMetals.containsKey(metal))
             return 0;
@@ -58,7 +58,7 @@ public class MetalStorage
      * @param amount the amount to store
      * @return the amount of the metal that was actually stored
      */
-    private int store(TObjectIntMap<AllomanticMetal> map, AllomanticMetal metal, int amount)
+    private int store(TObjectIntMap<Metal> map, Metal metal, int amount)
     {
         int storedMetal = get(metal);
         int storedImpurity = getImpurity(metal);
@@ -78,7 +78,7 @@ public class MetalStorage
      * @param amount the amount to store
      * @return the amount of the metal that was actually stored
      */
-    public int store(AllomanticMetal metal, int amount)
+    public int store(Metal metal, int amount)
     {
         return store(consumedMetals, metal, amount);
     }
@@ -90,7 +90,7 @@ public class MetalStorage
      * @param amount the amount to remove
      * @return true if the energy was successfully removed, false if there wasn't enough energy left
      */
-    public boolean remove(AllomanticMetal metal, int amount)
+    public boolean remove(Metal metal, int amount)
     {
         int storage = get(metal);
         if (storage < amount)
@@ -103,7 +103,7 @@ public class MetalStorage
     /**
      * @return an unmodifiable view of all pure consumed metals
      */
-    public TObjectIntMap<AllomanticMetal> consumedMetals()
+    public TObjectIntMap<Metal> consumedMetals()
     {
         return TCollections.unmodifiableMap(consumedMetals);
     }
@@ -112,7 +112,7 @@ public class MetalStorage
      * @param metal the metal to check
      * @return the amount of impure metal stored
      */
-    public int getImpurity(AllomanticMetal metal)
+    public int getImpurity(Metal metal)
     {
         if (!impurities.containsKey(metal))
             return 0;
@@ -126,7 +126,7 @@ public class MetalStorage
      * @param amount the amount to store
      * @return the amount of the metal that was actually stored
      */
-    public int storeImpurity(AllomanticMetal metal, int amount)
+    public int storeImpurity(Metal metal, int amount)
     {
         return store(impurities, metal, amount);
     }
@@ -138,7 +138,7 @@ public class MetalStorage
      * @param amount the amount to remove
      * @return true if the energy was successfully removed, false if there wasn't enough energy left
      */
-    public boolean removeImpurity(AllomanticMetal metal, int amount)
+    public boolean removeImpurity(Metal metal, int amount)
     {
         int storage = getImpurity(metal);
         if (storage < amount)
@@ -151,7 +151,7 @@ public class MetalStorage
     /**
      * @return an unmodifiable view of all stored impurie metals
      */
-    public TObjectIntMap<AllomanticMetal> impurities()
+    public TObjectIntMap<Metal> impurities()
     {
         return TCollections.unmodifiableMap(impurities);
     }
@@ -164,7 +164,7 @@ public class MetalStorage
      */
     public int consume(ItemStack stack)
     {
-        for (AllomanticMetal metal : AllomanticMetals.metals())
+        for (Metal metal : Metals.metals())
         {
             int value = metal.getValue(stack);
             if (value > 0)
@@ -224,14 +224,14 @@ public class MetalStorage
             int consumedCount = buffer.readInt();
             for (int i = 0; i < consumedCount; i++)
             {
-                Optional<AllomanticMetal> metal = AllomanticMetals.get(ByteBufUtils.readUTF8String(buffer));
+                Optional<Metal> metal = Metals.get(ByteBufUtils.readUTF8String(buffer));
                 storage.store(metal.get(), buffer.readInt());
             }
 
             int impurityCount = buffer.readInt();
             for (int i = 0; i < impurityCount; i++)
             {
-                Optional<AllomanticMetal> metal = AllomanticMetals.get(ByteBufUtils.readUTF8String(buffer));
+                Optional<Metal> metal = Metals.get(ByteBufUtils.readUTF8String(buffer));
                 storage.storeImpurity(metal.get(), buffer.readInt());
             }
 
@@ -290,7 +290,7 @@ public class MetalStorage
             NBTTagCompound storage = root.getCompoundTag("Metals");
             for (String id : storage.getKeySet())
             {
-                Optional<AllomanticMetal> metal = AllomanticMetals.get(id);
+                Optional<Metal> metal = Metals.get(id);
                 if (metal.isPresent())
                     store(metal.get(), storage.getInteger(id));
             }
@@ -298,7 +298,7 @@ public class MetalStorage
             NBTTagCompound impurities = root.getCompoundTag("Impurities");
             for (String id : impurities.getKeySet())
             {
-                Optional<AllomanticMetal> metal = AllomanticMetals.get(id);
+                Optional<Metal> metal = Metals.get(id);
                 if (metal.isPresent())
                     storeImpurity(metal.get(), impurities.getInteger(id));
             }

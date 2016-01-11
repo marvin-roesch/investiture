@@ -16,24 +16,19 @@ import de.mineformers.investiture.allomancy.tileentity.TileMetalExtractorMaster;
 import de.mineformers.investiture.client.KeyBindings;
 import de.mineformers.investiture.client.renderer.block.ModuleStateMap;
 import de.mineformers.investiture.core.Proxy;
-import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.resources.model.ModelBakery;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.entity.Entity;
-import net.minecraft.item.Item;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.client.model.obj.OBJLoader;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.relauncher.Side;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Handles all Allomancy-level operations specific to the dedicated client.
@@ -48,7 +43,7 @@ public class ClientProxy implements Proxy
 
         // Assign models to each allomantic metal ingot
         final List<ModelResourceLocation> ingotResources =
-            FluentIterable.from(Arrays.asList(AllomanticMetalIngot.NAMES))
+            FluentIterable.from(Arrays.asList(MetalIngot.NAMES))
                           .transform(n -> new ModelResourceLocation(Allomancy.DOMAIN + ":allomantic_metal_ingot", "metal=" + n))
                           .toList();
         ModelLoader.setCustomMeshDefinition(Allomancy.Items.allomantic_ingot,
@@ -58,7 +53,7 @@ public class ClientProxy implements Proxy
 
         // Assign models to each allomantic metal nugget
         final List<ModelResourceLocation> nuggetResources =
-                FluentIterable.from(Arrays.asList(AllomanticMetalNugget.NAMES))
+                FluentIterable.from(Arrays.asList(MetalNugget.NAMES))
                         .transform(n -> new ModelResourceLocation(Allomancy.DOMAIN + ":allomantic_metal_nugget", "metal=" + n))
                         .toList();
         ModelLoader.setCustomMeshDefinition(Allomancy.Items.allomantic_nugget,
@@ -68,7 +63,7 @@ public class ClientProxy implements Proxy
 
         // Assign models to each allomantic metal bead
         final List<ModelResourceLocation> beadResources =
-                FluentIterable.from(Arrays.asList(AllomanticMetalBead.NAMES))
+                FluentIterable.from(Arrays.asList(MetalBead.NAMES))
                         .transform(n -> new ModelResourceLocation(Allomancy.DOMAIN + ":allomantic_metal_bead", "metal=" + n))
                         .toList();
         ModelLoader.setCustomMeshDefinition(Allomancy.Items.allomantic_bead,
@@ -78,7 +73,7 @@ public class ClientProxy implements Proxy
 
         // Assign models to each allomantic metal chunk
         final List<ModelResourceLocation> chunkResources =
-                FluentIterable.from(Arrays.asList(AllomanticMetalChunk.NAMES))
+                FluentIterable.from(Arrays.asList(MetalChunk.NAMES))
                         .transform(n -> new ModelResourceLocation(Allomancy.DOMAIN + ":allomantic_metal_chunk", "metal=" + n))
                         .toList();
         ModelLoader.setCustomMeshDefinition(Allomancy.Items.allomantic_chunk,
@@ -88,7 +83,7 @@ public class ClientProxy implements Proxy
 
         // Assign models to each allomantic metal dust
         final List<ModelResourceLocation> dustResources =
-                FluentIterable.from(Arrays.asList(AllomanticMetalDust.NAMES))
+                FluentIterable.from(Arrays.asList(MetalDust.NAMES))
                         .transform(n -> new ModelResourceLocation(Allomancy.DOMAIN + ":allomantic_metal_dust", "metal=" + n))
                         .toList();
         ModelLoader.setCustomMeshDefinition(Allomancy.Items.allomantic_dust,

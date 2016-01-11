@@ -5,19 +5,19 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-public interface AllomanticAlloy extends AllomanticMetal
+public interface MetalAlloy extends Metal
 {
 
-    Map<AllomanticMetal, Float> getComponents();
+    Map<Metal, Float> getComponents();
 
-    abstract class AbstractAlloy extends AllomanticMetal.Abstract implements AllomanticAlloy
+    abstract class AbstractAlloy extends AbstractMetal implements MetalAlloy
     {
 
-        private final AllomanticMetal alloy;
+        private final Metal alloy;
 
-        private final Map<AllomanticMetal, Float> components = new HashMap<>();
+        private final Map<Metal, Float> components = new HashMap<>();
 
-        public AbstractAlloy(@Nonnull String id, AllomanticMetal alloy, Object... components)
+        public AbstractAlloy(@Nonnull String id, Metal alloy, Object... components)
         {
             super(id);
 
@@ -33,11 +33,11 @@ public interface AllomanticAlloy extends AllomanticMetal
                 Object metalObj = components[i];
                 Object perObj = components[i + 1];
 
-                if (!(metalObj instanceof AllomanticMetal) || !(perObj instanceof Float)) {
+                if (!(metalObj instanceof Metal) || !(perObj instanceof Float)) {
                     throw new RuntimeException("Invalid alloy components provided");
                 }
 
-                AllomanticMetal metal = (AllomanticMetal) metalObj;
+                Metal metal = (Metal) metalObj;
                 Float per = (Float) perObj;
 
                 this.components.put(metal, per);
@@ -49,7 +49,7 @@ public interface AllomanticAlloy extends AllomanticMetal
             }
         }
 
-        public Map<AllomanticMetal, Float> getComponents()
+        public Map<Metal, Float> getComponents()
         {
             return Collections.unmodifiableMap(this.components);
         }
