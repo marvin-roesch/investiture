@@ -33,18 +33,10 @@ public class Rendering
         Tessellator tessellator = Tessellator.getInstance();
         WorldRenderer worldrenderer = tessellator.getWorldRenderer();
         worldrenderer.begin(7, DefaultVertexFormats.POSITION_TEX);
-        worldrenderer.pos(x, y + height, 0)
-                     .tex(uMin, vMax)
-                     .endVertex();
-        worldrenderer.pos(x + width, y + height, 0)
-                     .tex(uMax, vMax)
-                     .endVertex();
-        worldrenderer.pos(x + width, y, 0)
-                     .tex(uMax, vMin)
-                     .endVertex();
-        worldrenderer.pos(x, y, 0)
-                     .tex(uMin, vMin)
-                     .endVertex();
+        worldrenderer.pos(x, y + height, 0).tex(uMin, vMax).endVertex();
+        worldrenderer.pos(x + width, y + height, 0).tex(uMax, vMax).endVertex();
+        worldrenderer.pos(x + width, y, 0).tex(uMax, vMin).endVertex();
+        worldrenderer.pos(x, y, 0).tex(uMin, vMin).endVertex();
         tessellator.draw();
     }
 
@@ -71,17 +63,13 @@ public class Rendering
 
         GlStateManager.pushAttrib();
         RenderHelper.disableStandardItemLighting();
-        if (Minecraft.isAmbientOcclusionEnabled())
-        {
+        if (Minecraft.isAmbientOcclusionEnabled()) {
             GlStateManager.shadeModel(GL11.GL_SMOOTH);
-        }
-        else
-        {
+        } else {
             GlStateManager.shadeModel(GL11.GL_FLAT);
         }
         worldrenderer.begin(GL11.GL_QUADS, model.getFormat());
-        for (BakedQuad bakedquad : model.getGeneralQuads())
-        {
+        for (BakedQuad bakedquad : model.getGeneralQuads()) {
             LightUtil.renderQuadColor(worldrenderer, bakedquad, colour);
         }
         tessellator.draw();

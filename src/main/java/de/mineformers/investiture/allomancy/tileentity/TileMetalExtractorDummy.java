@@ -1,30 +1,11 @@
 package de.mineformers.investiture.allomancy.tileentity;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableList;
 import com.sun.istack.internal.Nullable;
-import de.mineformers.investiture.Investiture;
-import de.mineformers.investiture.allomancy.block.MetalExtractor;
-import de.mineformers.investiture.allomancy.block.MetalExtractor.Part;
-import de.mineformers.investiture.allomancy.network.MetalExtractorUpdate;
-import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraft.nbt.NBTTagLong;
-import net.minecraft.network.Packet;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
-import net.minecraft.util.EnumFacing;
 import net.minecraft.world.World;
-import net.minecraftforge.common.util.Constants;
-import net.minecraftforge.fml.common.network.NetworkRegistry;
-
-import java.util.Arrays;
-
-import static de.mineformers.investiture.allomancy.block.MetalExtractor.Part.*;
 
 /**
  * Stores the multi-block's master position
@@ -58,15 +39,16 @@ public class TileMetalExtractorDummy extends TileEntity
         this.master = master.subtract(pos);
     }
 
-    public BlockPos getMasterPosition() {
+    public BlockPos getMasterPosition()
+    {
         return pos.add(master);
     }
 
     @Nullable
-    public TileMetalExtractorMaster getMaster() {
+    public TileMetalExtractorMaster getMaster()
+    {
         TileEntity te = worldObj.getTileEntity(getMasterPosition());
-        if(te instanceof TileMetalExtractorMaster)
-            return (TileMetalExtractorMaster) te;
+        if (te instanceof TileMetalExtractorMaster) return (TileMetalExtractorMaster) te;
         return null;
     }
 }

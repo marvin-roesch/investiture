@@ -1,12 +1,11 @@
 package de.mineformers.investiture.allomancy.metal;
 
-import de.mineformers.investiture.allomancy.item.MetalItem;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.oredict.OreDictionary;
 
 import javax.annotation.Nonnull;
 
-public interface MetalMapping extends MetalItem
+public interface MetalMapping extends MetalHolder<ItemStack>
 {
 
     boolean matches(@Nonnull ItemStack stack);
@@ -19,12 +18,12 @@ public interface MetalMapping extends MetalItem
         protected final float quantity;
         protected final boolean nbt;
 
-        MetalMappingItem(@Nonnull Metal metal, @Nonnull ItemStack stack, float quantity)
+        public MetalMappingItem(@Nonnull Metal metal, @Nonnull ItemStack stack, float quantity)
         {
             this(metal, stack, quantity, false);
         }
 
-        MetalMappingItem(@Nonnull Metal metal, @Nonnull ItemStack stack, float quantity, boolean nbt)
+        public MetalMappingItem(@Nonnull Metal metal, @Nonnull ItemStack stack, float quantity, boolean nbt)
         {
             this.metal = metal;
             this.stack = stack;
@@ -35,7 +34,7 @@ public interface MetalMapping extends MetalItem
         @Override
         public boolean matches(@Nonnull ItemStack stack)
         {
-            if(this.nbt) {
+            if (this.nbt) {
                 return ItemStack.areItemStacksEqual(stack, this.stack) && ItemStack.areItemStackTagsEqual(stack, this.stack);
             }
 
@@ -60,17 +59,20 @@ public interface MetalMapping extends MetalItem
 
         protected final String oreName;
 
-        MetalMappingOreDict(@Nonnull Metal metal, @Nonnull ItemStack stack, float quantity) {
+        public MetalMappingOreDict(@Nonnull Metal metal, @Nonnull ItemStack stack, float quantity)
+        {
             super(metal, stack, quantity);
             this.oreName = null;
         }
 
-        MetalMappingOreDict(@Nonnull Metal metal, @Nonnull ItemStack stack, float quantity, boolean nbt) {
+        public MetalMappingOreDict(@Nonnull Metal metal, @Nonnull ItemStack stack, float quantity, boolean nbt)
+        {
             super(metal, stack, quantity, nbt);
             this.oreName = null;
         }
 
-        MetalMappingOreDict(@Nonnull Metal metal, String oreName, float quantity, boolean nbt) {
+        public MetalMappingOreDict(@Nonnull Metal metal, String oreName, float quantity, boolean nbt)
+        {
             super(metal, null, quantity, nbt);
             this.oreName = oreName;
         }
@@ -78,7 +80,7 @@ public interface MetalMapping extends MetalItem
         @Override
         public boolean matches(@Nonnull ItemStack stack)
         {
-            if(this.stack != null) {
+            if (this.stack != null) {
                 return OreDictionary.containsMatch(this.nbt, OreDictionary.getOres(this.oreName), stack);
             }
 

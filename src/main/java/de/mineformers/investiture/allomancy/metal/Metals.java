@@ -24,7 +24,7 @@ public final class Metals
     public static final Metal TIN = new ItemMetalBurnable("tin");
     public static final Metal IRON = new ItemMetalBurnable("iron");
     public static final Metal ALUMINIUM = new ItemMetalBurnable("aluminium");
-    public static final Metal CHROMIUM = new ItemMetalNonBurnable("chromium");
+    public static final Metal CHROMIUM = new ItemMetalBurnable("chromium");
     public static final Metal GOLD = new ItemMetalBurnable("gold");
     public static final Metal CADMIUM = new ItemMetalBurnable("cadmium");
     public static final Metal LEAD = new ItemMetalNonBurnable("lead");
@@ -79,20 +79,16 @@ public final class Metals
         ALLOYS.add(ELECTRUM);
         ALLOYS.add(BENDALLOY);
 
-        MAPPINGS.add(new MetalMapping.MetalMappingItem(
-                IRON, new ItemStack(Items.iron_ingot), MetalItem.Abstract.Type.INGOT.conversion));
-        MAPPINGS.add(new MetalMapping.MetalMappingItem(
-                GOLD, new ItemStack(Items.gold_ingot), MetalItem.Abstract.Type.INGOT.conversion));
-        MAPPINGS.add(new MetalMapping.MetalMappingItem(
-                GOLD, new ItemStack(Items.gold_nugget), MetalItem.Abstract.Type.NUGGET.conversion));
-        MAPPINGS.add(new MetalMapping.MetalMappingOreDict(
-                IRON, "ingotIron", MetalItem.Abstract.Type.INGOT.conversion, true));
-        MAPPINGS.add(new MetalMapping.MetalMappingOreDict(
-                GOLD, "ingotGold", MetalItem.Abstract.Type.INGOT.conversion, true));
+        MAPPINGS.add(new MetalMapping.MetalMappingItem(IRON, new ItemStack(Items.iron_ingot), MetalItem.Type.INGOT.conversion));
+        MAPPINGS.add(new MetalMapping.MetalMappingItem(GOLD, new ItemStack(Items.gold_ingot), MetalItem.Type.INGOT.conversion));
+        MAPPINGS.add(new MetalMapping.MetalMappingItem(GOLD, new ItemStack(Items.gold_nugget), MetalItem.Type.NUGGET.conversion));
+        MAPPINGS.add(new MetalMapping.MetalMappingOreDict(IRON, "ingotIron", MetalItem.Type.INGOT.conversion, true));
+        MAPPINGS.add(new MetalMapping.MetalMappingOreDict(GOLD, "ingotGold", MetalItem.Type.INGOT.conversion, true));
     }
 
     /**
      * @param id the ID of the searched metal
+     *
      * @return a present {@link Optional} if the metal exists, {@link Optional#absent()} otherwise
      */
     public static Optional<Metal> get(String id)
@@ -118,13 +114,18 @@ public final class Metals
         return Collections.unmodifiableSet(MAPPINGS);
     }
 
+    public static void addMapping(@Nonnull MetalMapping mapping)
+    {
+        MAPPINGS.add(mapping);
+    }
+
     public static Optional<Metal> getMetal(@Nonnull ItemStack stack)
     {
-        if(stack.getItem() instanceof MetalItem) {
-            return Optional.of(((MetalItem) stack.getItem()).getMetal(stack));
+        if (stack.getItem() instanceof MetalHolder) {
+            return Optional.of(((MetalHolder) stack.getItem()).getMetal(stack));
         } else {
-            for(MetalMapping mapping : MAPPINGS) {
-                if(mapping.matches(stack)) {
+            for (MetalMapping mapping : MAPPINGS) {
+                if (mapping.matches(stack)) {
                     return Optional.of(mapping.getMetal(stack));
                 }
             }

@@ -46,15 +46,14 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
     @Override
     public void update()
     {
-        if(worldObj.isRemote)
-            return;
-        if(!checkedValidity) {
+        if (worldObj.isRemote) return;
+        if (!checkedValidity) {
             validMultiBlock = validateMultiBlock();
             checkedValidity = true;
         }
-        if(isValidMultiBlock()) {
+        if (isValidMultiBlock()) {
             outputCounter++;
-            if(outputCounter == 20) {
+            if (outputCounter == 20) {
                 moveStack(INPUT_SLOT, OUTPUT_SLOT);
                 outputCounter = 0;
             }
@@ -66,8 +65,9 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
     {
         super.writeToNBT(compound);
         NBTTagList children = new NBTTagList();
-        for (BlockPos child : this.children)
+        for (BlockPos child : this.children) {
             children.appendTag(new NBTTagLong(child.toLong()));
+        }
         compound.setTag("Children", children);
         compound.setBoolean("ValidMultiBlock", validMultiBlock);
         compound.setInteger("Orientation", orientation.getHorizontalIndex());
@@ -80,119 +80,74 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
         super.readFromNBT(compound);
         ImmutableList.Builder<BlockPos> childrenBuilder = ImmutableList.builder();
         NBTTagList children = compound.getTagList("Children", Constants.NBT.TAG_LONG);
-        for (int i = 0; i < children.tagCount(); i++)
+        for (int i = 0; i < children.tagCount(); i++) {
             childrenBuilder.add(BlockPos.fromLong(((NBTTagLong) children.get(i)).getLong()));
+        }
         this.children = childrenBuilder.build();
         this.validMultiBlock = compound.getBoolean("ValidMultiBlock");
         this.orientation = EnumFacing.getHorizontal(compound.getInteger("Orientation"));
         readInventoryFromNBT(compound);
     }
 
-    private static final Part[][][] multiBlock = {
-        {
-            {FRAME, FRAME, FRAME, FRAME, FRAME},
-            {FRAME, GLASS, CONTROLLER, GLASS, FRAME},
-            {FRAME, GLASS, GLASS, GLASS, FRAME},
-            {FRAME, FRAME, FRAME, FRAME, FRAME}
-        },
-        {
-            {FRAME, FRAME, FRAME, FRAME, FRAME},
-            {FRAME, GRINDER, GRINDER, GRINDER, FRAME},
-            {FRAME, GRINDER, GRINDER, GRINDER, FRAME},
-            {FRAME, FRAME, FRAME, FRAME, FRAME}
-        },
-        {
-            {FRAME, FRAME, FRAME, FRAME, FRAME},
-            {FRAME, GRINDER, GRINDER, GRINDER, FRAME},
-            {FRAME, GRINDER, GRINDER, GRINDER, FRAME},
-            {FRAME, FRAME, FRAME, FRAME, FRAME}
-        },
-        {
-            {FRAME, FRAME, FRAME, FRAME, FRAME},
-            {FRAME, GRINDER, GRINDER, GRINDER, FRAME},
-            {FRAME, GRINDER, GRINDER, GRINDER, FRAME},
-            {FRAME, FRAME, FRAME, FRAME, FRAME}
-        },
-        {
-            {FRAME, FRAME, FRAME, FRAME, FRAME},
-            {FRAME, GLASS, CONTROLLER, GLASS, FRAME},
-            {FRAME, GLASS, GLASS, GLASS, FRAME},
-            {FRAME, FRAME, FRAME, FRAME, FRAME}
-        }
-    };
+    private static final Part[][][] multiBlock = {{{FRAME, FRAME, FRAME, FRAME, FRAME}, {FRAME, GLASS, CONTROLLER, GLASS, FRAME}, {FRAME, GLASS, GLASS, GLASS, FRAME}, {FRAME, FRAME, FRAME, FRAME, FRAME}}, {{FRAME, FRAME, FRAME, FRAME, FRAME}, {FRAME, GRINDER, GRINDER, GRINDER, FRAME}, {FRAME, GRINDER, GRINDER, GRINDER, FRAME}, {FRAME, FRAME, FRAME, FRAME, FRAME}}, {{FRAME, FRAME, FRAME, FRAME, FRAME}, {FRAME, GRINDER, GRINDER, GRINDER, FRAME}, {FRAME, GRINDER, GRINDER, GRINDER, FRAME}, {FRAME, FRAME, FRAME, FRAME, FRAME}}, {{FRAME, FRAME, FRAME, FRAME, FRAME}, {FRAME, GRINDER, GRINDER, GRINDER, FRAME}, {FRAME, GRINDER, GRINDER, GRINDER, FRAME}, {FRAME, FRAME, FRAME, FRAME, FRAME}}, {{FRAME, FRAME, FRAME, FRAME, FRAME}, {FRAME, GLASS, CONTROLLER, GLASS, FRAME}, {FRAME, GLASS, GLASS, GLASS, FRAME}, {FRAME, FRAME, FRAME, FRAME, FRAME}}};
 
     public boolean validateMultiBlock()
     {
-        if (worldObj.isRemote)
-            return false;
-        Optional<EnumFacing> orientation = FluentIterable.from(Arrays.asList(EnumFacing.HORIZONTALS))
-                                                         .firstMatch(f -> {
-                                                             IBlockState state = worldObj.getBlockState(pos.offset(f));
-                                                             return state.getBlock() == this.getBlockType() &&
-                                                                 state.getValue(MetalExtractor.PART) == GRINDER;
-                                                         });
+        if (worldObj.isRemote) return false;
+        Optional<EnumFacing> orientation = FluentIterable.from(Arrays.asList(EnumFacing.HORIZONTALS)).firstMatch(f -> {
+            IBlockState state = worldObj.getBlockState(pos.offset(f));
+            return state.getBlock() == this.getBlockType() && state.getValue(MetalExtractor.PART) == GRINDER;
+        });
         validMultiBlock = false;
 
-        if (orientation.isPresent())
-        {
+        if (orientation.isPresent()) {
             this.orientation = orientation.get();
             ImmutableList.Builder<BlockPos> childrenBuilder = ImmutableList.builder();
             EnumFacing horizontal = getHorizontal();
             BlockPos corner = pos.offset(horizontal.getOpposite(), 2).down();
-            for (int depth = 0; depth < multiBlock.length; depth++)
-            {
+            for (int depth = 0; depth < multiBlock.length; depth++) {
                 Part[][] layer = multiBlock[depth];
-                for (int y = 0; y < layer.length; y++)
-                {
+                for (int y = 0; y < layer.length; y++) {
                     Part[] row = layer[y];
-                    for (int width = 0; width < row.length; width++)
-                    {
+                    for (int width = 0; width < row.length; width++) {
                         BlockPos childPos = corner.offset(horizontal, width).up(y).offset(orientation.get(), depth);
                         IBlockState state = worldObj.getBlockState(childPos);
-                        if (state.getBlock() != this.getBlockType() || state.getValue(MetalExtractor.PART) != row[width])
+                        if (state.getBlock() != this.getBlockType() || state.getValue(MetalExtractor.PART) != row[width]) {
                             return false;
-                        if (!pos.equals(childPos))
-                            childrenBuilder.add(childPos.subtract(pos));
+                        }
+                        if (!pos.equals(childPos)) childrenBuilder.add(childPos.subtract(pos));
                     }
                 }
             }
 
             this.children = childrenBuilder.build();
-            for (BlockPos child : children)
-            {
+            for (BlockPos child : children) {
                 worldObj.setBlockState(pos.add(child), worldObj.getBlockState(pos.add(child)).withProperty(MetalExtractor.BUILT, true));
                 ((TileMetalExtractorDummy) worldObj.getTileEntity(pos.add(child))).setMasterPosition(pos);
             }
             this.validMultiBlock = true;
-            Investiture.net().sendToAllAround(new MetalExtractorUpdate(pos, true, orientation.get()),
-                                              new NetworkRegistry.TargetPoint(worldObj.provider.getDimensionId(),
-                                                                              pos.getX(), pos.getY(), pos.getZ(), 32));
+            Investiture.net().sendToAllAround(new MetalExtractorUpdate(pos, true, orientation.get()), new NetworkRegistry.TargetPoint(worldObj.provider.getDimensionId(), pos.getX(), pos.getY(), pos.getZ(), 32));
         }
         return validMultiBlock;
     }
 
     public void invalidateMultiBlock()
     {
-        if (!validMultiBlock)
-            return;
-        for (BlockPos child : children)
-            if (worldObj.getBlockState(pos.add(child)).getBlock() == Allomancy.Blocks.metal_extractor)
-                worldObj.setBlockState(pos.add(child), worldObj.getBlockState(pos.add(child))
-                                                               .withProperty(MetalExtractor.BUILT, false)
-                                                               .withProperty(MetalExtractor.MASTER, false));
-        if (worldObj.getBlockState(pos).getBlock() == Allomancy.Blocks.metal_extractor)
-            worldObj.setBlockState(pos, worldObj.getBlockState(pos)
-                                                .withProperty(MetalExtractor.BUILT, false)
-                                                .withProperty(MetalExtractor.MASTER, false));
+        if (!validMultiBlock) return;
+        for (BlockPos child : children) {
+            if (worldObj.getBlockState(pos.add(child)).getBlock() == Allomancy.Blocks.metal_extractor) {
+                worldObj.setBlockState(pos.add(child), worldObj.getBlockState(pos.add(child)).withProperty(MetalExtractor.BUILT, false).withProperty(MetalExtractor.MASTER, false));
+            }
+        }
+        if (worldObj.getBlockState(pos).getBlock() == Allomancy.Blocks.metal_extractor) {
+            worldObj.setBlockState(pos, worldObj.getBlockState(pos).withProperty(MetalExtractor.BUILT, false).withProperty(MetalExtractor.MASTER, false));
+        }
     }
 
     @Override
     public AxisAlignedBB getRenderBoundingBox()
     {
-        return new AxisAlignedBB(
-            pos.getX() - 6, pos.getY() - 2, pos.getZ() - 6,
-            pos.getX() + 6, pos.getY() + 5, pos.getZ() + 6
-        );
+        return new AxisAlignedBB(pos.getX() - 6, pos.getY() - 2, pos.getZ() - 6, pos.getX() + 6, pos.getY() + 5, pos.getZ() + 6);
     }
 
     public boolean isValidMultiBlock()
@@ -231,10 +186,9 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
     @Override
     public int[] getSlotsForFace(EnumFacing side)
     {
-        if(side == orientation)
-            return new int[] {OUTPUT_SLOT};
-        else if(side == orientation.getOpposite())
-            return new int[] {INPUT_SLOT};
+        if (side == orientation) {
+            return new int[]{OUTPUT_SLOT};
+        } else if (side == orientation.getOpposite()) return new int[]{INPUT_SLOT};
         return new int[0];
     }
 

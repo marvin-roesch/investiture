@@ -25,6 +25,7 @@ public class MetalStorage
      * Gets the metal storage associated with a given entity, should it be using the facilities provided by this class.
      *
      * @param entity the entity
+     *
      * @return the entity's metal storage if it has one, <code>null</code> otherwise
      */
     public static MetalStorage from(Entity entity)
@@ -41,12 +42,12 @@ public class MetalStorage
 
     /**
      * @param metal the metal to check
+     *
      * @return the amount stored of a given metal in its pure form
      */
     public int get(Metal metal)
     {
-        if (!consumedMetals.containsKey(metal))
-            return 0;
+        if (!consumedMetals.containsKey(metal)) return 0;
         return consumedMetals.get(metal);
     }
 
@@ -56,6 +57,7 @@ public class MetalStorage
      * @param map    the type of the metal, either pure or impure
      * @param metal  the metal
      * @param amount the amount to store
+     *
      * @return the amount of the metal that was actually stored
      */
     private int store(TObjectIntMap<Metal> map, Metal metal, int amount)
@@ -63,8 +65,7 @@ public class MetalStorage
         int storedMetal = get(metal);
         int storedImpurity = getImpurity(metal);
         // We're already full, can't store any more metal
-        if (storedMetal >= MAX_STORAGE || storedImpurity >= MAX_STORAGE || amount <= 0)
-            return 0;
+        if (storedMetal >= MAX_STORAGE || storedImpurity >= MAX_STORAGE || amount <= 0) return 0;
         int storedAmount = Math.min(amount, MAX_STORAGE - storedMetal - storedImpurity);
         map.adjustOrPutValue(metal, storedAmount, storedAmount);
         markDirty();
@@ -76,6 +77,7 @@ public class MetalStorage
      *
      * @param metal  the metal
      * @param amount the amount to store
+     *
      * @return the amount of the metal that was actually stored
      */
     public int store(Metal metal, int amount)
@@ -88,13 +90,13 @@ public class MetalStorage
      *
      * @param metal  the metal
      * @param amount the amount to remove
+     *
      * @return true if the energy was successfully removed, false if there wasn't enough energy left
      */
     public boolean remove(Metal metal, int amount)
     {
         int storage = get(metal);
-        if (storage < amount)
-            return false;
+        if (storage < amount) return false;
         consumedMetals.adjustValue(metal, -amount);
         markDirty();
         return true;
@@ -110,12 +112,12 @@ public class MetalStorage
 
     /**
      * @param metal the metal to check
+     *
      * @return the amount of impure metal stored
      */
     public int getImpurity(Metal metal)
     {
-        if (!impurities.containsKey(metal))
-            return 0;
+        if (!impurities.containsKey(metal)) return 0;
         return impurities.get(metal);
     }
 
@@ -124,6 +126,7 @@ public class MetalStorage
      *
      * @param metal  the metal
      * @param amount the amount to store
+     *
      * @return the amount of the metal that was actually stored
      */
     public int storeImpurity(Metal metal, int amount)
@@ -136,13 +139,13 @@ public class MetalStorage
      *
      * @param metal  the metal
      * @param amount the amount to remove
+     *
      * @return true if the energy was successfully removed, false if there wasn't enough energy left
      */
     public boolean removeImpurity(Metal metal, int amount)
     {
         int storage = getImpurity(metal);
-        if (storage < amount)
-            return false;
+        if (storage < amount) return false;
         impurities.adjustValue(metal, -amount);
         markDirty();
         return true;
@@ -160,15 +163,14 @@ public class MetalStorage
      * Try to consume a given stack of metal in some form.
      *
      * @param stack the stack to consume
+     *
      * @return the amount of metal consumed or -1 if the stack did not contain any allomantic metal
      */
     public int consume(ItemStack stack)
     {
-        for (Metal metal : Metals.metals())
-        {
+        for (Metal metal : Metals.metals()) {
             int value = metal.getValue(stack);
-            if (value > 0)
-                return metal.canBurn(stack) ? store(metal, value) : storeImpurity(metal, value);
+            if (value > 0) return metal.canBurn(stack) ? store(metal, value) : storeImpurity(metal, value);
         }
         return -1;
     }
@@ -222,15 +224,13 @@ public class MetalStorage
             MetalStorage storage = new MetalStorage();
 
             int consumedCount = buffer.readInt();
-            for (int i = 0; i < consumedCount; i++)
-            {
+            for (int i = 0; i < consumedCount; i++) {
                 Optional<Metal> metal = Metals.get(ByteBufUtils.readUTF8String(buffer));
                 storage.store(metal.get(), buffer.readInt());
             }
 
             int impurityCount = buffer.readInt();
-            for (int i = 0; i < impurityCount; i++)
-            {
+            for (int i = 0; i < impurityCount; i++) {
                 Optional<Metal> metal = Metals.get(ByteBufUtils.readUTF8String(buffer));
                 storage.storeImpurity(metal.get(), buffer.readInt());
             }
@@ -288,19 +288,15 @@ public class MetalStorage
             NBTTagCompound root = compound.getCompoundTag(Allomancy.NBT.STORAGE_ID);
 
             NBTTagCompound storage = root.getCompoundTag("Metals");
-            for (String id : storage.getKeySet())
-            {
+            for (String id : storage.getKeySet()) {
                 Optional<Metal> metal = Metals.get(id);
-                if (metal.isPresent())
-                    store(metal.get(), storage.getInteger(id));
+                if (metal.isPresent()) store(metal.get(), storage.getInteger(id));
             }
 
             NBTTagCompound impurities = root.getCompoundTag("Impurities");
-            for (String id : impurities.getKeySet())
-            {
+            for (String id : impurities.getKeySet()) {
                 Optional<Metal> metal = Metals.get(id);
-                if (metal.isPresent())
-                    storeImpurity(metal.get(), impurities.getInteger(id));
+                if (metal.isPresent()) storeImpurity(metal.get(), impurities.getInteger(id));
             }
         }
 
@@ -315,8 +311,7 @@ public class MetalStorage
          */
         public void sync()
         {
-            if (entity != null && !entity.worldObj.isRemote)
-            {
+            if (entity != null && !entity.worldObj.isRemote) {
                 Investiture.net().sendToAll(new EntityMetalStorageUpdate(entity.getEntityId(), this));
             }
         }

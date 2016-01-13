@@ -7,18 +7,13 @@ import de.mineformers.investiture.client.util.Modeling;
 import de.mineformers.investiture.client.util.Rendering;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.WorldRenderer;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.resources.IReloadableResourceManager;
 import net.minecraft.client.resources.IResourceManager;
 import net.minecraft.client.resources.IResourceManagerReloadListener;
 import net.minecraft.util.EnumFacing;
 import net.minecraftforge.client.model.IFlexibleBakedModel;
-import org.lwjgl.opengl.GL11;
 
 /**
  * Renders the metal extractor OBJ model.
@@ -35,25 +30,20 @@ public class MetalExtractorRenderer extends TileEntitySpecialRenderer<TileMetalE
     @Override
     public void onResourceManagerReload(IResourceManager resourceManager)
     {
-        model = Modeling.loadOBJModel(Allomancy.resource("block/metal_extractor.obj"),
-                                      ImmutableMap.of("#frame", Allomancy.resource("blocks/metal_extractor_frame"),
-                                                      "#glass", Allomancy.resource("blocks/metal_extractor_glass"),
-                                                      "#grinder", Allomancy.resource("blocks/metal_extractor_grinder")));
+        model = Modeling.loadOBJModel(Allomancy.resource("block/metal_extractor.obj"), ImmutableMap.of("#frame", Allomancy.resource("blocks/metal_extractor_frame"), "#glass", Allomancy.resource("blocks/metal_extractor_glass"), "#grinder", Allomancy.resource("blocks/metal_extractor_grinder")));
     }
 
     @Override
     public void renderTileEntityAt(TileMetalExtractorMaster te, double x, double y, double z, float partialTicks, int destroyStage)
     {
-        if (te.isValidMultiBlock())
-        {
+        if (te.isValidMultiBlock()) {
             EnumFacing orientation = te.getOrientation();
             GlStateManager.pushMatrix();
             GlStateManager.enableRescaleNormal();
             GlStateManager.color(1, 1, 1, 1f);
             Minecraft.getMinecraft().getTextureManager().bindTexture(TextureMap.locationBlocksTexture);
             GlStateManager.translate(x, y - 1, z);
-            switch (orientation)
-            {
+            switch (orientation) {
                 case SOUTH:
                     GlStateManager.translate(-2, 0, 5);
                     GlStateManager.translate(2.5, 0, -2.5);

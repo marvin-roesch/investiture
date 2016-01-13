@@ -59,7 +59,8 @@ public final class Investiture
     /**
      * @return Investiture's logger
      */
-    public static Logger log() {
+    public static Logger log()
+    {
         return instance.log;
     }
 

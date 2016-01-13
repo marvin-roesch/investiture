@@ -35,6 +35,7 @@ public class FunctionalNetwork
      * Creates a network with a specific channel name.
      *
      * @param channelName the name of the channel to use
+     *
      * @return a network ready for registering messages etc.
      */
     public static FunctionalNetwork create(String channelName)
@@ -47,16 +48,12 @@ public class FunctionalNetwork
     private static Class<?> defaultChannelPipeline;
     private static Method generateName;
 
-    static
-    {
-        try
-        {
+    static {
+        try {
             defaultChannelPipeline = Class.forName("io.netty.channel.DefaultChannelPipeline");
             generateName = defaultChannelPipeline.getDeclaredMethod("generateName", ChannelHandler.class);
             generateName.setAccessible(true);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             FMLLog.log(Level.FATAL, e, "What? Netty isn't installed, what magic is this?");
             throw Throwables.propagate(e);
         }
@@ -82,16 +79,14 @@ public class FunctionalNetwork
      *
      * @param pipeline the pipeline used for generating the name
      * @param handler  the handler to generate a name for
+     *
      * @return a name for the handler
      */
     private String generateName(ChannelPipeline pipeline, ChannelHandler handler)
     {
-        try
-        {
+        try {
             return (String) generateName.invoke(defaultChannelPipeline.cast(pipeline), handler);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             FMLLog.log(Level.FATAL, e, "It appears we somehow have a not-standard pipeline. Huh");
             throw Throwables.propagate(e);
         }
@@ -117,8 +112,7 @@ public class FunctionalNetwork
     {
         packetCodec.addDiscriminator(discriminator, type);
         Serialisation.INSTANCE.registerMessage(type);
-        if (lastDiscriminator < discriminator)
-            lastDiscriminator = discriminator;
+        if (lastDiscriminator < discriminator) lastDiscriminator = discriminator;
     }
 
     /**
@@ -141,6 +135,7 @@ public class FunctionalNetwork
      * {@link TileEntity#getDescriptionPacket}.
      *
      * @param message The message to translate into packet form
+     *
      * @return A minecraft {@link Packet} suitable for use in minecraft APIs
      */
     public Packet<?> getPacketFrom(Message message)
@@ -234,8 +229,7 @@ public class FunctionalNetwork
         {
             INetHandler netHandler = ctx.channel().attr(NetworkRegistry.NET_HANDLER).get();
             OUT result = messageHandler.handle(msg, new Message.Context(netHandler, side));
-            if (result != null)
-            {
+            if (result != null) {
                 ctx.channel().attr(FMLOutboundHandler.FML_MESSAGETARGET).set(FMLOutboundHandler.OutboundTarget.REPLY);
                 ctx.writeAndFlush(result).addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
             }

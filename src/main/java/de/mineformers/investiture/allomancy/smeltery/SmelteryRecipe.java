@@ -1,9 +1,9 @@
 package de.mineformers.investiture.allomancy.smeltery;
 
+import com.google.common.base.Optional;
 import net.minecraft.item.ItemStack;
 
 import javax.annotation.Nonnull;
-import com.google.common.base.Optional;
 
 public interface SmelteryRecipe
 {

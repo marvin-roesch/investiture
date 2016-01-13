@@ -71,23 +71,24 @@ public class Message implements IMessage
         {
             // Sort of unnecessary for primitives, but unfortunately the only way of doing this without a lot of special casing.
             buffer.writeBoolean(value != null);
-            if (value != null)
-                serialiseImpl((T) value, buffer);
+            if (value != null) serialiseImpl((T) value, buffer);
         }
 
         /**
          * Deserialises the data from a byte buffer and turn it into an object.
          *
          * @param buffer the buffer to read the data from
+         *
          * @return an object with the buffer's data
          */
         default T deserialise(ByteBuf buffer)
         {
             // See the serialise method
-            if (!buffer.readBoolean())
+            if (!buffer.readBoolean()) {
                 return null;
-            else
+            } else {
                 return deserialiseImpl(buffer);
+            }
         }
 
         /**
@@ -106,6 +107,7 @@ public class Message implements IMessage
          * Calling this method directly will most likely result in a crash as the 'null' switch is ignored.
          *
          * @param buffer the buffer to read the data from
+         *
          * @return an object with the buffer's data
          */
         T deserialiseImpl(ByteBuf buffer);
@@ -138,10 +140,11 @@ public class Message implements IMessage
          */
         public EntityPlayer player()
         {
-            if (!(netHandler instanceof NetHandlerPlayServer))
+            if (!(netHandler instanceof NetHandlerPlayServer)) {
                 return Minecraft.getMinecraft().thePlayer;
-            else
+            } else {
                 return serverHandler().playerEntity;
+            }
         }
 
         /**
@@ -153,10 +156,11 @@ public class Message implements IMessage
          */
         public void schedule(Runnable f)
         {
-            if (!(netHandler instanceof NetHandlerPlayServer))
+            if (!(netHandler instanceof NetHandlerPlayServer)) {
                 Minecraft.getMinecraft().addScheduledTask(f);
-            else
+            } else {
                 ((WorldServer) serverHandler().playerEntity.worldObj).addScheduledTask(f);
+            }
         }
 
         /**
@@ -190,7 +194,8 @@ public class Message implements IMessage
          * Handle a given message in a given context and optionally send another message as answer.
          *
          * @param message the message to handle
-         * @param ctx the context the message was received in
+         * @param ctx     the context the message was received in
+         *
          * @return another message to answer the received one or null if no answer is intended
          */
         OUT handle(IN message, Context ctx);

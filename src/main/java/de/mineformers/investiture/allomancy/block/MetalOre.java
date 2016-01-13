@@ -23,15 +23,14 @@ import java.util.List;
  */
 public class MetalOre extends Block
 {
-    public static final String[] NAMES = {
-        "copper", "zinc", "tin", "aluminium", "chromium", "silver", "bismuth", "lead"
-    };
+    public static final String[] NAMES = {"copper", "zinc", "tin", "aluminium", "chromium", "silver", "bismuth", "lead"};
     public static final PropertyString METAL = new PropertyString("metal", NAMES);
 
     /**
      * Clamps a given integer to the damage range of the block.
      *
      * @param value the value to clamp
+     *
      * @return the value, if it is contained by [0..4], 0, if the value is lower than 0, or 4, if the value is greater than 4
      */
     public static int clampDamage(int value)
@@ -56,6 +55,7 @@ public class MetalOre extends Block
      * Creates an {@link IBlockState block state} of the ore for the given metal.
      *
      * @param metal the metal to create the ore for
+     *
      * @return the block state of the ore
      */
     public IBlockState fromMetal(String metal)
@@ -66,8 +66,7 @@ public class MetalOre extends Block
     @Override
     public void getSubBlocks(Item item, CreativeTabs tab, List<ItemStack> list)
     {
-        for (int dmg = 0; dmg < NAMES.length; dmg++)
-        {
+        for (int dmg = 0; dmg < NAMES.length; dmg++) {
             list.add(new ItemStack(item, 1, dmg));
         }
     }

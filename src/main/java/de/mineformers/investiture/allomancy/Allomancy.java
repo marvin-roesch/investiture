@@ -2,20 +2,20 @@ package de.mineformers.investiture.allomancy;
 
 import com.google.common.base.Optional;
 import de.mineformers.investiture.Investiture;
-import de.mineformers.investiture.allomancy.block.MetalOre;
 import de.mineformers.investiture.allomancy.block.MetalExtractor;
+import de.mineformers.investiture.allomancy.block.MetalOre;
 import de.mineformers.investiture.allomancy.core.EntityHandler;
-import de.mineformers.investiture.allomancy.item.*;
+import de.mineformers.investiture.allomancy.item.MetalItem;
 import de.mineformers.investiture.allomancy.metal.Metal;
-import de.mineformers.investiture.allomancy.metal.Metals;
 import de.mineformers.investiture.allomancy.metal.MetalBurner;
 import de.mineformers.investiture.allomancy.metal.MetalStorage;
+import de.mineformers.investiture.allomancy.metal.Metals;
 import de.mineformers.investiture.allomancy.network.EntityMetalBurnerUpdate;
 import de.mineformers.investiture.allomancy.network.EntityMetalStorageUpdate;
 import de.mineformers.investiture.allomancy.network.MetalExtractorUpdate;
 import de.mineformers.investiture.allomancy.network.ToggleBurningMetal;
-import de.mineformers.investiture.allomancy.tileentity.TileMetalExtractorMaster;
 import de.mineformers.investiture.allomancy.tileentity.TileMetalExtractorDummy;
+import de.mineformers.investiture.allomancy.tileentity.TileMetalExtractorMaster;
 import de.mineformers.investiture.allomancy.tileentity.TileMetalExtractorOutput;
 import de.mineformers.investiture.allomancy.world.MetalGenerator;
 import de.mineformers.investiture.core.Manifestation;
@@ -48,9 +48,11 @@ public final class Allomancy implements Manifestation
 
     /**
      * @param path the path of the resource
+     *
      * @return a resource location pointing at the given path in allomancy's resource domain
      */
-    public static ResourceLocation resource(String path) {
+    public static ResourceLocation resource(String path)
+    {
         return new ResourceLocation(DOMAIN, path);
     }
 
@@ -107,7 +109,7 @@ public final class Allomancy implements Manifestation
             GameRegistry.registerTileEntity(TileMetalExtractorOutput.class, "allomancy:metal_extractor_output");
 
             // Add ores to the ore dictionary
-            for(int i = 0; i < MetalOre.NAMES.length; i++) {
+            for (int i = 0; i < MetalOre.NAMES.length; i++) {
                 OreDictionary.registerOre(String.format("ore%s", StringUtils.capitalize(MetalOre.NAMES[i])), new ItemStack(allomantic_ore, 1, i));
             }
         }
@@ -118,37 +120,29 @@ public final class Allomancy implements Manifestation
      */
     public static class Items
     {
-        public static MetalIngot allomantic_ingot;
-        public static MetalNugget allomantic_nugget;
-        public static MetalBead allomantic_bead;
-        public static MetalChunk allomantic_chunk;
-        public static MetalDust allomantic_dust;
+        public static MetalItem allomantic_ingot;
+        public static MetalItem allomantic_nugget;
+        public static MetalItem allomantic_bead;
+        public static MetalItem allomantic_chunk;
+        public static MetalItem allomantic_dust;
 
         /**
          * Adds all items to the game's registry.
          */
         public static void register()
         {
-            GameRegistry.registerItem(allomantic_ingot = new MetalIngot());
-            GameRegistry.registerItem(allomantic_nugget = new MetalNugget());
-            GameRegistry.registerItem(allomantic_bead = new MetalBead());
-            GameRegistry.registerItem(allomantic_chunk = new MetalChunk());
-            GameRegistry.registerItem(allomantic_dust = new MetalDust());
+            GameRegistry.registerItem(allomantic_ingot = new MetalItem("allomantic_metal_ingot", "ingot", MetalItem.Type.INGOT, new String[]{"bronze", "brass", "copper", "zinc", "tin", "pewter", "steel", "lead", "nickel", "silver", "bismuth", "duralumin", "nicrosil", "aluminium", "chromium", "cadmium", "electrum", "bendalloy"}));
+            GameRegistry.registerItem(allomantic_nugget = new MetalItem("allomantic_metal_nugget", "nugget", MetalItem.Type.NUGGET, new String[]{"bronze", "brass", "copper", "zinc", "tin", "pewter", "steel", "iron", "lead", "nickel", "silver", "bismuth", "duralumin", "nicrosil", "aluminium", "chromium", "cadmium", "electrum", "bendalloy"}));
+            GameRegistry.registerItem(allomantic_bead = new MetalItem("allomantic_metal_bead", "bead", MetalItem.Type.BEAD, new String[]{"bronze", "brass", "copper", "zinc", "tin", "pewter", "steel", "iron", "lead", "nickel", "silver", "bismuth", "gold", "duralumin", "nicrosil", "aluminium", "chromium", "cadmium", "electrum", "bendalloy"}));
+            GameRegistry.registerItem(allomantic_chunk = new MetalItem("allomantic_metal_chunk", "chunk", MetalItem.Type.CHUNK, new String[]{"copper", "tin", "zinc", "iron", "lead", "aluminium", "chromium", "gold", "cadmium", "silver", "bismuth"}));
+            GameRegistry.registerItem(allomantic_dust = new MetalItem("allomantic_metal_dust", "dust", MetalItem.Type.DUST, new String[]{"bronze", "brass", "copper", "zinc", "tin", "pewter", "steel", "iron", "lead", "nickel", "silver", "bismuth", "gold", "duralumin", "nicrosil", "aluminium", "chromium", "cadmium", "electrum", "bendalloy"}));
 
             // Add items to the ore dictionary
-            for(int i = 0; i < MetalIngot.NAMES.length; i++) {
-                OreDictionary.registerOre(String.format("ingot%s", StringUtils.capitalize(MetalIngot.NAMES[i])), new ItemStack(allomantic_ingot, 1, i));
-            }
-            for(int i = 0; i < MetalNugget.NAMES.length; i++) {
-                OreDictionary.registerOre(String.format("nugget%s", StringUtils.capitalize(MetalNugget.NAMES[i])), new ItemStack(allomantic_nugget, 1, i));
-            }
-            for(int i = 0; i < MetalChunk.NAMES.length; i++) {
-                OreDictionary.registerOre(String.format("ore%s", StringUtils.capitalize(MetalChunk.NAMES[i])), new ItemStack(allomantic_chunk, 1, i));
-                OreDictionary.registerOre(String.format("chunk%s", StringUtils.capitalize(MetalChunk.NAMES[i])), new ItemStack(allomantic_chunk, 1, i));
-            }
-            for(int i = 0; i < MetalDust.NAMES.length; i++) {
-                OreDictionary.registerOre(String.format("ingot%s", StringUtils.capitalize(MetalDust.NAMES[i])), new ItemStack(allomantic_dust, 1, i));
-            }
+            allomantic_bead.registerOreDict();
+            allomantic_chunk.registerOreDict();
+            allomantic_dust.registerOreDict();
+            allomantic_ingot.registerOreDict();
+            allomantic_nugget.registerOreDict();
         }
     }
 
@@ -199,13 +193,13 @@ public final class Allomancy implements Manifestation
                     Optional<Metal> optional = Metals.get(msg.metal);
 
                     // Safety measures, in case the client sends bad data
-                    if (optional.isPresent() && burner != null)
-                    {
+                    if (optional.isPresent() && burner != null) {
                         Metal metal = optional.get();
-                        if (burner.isBurning(metal))
+                        if (burner.isBurning(metal)) {
                             burner.stopBurning(metal);
-                        else
+                        } else {
                             burner.startBurning(metal);
+                        }
                     }
                 });
                 return null;

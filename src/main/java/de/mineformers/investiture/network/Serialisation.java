@@ -89,8 +89,7 @@ class Serialisation
         addTranslator(Short.TYPE, new Message.Translator<Short>()
         {
             @Override
-            public void serialiseImpl(
-                Short value, ByteBuf buffer)
+            public void serialiseImpl(Short value, ByteBuf buffer)
             {
                 buffer.writeShort(value);
             }
@@ -263,23 +262,23 @@ class Serialisation
      * type will be used.
      *
      * @param type the type to find a translator for
+     *
      * @return a translator for the given type, either one that directly supports the type or one for a super type
      */
     private Message.Translator<?> findTranslator(Class<?> type)
     {
         // Direct translation available, short circuit
-        if (translators.containsKey(type))
-            return translators.get(type);
+        if (translators.containsKey(type)) return translators.get(type);
 
         // No direct translation available, we have to find one that fits the type nonetheless
-        Optional<Message.Translator<?>> fit = FluentIterable.from(translators.entrySet())
-                                                            .firstMatch(e -> e.getKey().isAssignableFrom(type))
-                                                            .transform(Map.Entry::getValue);
-        if (fit.isPresent())
+        Optional<Message.Translator<?>> fit = FluentIterable.from(translators.entrySet()).firstMatch(e -> e.getKey().isAssignableFrom(type)).transform(Map.Entry::getValue);
+        if (fit.isPresent()) {
             return fit.get();
-        else
-            // There doesn't seem to be a translator for this type, we can't handle this particular situation gracefully
+        } else
+        // There doesn't seem to be a translator for this type, we can't handle this particular situation gracefully
+        {
             throw new RuntimeException("There is no translator for type " + type.getName() + ", consider writing one.");
+        }
     }
 
     /**
@@ -296,8 +295,7 @@ class Serialisation
         Arrays.sort(fs, (f1, f2) -> f1.getName().compareTo(f2.getName()));
         // Cache fields for the given type, looking them up reflectively is costly
         fields.put(type.getName(), fs);
-        for (Field f : fs)
-        {
+        for (Field f : fs) {
             // Cache the translator for each field, prevents disparities between different points in time
             f.setAccessible(true);
             fieldTranslators.put(type.getName(), f.getName(), findTranslator(f.getType()));
@@ -314,17 +312,13 @@ class Serialisation
     {
         String className = message.getClass().getName();
         Field[] fields = this.fields.get(className);
-        for (Field f : fields)
-        {
+        for (Field f : fields) {
             Message.Translator<?> translator = fieldTranslators.get(className, f.getName());
             // Fields might be private
             f.setAccessible(true);
-            try
-            {
+            try {
                 translator.serialise(f.get(message), buffer);
-            }
-            catch (IllegalAccessException e)
-            {
+            } catch (IllegalAccessException e) {
                 // Should never happen
                 e.printStackTrace();
             }
@@ -341,17 +335,13 @@ class Serialisation
     {
         String className = message.getClass().getName();
         Field[] fields = this.fields.get(className);
-        for (Field f : fields)
-        {
+        for (Field f : fields) {
             Message.Translator<?> translator = fieldTranslators.get(className, f.getName());
             // Fields might be private
             f.setAccessible(true);
-            try
-            {
+            try {
                 f.set(message, translator.deserialise(buffer));
-            }
-            catch (IllegalAccessException e)
-            {
+            } catch (IllegalAccessException e) {
                 // Should never happen
                 e.printStackTrace();
             }

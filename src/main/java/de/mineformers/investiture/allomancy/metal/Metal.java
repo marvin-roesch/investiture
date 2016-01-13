@@ -5,7 +5,6 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.item.ItemStack;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
-import de.mineformers.investiture.allomancy.item.MetalItem;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
@@ -33,8 +32,8 @@ public interface Metal
 
     default boolean matches(@Nonnull ItemStack stack)
     {
-        if(stack.getItem() instanceof MetalItem) {
-            return this.equals(((MetalItem) stack.getItem()).getMetal(stack));
+        if (stack.getItem() instanceof MetalHolder) {
+            return this.equals(((MetalHolder) stack.getItem()).getMetal(stack));
         }
 
         return false;
@@ -47,8 +46,7 @@ public interface Metal
      */
     default void applyImpurityEffects(Entity entity)
     {
-        if (entity instanceof EntityLivingBase)
-        {
+        if (entity instanceof EntityLivingBase) {
             ((EntityLivingBase) entity).addPotionEffect(new PotionEffect(Potion.moveSlowdown.id, 30, 3));
         }
     }
@@ -88,12 +86,9 @@ public interface Metal
         @Override
         public boolean equals(Object obj)
         {
-            if (this == obj)
-                return true;
-            if (obj == null)
-                return false;
-            if (getClass() != obj.getClass())
-                return false;
+            if (this == obj) return true;
+            if (obj == null) return false;
+            if (getClass() != obj.getClass()) return false;
             return Objects.equals(id(), ((Metal) obj).id());
         }
     }
