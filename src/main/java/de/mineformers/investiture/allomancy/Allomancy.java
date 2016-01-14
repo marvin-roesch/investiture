@@ -2,20 +2,27 @@ package de.mineformers.investiture.allomancy;
 
 import com.google.common.base.Optional;
 import de.mineformers.investiture.Investiture;
-import de.mineformers.investiture.allomancy.block.AllomanticMetalOre;
+import de.mineformers.investiture.allomancy.block.MetalExtractor;
+import de.mineformers.investiture.allomancy.block.MetalOre;
 import de.mineformers.investiture.allomancy.core.EntityHandler;
-import de.mineformers.investiture.allomancy.item.AllomanticMetalIngot;
-import de.mineformers.investiture.allomancy.metal.AllomanticMetal;
-import de.mineformers.investiture.allomancy.metal.AllomanticMetals;
+import de.mineformers.investiture.allomancy.item.MetalItem;
+import de.mineformers.investiture.allomancy.metal.Metal;
 import de.mineformers.investiture.allomancy.metal.MetalBurner;
 import de.mineformers.investiture.allomancy.metal.MetalStorage;
+import de.mineformers.investiture.allomancy.metal.Metals;
 import de.mineformers.investiture.allomancy.network.EntityMetalBurnerUpdate;
 import de.mineformers.investiture.allomancy.network.EntityMetalStorageUpdate;
+import de.mineformers.investiture.allomancy.network.MetalExtractorUpdate;
 import de.mineformers.investiture.allomancy.network.ToggleBurningMetal;
+import de.mineformers.investiture.allomancy.tileentity.TileMetalExtractorDummy;
+import de.mineformers.investiture.allomancy.tileentity.TileMetalExtractorMaster;
+import de.mineformers.investiture.allomancy.tileentity.TileMetalExtractorOutput;
 import de.mineformers.investiture.allomancy.world.MetalGenerator;
 import de.mineformers.investiture.core.Manifestation;
 import de.mineformers.investiture.core.Proxy;
 import de.mineformers.investiture.network.Message;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
@@ -23,6 +30,8 @@ import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.oredict.OreDictionary;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * The "Allomancy" module is based on the "Mistborn" series of books by Brandon Sanderson.
@@ -37,13 +46,29 @@ public final class Allomancy implements Manifestation
         serverSide = "de.mineformers.investiture.allomancy.core.ServerSide")
     public static Proxy proxy;
 
+    /**
+     * @param path the path of the resource
+     *
+     * @return a resource location pointing at the given path in allomancy's resource domain
+     */
+    public static ResourceLocation resource(String path)
+    {
+        return new ResourceLocation(DOMAIN, path);
+    }
+
+    @Override
+    public String id()
+    {
+        return DOMAIN;
+    }
+
     @Override
     public void preInit(FMLPreInitializationEvent event)
     {
         Blocks.register();
         Items.register();
         GameRegistry.registerWorldGenerator(new MetalGenerator(), 0);
-        AllomanticMetals.init();
+        Metals.init();
 
         MinecraftForge.EVENT_BUS.register(new EntityHandler());
         CommonNetworking.init();
@@ -69,14 +94,24 @@ public final class Allomancy implements Manifestation
      */
     public static class Blocks
     {
-        public static AllomanticMetalOre allomantic_ore;
+        public static MetalOre allomantic_ore;
+        public static MetalExtractor metal_extractor;
 
         /**
          * Adds all blocks to the game's registry.
          */
         public static void register()
         {
-            GameRegistry.registerBlock(allomantic_ore = new AllomanticMetalOre(), AllomanticMetalOre.ItemRepresentation.class);
+            GameRegistry.registerBlock(allomantic_ore = new MetalOre(), MetalOre.ItemRepresentation.class);
+            GameRegistry.registerBlock(metal_extractor = new MetalExtractor(), MetalExtractor.ItemRepresentation.class);
+            GameRegistry.registerTileEntity(TileMetalExtractorMaster.class, "allomancy:metal_extractor_master");
+            GameRegistry.registerTileEntity(TileMetalExtractorDummy.class, "allomancy:metal_extractor_slave");
+            GameRegistry.registerTileEntity(TileMetalExtractorOutput.class, "allomancy:metal_extractor_output");
+
+            // Add ores to the ore dictionary
+            for (int i = 0; i < MetalOre.NAMES.length; i++) {
+                OreDictionary.registerOre(String.format("ore%s", StringUtils.capitalize(MetalOre.NAMES[i])), new ItemStack(allomantic_ore, 1, i));
+            }
         }
     }
 
@@ -85,14 +120,29 @@ public final class Allomancy implements Manifestation
      */
     public static class Items
     {
-        public static AllomanticMetalIngot allomantic_ingot;
+        public static MetalItem allomantic_ingot;
+        public static MetalItem allomantic_nugget;
+        public static MetalItem allomantic_bead;
+        public static MetalItem allomantic_chunk;
+        public static MetalItem allomantic_dust;
 
         /**
          * Adds all items to the game's registry.
          */
         public static void register()
         {
-            GameRegistry.registerItem(allomantic_ingot = new AllomanticMetalIngot());
+            GameRegistry.registerItem(allomantic_ingot = new MetalItem("allomantic_metal_ingot", "ingot", MetalItem.Type.INGOT, new String[]{"bronze", "brass", "copper", "zinc", "tin", "pewter", "steel", "lead", "nickel", "silver", "bismuth", "duralumin", "nicrosil", "aluminium", "chromium", "cadmium", "electrum", "bendalloy"}));
+            GameRegistry.registerItem(allomantic_nugget = new MetalItem("allomantic_metal_nugget", "nugget", MetalItem.Type.NUGGET, new String[]{"bronze", "brass", "copper", "zinc", "tin", "pewter", "steel", "iron", "lead", "nickel", "silver", "bismuth", "duralumin", "nicrosil", "aluminium", "chromium", "cadmium", "electrum", "bendalloy"}));
+            GameRegistry.registerItem(allomantic_bead = new MetalItem("allomantic_metal_bead", "bead", MetalItem.Type.BEAD, new String[]{"bronze", "brass", "copper", "zinc", "tin", "pewter", "steel", "iron", "lead", "nickel", "silver", "bismuth", "gold", "duralumin", "nicrosil", "aluminium", "chromium", "cadmium", "electrum", "bendalloy"}));
+            GameRegistry.registerItem(allomantic_chunk = new MetalItem("allomantic_metal_chunk", "chunk", MetalItem.Type.CHUNK, new String[]{"copper", "tin", "zinc", "iron", "lead", "aluminium", "chromium", "gold", "cadmium", "silver", "bismuth"}));
+            GameRegistry.registerItem(allomantic_dust = new MetalItem("allomantic_metal_dust", "dust", MetalItem.Type.DUST, new String[]{"bronze", "brass", "copper", "zinc", "tin", "pewter", "steel", "iron", "lead", "nickel", "silver", "bismuth", "gold", "duralumin", "nicrosil", "aluminium", "chromium", "cadmium", "electrum", "bendalloy"}));
+
+            // Add items to the ore dictionary
+            allomantic_bead.registerOreDict();
+            allomantic_chunk.registerOreDict();
+            allomantic_dust.registerOreDict();
+            allomantic_ingot.registerOreDict();
+            allomantic_nugget.registerOreDict();
         }
     }
 
@@ -134,21 +184,22 @@ public final class Allomancy implements Manifestation
             Investiture.net().registerMessage(EntityMetalStorageUpdate.class);
             Investiture.net().registerMessage(EntityMetalBurnerUpdate.class);
             Investiture.net().registerMessage(ToggleBurningMetal.class);
+            Investiture.net().registerMessage(MetalExtractorUpdate.class);
 
             // Add handler for toggling the burning of a metal
             Investiture.net().addHandler(ToggleBurningMetal.class, Side.SERVER, (msg, ctx) -> {
                 ctx.schedule(() -> {
                     MetalBurner burner = MetalBurner.from(ctx.player());
-                    Optional<AllomanticMetal> optional = AllomanticMetals.get(msg.metal);
+                    Optional<Metal> optional = Metals.get(msg.metal);
 
                     // Safety measures, in case the client sends bad data
-                    if (optional.isPresent() && burner != null)
-                    {
-                        AllomanticMetal metal = optional.get();
-                        if (burner.isBurning(metal))
+                    if (optional.isPresent() && burner != null) {
+                        Metal metal = optional.get();
+                        if (burner.isBurning(metal)) {
                             burner.stopBurning(metal);
-                        else
+                        } else {
                             burner.startBurning(metal);
+                        }
                     }
                 });
                 return null;

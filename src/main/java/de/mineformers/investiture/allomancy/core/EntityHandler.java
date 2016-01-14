@@ -23,9 +23,11 @@ public class EntityHandler
     @SubscribeEvent
     public void onConstructing(EntityEvent.EntityConstructing event)
     {
-        if (event.entity instanceof EntityPlayer)
-            if (MetalBurner.from(event.entity) == null)
+        if (event.entity instanceof EntityPlayer) {
+            if (MetalBurner.from(event.entity) == null) {
                 event.entity.registerExtendedProperties(Allomancy.NBT.BURNER_ID, new MetalBurner.EntityMetalBurner());
+            }
+        }
     }
 
     /**
@@ -63,14 +65,12 @@ public class EntityHandler
     public void onInteract(PlayerInteractEvent event)
     {
         // Only do things on the server
-        if (!event.entity.worldObj.isRemote && event.entityPlayer.getHeldItem() != null)
-        {
+        if (!event.entity.worldObj.isRemote && event.entityPlayer.getHeldItem() != null) {
             // Right click = swallow metal
-            if (event.action == PlayerInteractEvent.Action.RIGHT_CLICK_AIR)
-            {
+            if (event.action == PlayerInteractEvent.Action.RIGHT_CLICK_AIR) {
                 MetalBurner metals = MetalBurner.from(event.entity);
                 int consumed = metals.consume(event.entityPlayer.getHeldItem());
-                event.entityPlayer.getHeldItem().stackSize -= consumed;
+                if (consumed >= 0) event.entityPlayer.getHeldItem().stackSize -= consumed;
             }
         }
     }
@@ -84,8 +84,7 @@ public class EntityHandler
     public void onPlayerTick(TickEvent.PlayerTickEvent event)
     {
         // Only do things on the server
-        if (event.player.worldObj.isRemote || event.phase == TickEvent.Phase.END)
-            return;
+        if (event.player.worldObj.isRemote || event.phase == TickEvent.Phase.END) return;
 
         MetalBurner metals = MetalBurner.from(event.player);
         metals.burningMetals().forEach(m -> metals.updateBurnTimer(event.player, m));

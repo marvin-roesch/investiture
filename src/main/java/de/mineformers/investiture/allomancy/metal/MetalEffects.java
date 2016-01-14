@@ -3,7 +3,7 @@ package de.mineformers.investiture.allomancy.metal;
 /**
  * Provides access to the user of a metal after they start or stop burning it.
  */
-public interface MetalEffects extends AllomanticMetal
+public interface MetalEffects extends Metal
 {
     /**
      * Called whenever a given user starts to burn the metal.

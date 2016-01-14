@@ -1,5 +1,6 @@
 package de.mineformers.investiture.allomancy.block;
 
+import de.mineformers.investiture.Investiture;
 import de.mineformers.investiture.block.properties.PropertyString;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
@@ -20,17 +21,16 @@ import java.util.List;
 /**
  * Used as the ore for all allomantic metals which are not alloys and can be collected directly through mining.
  */
-public class AllomanticMetalOre extends Block
+public class MetalOre extends Block
 {
-    public static final String[] NAMES = {
-        "copper", "zinc", "tin", "aluminium", "chromium"
-    };
+    public static final String[] NAMES = {"copper", "zinc", "tin", "aluminium", "chromium", "silver", "bismuth", "lead"};
     public static final PropertyString METAL = new PropertyString("metal", NAMES);
 
     /**
      * Clamps a given integer to the damage range of the block.
      *
      * @param value the value to clamp
+     *
      * @return the value, if it is contained by [0..4], 0, if the value is lower than 0, or 4, if the value is greater than 4
      */
     public static int clampDamage(int value)
@@ -41,12 +41,13 @@ public class AllomanticMetalOre extends Block
     /**
      * Creates a new instance of the ore.
      */
-    public AllomanticMetalOre()
+    public MetalOre()
     {
         super(Material.rock);
+
         setDefaultState(blockState.getBaseState().withProperty(METAL, NAMES[0]));
         setUnlocalizedName("allomantic_metal_ore");
-        setCreativeTab(CreativeTabs.tabBlock);
+        setCreativeTab(Investiture.CREATIVE_TAB);
         setRegistryName("allomantic_metal_ore");
     }
 
@@ -54,6 +55,7 @@ public class AllomanticMetalOre extends Block
      * Creates an {@link IBlockState block state} of the ore for the given metal.
      *
      * @param metal the metal to create the ore for
+     *
      * @return the block state of the ore
      */
     public IBlockState fromMetal(String metal)
@@ -64,8 +66,7 @@ public class AllomanticMetalOre extends Block
     @Override
     public void getSubBlocks(Item item, CreativeTabs tab, List<ItemStack> list)
     {
-        for (int dmg = 0; dmg < NAMES.length; dmg++)
-        {
+        for (int dmg = 0; dmg < NAMES.length; dmg++) {
             list.add(new ItemStack(item, 1, dmg));
         }
     }

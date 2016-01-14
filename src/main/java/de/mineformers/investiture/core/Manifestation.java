@@ -11,6 +11,11 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 public interface Manifestation
 {
     /**
+     * @return the module's identifier
+     */
+    String id();
+
+    /**
      * Fired during the pre-initialisation phase. Should be used for registering blocks, items etc.
      *
      * @param event the event that triggers this method

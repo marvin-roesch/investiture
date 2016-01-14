@@ -1,0 +1,111 @@
+{
+  "forge_marker": 1,
+  "defaults": {
+    "model": "builtin/generated",
+    "transform": "forge:default-item"
+  },
+  "variants": {
+    "metal": {
+      "bronze": {
+        "textures": {
+          "layer0": "allomancy:items/bead/bronze"
+        }
+      },
+      "brass": {
+        "textures": {
+          "layer0": "allomancy:items/bead/brass"
+        }
+      },
+      "copper": {
+        "textures": {
+          "layer0": "allomancy:items/bead/copper"
+        }
+      },
+      "zinc": {
+        "textures": {
+          "layer0": "allomancy:items/bead/zinc"
+        }
+      },
+      "tin": {
+        "textures": {
+          "layer0": "allomancy:items/bead/tin"
+        }
+      },
+      "pewter": {
+        "textures": {
+          "layer0": "allomancy:items/bead/pewter"
+        }
+      },
+      "steel": {
+        "textures": {
+          "layer0": "allomancy:items/bead/steel"
+        }
+      },
+      "iron": {
+        "textures": {
+          "layer0": "allomancy:items/bead/iron"
+        }
+      },
+      "lead": {
+        "textures": {
+          "layer0": "allomancy:items/bead/lead"
+        }
+      },
+      "nickel": {
+        "textures": {
+          "layer0": "allomancy:items/bead/nickel"
+        }
+      },
+      "silver": {
+        "textures": {
+          "layer0": "allomancy:items/bead/silver"
+        }
+      },
+      "bismuth": {
+        "textures": {
+          "layer0": "allomancy:items/bead/bismuth"
+        }
+      },
+      "duralumin": {
+        "textures": {
+          "layer0": "allomancy:items/bead/duralumin"
+        }
+      },
+      "nicrosil": {
+        "textures": {
+          "layer0": "allomancy:items/bead/nicrosil"
+        }
+      },
+      "aluminium": {
+        "textures": {
+          "layer0": "allomancy:items/bead/aluminium"
+        }
+      },
+      "chromium": {
+        "textures": {
+          "layer0": "allomancy:items/bead/chromium"
+        }
+      },
+      "cadmium": {
+        "textures": {
+          "layer0": "allomancy:items/bead/cadmium"
+        }
+      },
+      "electrum": {
+        "textures": {
+          "layer0": "allomancy:items/bead/electrum"
+        }
+      },
+      "bendalloy": {
+        "textures": {
+          "layer0": "allomancy:items/bead/bendalloy"
+        }
+      },
+      "gold": {
+        "textures": {
+          "layer0": "allomancy:items/bead/gold"
+        }
+      }
+    }
+  }
+}
