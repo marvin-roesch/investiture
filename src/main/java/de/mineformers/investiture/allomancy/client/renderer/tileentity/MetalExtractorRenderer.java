@@ -18,6 +18,7 @@ import net.minecraft.entity.item.EntityItem;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.model.IFlexibleBakedModel;
 
 /**
@@ -28,6 +29,7 @@ public class MetalExtractorRenderer extends TileEntitySpecialRenderer<TileMetalE
     private IFlexibleBakedModel modelFrame;
     private IFlexibleBakedModel modelGrinderTop;
     private IFlexibleBakedModel modelGrinderBottom;
+    private IFlexibleBakedModel modelWaterWheel;
     private static final RenderEntityItem RENDER_ITEM = new RenderEntityItem(Minecraft.getMinecraft().getRenderManager(),
                                                                              Minecraft.getMinecraft().getRenderItem())
     {
@@ -62,6 +64,9 @@ public class MetalExtractorRenderer extends TileEntitySpecialRenderer<TileMetalE
         modelGrinderBottom = Modeling.loadOBJModel(Allomancy.resource("block/metal_extractor.obj"),
                                                    ImmutableMap.of("#grinder", Allomancy.resource("blocks/metal_extractor_grinder")),
                                                    ImmutableList.of("GrinderBottom"));
+        modelWaterWheel = Modeling.loadOBJModel(Allomancy.resource("block/metal_extractor.obj"),
+                                                ImmutableMap.of("#wood", new ResourceLocation("blocks/planks_oak")),
+                                                ImmutableList.of("WaterWheel", "WaterWheelConnection"));
     }
 
     @Override
@@ -100,7 +105,8 @@ public class MetalExtractorRenderer extends TileEntitySpecialRenderer<TileMetalE
                     break;
             }
             Rendering.drawModel(modelFrame);
-            float angle = System.currentTimeMillis() / 10 % 1440 / 4f;
+            float angle = te.getWorld().getTotalWorldTime();
+            angle = lerp(angle, angle + 1, partialTicks);
 
             GlStateManager.pushMatrix();
             GlStateManager.translate(2.5, 0, -2.5);
@@ -116,13 +122,26 @@ public class MetalExtractorRenderer extends TileEntitySpecialRenderer<TileMetalE
             Rendering.drawModel(modelGrinderBottom);
             GlStateManager.popMatrix();
 
+            GlStateManager.pushMatrix();
+            GlStateManager.translate(2.5, 2, -2.5);
+            GlStateManager.rotate(angle, 0, 0, 1);
+            GlStateManager.translate(-2.5, -2, 2.5);
+            Rendering.drawModel(modelWaterWheel);
+            GlStateManager.popMatrix();
+
             GlStateManager.translate(2.5, 1.25, -2.5);
             GlStateManager.scale(2.8, 2.8, 2.8);
-            EntityItem item = new EntityItem(te.getWorld(), te.getPos().getX(), te.getPos().getY(), te.getPos().getZ(), new ItemStack(Blocks.gold_ore));
+            EntityItem item = new EntityItem(te.getWorld(), te.getPos().getX(), te.getPos().getY(), te.getPos().getZ(),
+                                             new ItemStack(Blocks.gold_ore));
             item.hoverStart = 0;
             RENDER_ITEM.doRender(item, 0, 0, 0, 0, 0);
             GlStateManager.popMatrix();
         }
+    }
+
+    float lerp(float v0, float v1, float t)
+    {
+        return (1 - t) * v0 + t * v1;
     }
 
     @Override

@@ -10,6 +10,7 @@ import de.mineformers.investiture.allomancy.metal.MetalStorage;
 import de.mineformers.investiture.allomancy.network.ToggleBurningMetal;
 import de.mineformers.investiture.client.KeyBindings;
 import de.mineformers.investiture.client.renderer.Shader;
+import de.mineformers.investiture.client.util.Colour;
 import de.mineformers.investiture.client.util.Rendering;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
@@ -17,7 +18,6 @@ import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.WorldRenderer;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -80,19 +80,19 @@ public class MetalSelectionHUD
         GlStateManager.blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         // Draws the wheel's background texture (the red metal part)
-        Minecraft.getMinecraft().getTextureManager().bindTexture(WHEEL_BG_TEXTURE);
-        Rendering.drawRectangle(centreX - 100, centreY - 100, 0, 0, 1, 1, 200, 200);
+//        Minecraft.getMinecraft().getTextureManager().bindTexture(WHEEL_BG_TEXTURE);
+//        Rendering.drawRectangle(centreX - 100, centreY - 100, 0, 0, 1, 1, 200, 200);
 
         // Disable the alpha test such that everything will get drawn as translucently as desired
         GlStateManager.disableAlpha();
 
-        drawMist(centreX, centreY);
+        drawRings(centreX, centreY);
 
         drawMetalIcons(centreX, centreY);
 
         // Draw the wheel's frame
-        Minecraft.getMinecraft().getTextureManager().bindTexture(WHEEL_TEXTURE);
-        Rendering.drawRectangle(centreX - 100, centreY - 100, 0, 0, 1, 1, 200, 200);
+//        Minecraft.getMinecraft().getTextureManager().bindTexture(WHEEL_TEXTURE);
+//        Rendering.drawRectangle(centreX - 100, centreY - 100, 0, 0, 1, 1, 200, 200);
 
         // Draw the hovered metal's name in the circle's centre
         FontRenderer font = Minecraft.getMinecraft().fontRendererObj;
@@ -104,6 +104,20 @@ public class MetalSelectionHUD
             font.drawString(text, centreX - width / 2, centreY - font.FONT_HEIGHT / 2 + 2, 0xFF_FA_FA_FA);
         }
         GlStateManager.enableAlpha();
+    }
+
+    /**
+     * Draws the selection rings.
+     *
+     * @param centreX the x coordinate the rings should be centred on
+     * @param centreY the y coordinate the rings should be centred on
+     */
+    private void drawRings(int centreX, int centreY)
+    {
+        GlStateManager.disableTexture2D();
+        Rendering.drawRing(centreX, centreY, 25, 30, new Colour(0, 0, 0, 0.3f));
+        Rendering.drawRing(centreX, centreY, 60, 30, new Colour(0, 0, 0, 0.3f));
+        GlStateManager.enableTexture2D();
     }
 
     /**
@@ -131,39 +145,23 @@ public class MetalSelectionHUD
         wheelShader.setUniformFloat("persistence", 1f);
         // Draw a simple circle with a radius of 60
         // If shaders are not supported, players will just see a translucent white circle
-        wr.begin(GL_TRIANGLE_FAN, DefaultVertexFormats.POSITION_COLOR);
-        wr.pos(centreX, centreY, 0)
-          .color(1, 1, 1, 0.3f)
-          .endVertex();
-        for (int i = 100; i >= 0; i--)
-        {
-            double angle = PI * 2 * i / 100;
-            wr.pos(centreX + cos(angle) * 60, centreY + sin(angle) * 60, 0)
-              .color(1, 1, 1, 0.3f)
-              .endVertex();
-        }
-        tess.draw();
+//        wr.begin(GL_TRIANGLE_FAN, DefaultVertexFormats.POSITION_COLOR);
+//        wr.pos(centreX, centreY, 0)
+//          .color(1, 1, 1, 0.3f)
+//          .endVertex();
+//        for (int i = 100; i >= 0; i--)
+//        {
+//            double angle = PI * 2 * i / 100;
+//            wr.pos(centreX + cos(angle) * 60, centreY + sin(angle) * 60, 0)
+//              .color(1, 1, 1, 0.3f)
+//              .endVertex();
+//        }
+//        tess.draw();
+        Rendering.drawRing(centreX, centreY, 25, 30, new Colour(0, 0, 0, 0.3f));
 
         // Draw the outer part of the circle as triangle strip, resulting in a ring
         // Use the smooth shading model to create a gradient from translucent to transparent
-        GlStateManager.shadeModel(GL_SMOOTH);
-        wr.begin(GL_TRIANGLE_STRIP, DefaultVertexFormats.POSITION_COLOR);
-        wr.pos(centreX + cos(0) * 60, centreY + sin(0) * 60, 0)
-          .color(1, 1, 1, 0.3f)
-          .endVertex();
-        for (int i = -1; i <= 99; i++)
-        {
-            double angle0 = PI * 2 * i / 100;
-            double angle1 = PI * 2 * (i + 1) / 100;
-            wr.pos(centreX + cos(angle1) * 60, centreY + sin(angle1) * 60, 0)
-              .color(1, 1, 1, 0.3f)
-              .endVertex();
-            wr.pos(centreX + cos(angle0) * 90, centreY + sin(angle0) * 90, 0)
-              .color(1, 1, 1, 0f)
-              .endVertex();
-        }
-        tess.draw();
-        GlStateManager.shadeModel(GL_FLAT);
+        Rendering.drawRing(centreX, centreY, 60, 30, new Colour(0, 0, 0, 0.3f));
         wheelShader.deactivate();
 
         // We're about to draw textures again
@@ -194,7 +192,7 @@ public class MetalSelectionHUD
             iconShader.setUniformBool("hovered", hoveredMetal.orNull() == innerMetal);
             // Change the main colour of the icon if the metal is burning
             iconShader.setUniform("backColour", burner.isBurning(innerMetal) ? new Vec3(205 / 255f, 43 / 255f, 0)
-                                                                            : new Vec3(0.1f, 0.1f, 0.1f));
+                                                                             : new Vec3(0.1f, 0.1f, 0.1f));
             iconShader.setUniformFloat("metalLevel", (float) burner.get(innerMetal) / MetalStorage.MAX_STORAGE);
             iconShader.setUniformFloat("impurityLevel", (float) burner.getImpurity(innerMetal) / MetalStorage.MAX_STORAGE);
 
@@ -202,13 +200,13 @@ public class MetalSelectionHUD
             Minecraft.getMinecraft().getTextureManager().bindTexture(METAL_TEXTURES[i * 2]);
             // Draw the inner icon 40 units away from the circle's centre
             Rendering.drawRectangle(centreX + (int) (cos(angle) * 40) - 8,
-                 centreY - (int) (sin(angle) * 40) - 8, 0, 0, 1, 1, 16, 16);
+                                    centreY - (int) (sin(angle) * 40) - 8, 0, 0, 1, 1, 16, 16);
 
             AllomanticMetal outerMetal = AllomanticMetals.get(METALS[i * 2 + 1]).get();
             iconShader.setUniformBool("hovered", hoveredMetal.orNull() == outerMetal);
             // Change the main colour of the icon if the metal is burning
             iconShader.setUniform("backColour", burner.isBurning(outerMetal) ? new Vec3(205 / 255f, 43 / 255f, 0)
-                                                                            : new Vec3(0.1f, 0.1f, 0.1f));
+                                                                             : new Vec3(0.1f, 0.1f, 0.1f));
             iconShader.setUniformFloat("metalLevel", (float) burner.get(outerMetal) / MetalStorage.MAX_STORAGE);
             iconShader.setUniformFloat("impurityLevel", (float) burner.getImpurity(outerMetal) / MetalStorage.MAX_STORAGE);
 
