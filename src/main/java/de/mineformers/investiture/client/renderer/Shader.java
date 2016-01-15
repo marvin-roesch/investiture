@@ -35,9 +35,13 @@ public class Shader
     {
         program = glCreateProgram();
         if (vertex != null)
+        {
             addShader("/assets/" + vertex.getResourceDomain() + "/shaders/" + vertex.getResourcePath() + ".vert", GL_VERTEX_SHADER);
+        }
         if (fragment != null)
+        {
             addShader("/assets/" + fragment.getResourceDomain() + "/shaders/" + fragment.getResourcePath() + ".frag", GL_FRAGMENT_SHADER);
+        }
     }
 
     /**
@@ -59,8 +63,7 @@ public class Shader
      */
     public void activate()
     {
-        if (!initialised)
-            init();
+        if (!initialised) init();
         if (supported)
         {
             lastProgram = glGetInteger(GL_CURRENT_PROGRAM);
@@ -73,10 +76,8 @@ public class Shader
      */
     public void deactivate()
     {
-        if (!initialised)
-            init();
-        if (supported)
-            glUseProgram(lastProgram);
+        if (!initialised) init();
+        if (supported) glUseProgram(lastProgram);
     }
 
     /**
@@ -117,8 +118,7 @@ public class Shader
         try
         {
             shader = glCreateShader(type);
-            if (shader == 0)
-                return 0;
+            if (shader == 0) return 0;
             glShaderSource(shader, Source.fromInputStream(Shader.class.getResourceAsStream(source), "UTF-8").mkString());
             glCompileShader(shader);
             return shader;
@@ -137,8 +137,7 @@ public class Shader
      */
     public int getUniformLocation(String name)
     {
-        if (!varLocations.containsKey(name))
-            varLocations.put(name, glGetUniformLocation(program, name));
+        if (!varLocations.containsKey(name)) varLocations.put(name, glGetUniformLocation(program, name));
         return varLocations.get(name);
     }
 
@@ -215,7 +214,7 @@ public class Shader
     /**
      * Sets a <code>bool</code> uniform declared in the shader with a given name.
      *
-     * @param name the name of the uniform
+     * @param name  the name of the uniform
      * @param value the boolean value to use
      */
     public void setUniformBool(String name, boolean value)

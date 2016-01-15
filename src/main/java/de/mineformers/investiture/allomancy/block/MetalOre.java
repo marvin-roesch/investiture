@@ -1,5 +1,6 @@
 package de.mineformers.investiture.allomancy.block;
 
+import de.mineformers.investiture.Investiture;
 import de.mineformers.investiture.block.properties.PropertyString;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
@@ -20,11 +21,9 @@ import java.util.List;
 /**
  * Used as the ore for all allomantic metals which are not alloys and can be collected directly through mining.
  */
-public class AllomanticMetalOre extends Block
+public class MetalOre extends Block
 {
-    public static final String[] NAMES = {
-        "copper", "zinc", "tin", "aluminium", "chromium"
-    };
+    public static final String[] NAMES = {"copper", "zinc", "tin", "aluminium", "chromium", "silver", "bismuth", "lead"};
     public static final PropertyString METAL = new PropertyString("metal", NAMES);
 
     /**
@@ -41,12 +40,13 @@ public class AllomanticMetalOre extends Block
     /**
      * Creates a new instance of the ore.
      */
-    public AllomanticMetalOre()
+    public MetalOre()
     {
         super(Material.rock);
+
         setDefaultState(blockState.getBaseState().withProperty(METAL, NAMES[0]));
         setUnlocalizedName("allomantic_metal_ore");
-        setCreativeTab(CreativeTabs.tabBlock);
+        setCreativeTab(Investiture.CREATIVE_TAB);
         setRegistryName("allomantic_metal_ore");
     }
 

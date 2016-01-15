@@ -20,7 +20,8 @@ public class BlockRecipe
     {
     }
 
-    public static BlockRecipe start() {
+    public static BlockRecipe start()
+    {
         return new BlockRecipe();
     }
 

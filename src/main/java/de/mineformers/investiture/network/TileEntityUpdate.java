@@ -9,11 +9,13 @@ public class TileEntityUpdate extends Message
 {
     public BlockPos pos;
 
-    public TileEntityUpdate() {
+    public TileEntityUpdate()
+    {
         this.pos = BlockPos.ORIGIN;
     }
 
-    public TileEntityUpdate(BlockPos pos) {
+    public TileEntityUpdate(BlockPos pos)
+    {
         this.pos = pos;
     }
 }

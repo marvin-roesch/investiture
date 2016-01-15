@@ -117,8 +117,7 @@ public class FunctionalNetwork
     {
         packetCodec.addDiscriminator(discriminator, type);
         Serialisation.INSTANCE.registerMessage(type);
-        if (lastDiscriminator < discriminator)
-            lastDiscriminator = discriminator;
+        if (lastDiscriminator < discriminator) lastDiscriminator = discriminator;
     }
 
     /**

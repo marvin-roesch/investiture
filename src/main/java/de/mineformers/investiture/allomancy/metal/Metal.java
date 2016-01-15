@@ -13,7 +13,7 @@ import java.util.Objects;
  * Interface representing the properties of any allomantic metal.
  * This is to be used like Vanilla's Blocks and Items, not storing any data itself.
  */
-public interface AllomanticMetal
+public interface Metal
 {
     /**
      * @return the metal's internal ID
@@ -23,23 +23,21 @@ public interface AllomanticMetal
     /**
      * Determines whether the stack can be burned or is impure.
      *
-     * @param stack the stack to check
      * @return true if the stack is burnable, false if it is not pure enough
      */
-    boolean canBurn(@Nonnull ItemStack stack);
-
-    /**
-     * Determines the energy value stored in some form of metal.
-     *
-     * @param stack the stack to check
-     * @return the energy value of the stack
-     */
-    default int getValue(@Nonnull ItemStack stack)
+    default boolean canBurn()
     {
-        if (canBurn(stack))
-            return stack.stackSize;
-        else
-            return 0;
+        return true;
+    }
+
+    default boolean matches(@Nonnull ItemStack stack)
+    {
+        if (stack.getItem() instanceof MetalHolder)
+        {
+            return this.equals(((MetalHolder) stack.getItem()).getMetal(stack));
+        }
+
+        return false;
     }
 
     /**
@@ -66,11 +64,11 @@ public interface AllomanticMetal
     /**
      * Basic abstract implementation of metals with an ID which also functions as equality measure.
      */
-    abstract class Abstract implements AllomanticMetal
+    abstract class AbstractMetal implements Metal
     {
         private final String _id;
 
-        Abstract(@Nonnull String id)
+        AbstractMetal(@Nonnull String id)
         {
             this._id = id;
         }
@@ -90,13 +88,10 @@ public interface AllomanticMetal
         @Override
         public boolean equals(Object obj)
         {
-            if (this == obj)
-                return true;
-            if (obj == null)
-                return false;
-            if (getClass() != obj.getClass())
-                return false;
-            return Objects.equals(id(), ((AllomanticMetal) obj).id());
+            if (this == obj) return true;
+            if (obj == null) return false;
+            if (getClass() != obj.getClass()) return false;
+            return Objects.equals(id(), ((Metal) obj).id());
         }
     }
 }

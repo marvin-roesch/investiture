@@ -33,7 +33,8 @@ public class ModuleStateMap extends StateMapperBase
         this.ignored = ignored;
     }
 
-    public static Builder builder() {
+    public static Builder builder()
+    {
         return new Builder();
     }
 

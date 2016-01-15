@@ -37,17 +37,17 @@ public class Rendering
         WorldRenderer wr = tessellator.getWorldRenderer();
         wr.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
         wr.pos(x, y + height, 0)
-                     .tex(uMin, vMax)
-                     .endVertex();
+          .tex(uMin, vMax)
+          .endVertex();
         wr.pos(x + width, y + height, 0)
-                     .tex(uMax, vMax)
-                     .endVertex();
+          .tex(uMax, vMax)
+          .endVertex();
         wr.pos(x + width, y, 0)
-                     .tex(uMax, vMin)
-                     .endVertex();
+          .tex(uMax, vMin)
+          .endVertex();
         wr.pos(x, y, 0)
-                     .tex(uMin, vMin)
-                     .endVertex();
+          .tex(uMin, vMin)
+          .endVertex();
         tessellator.draw();
     }
 

@@ -137,7 +137,7 @@ public class MetalExtractor extends Block
             {
                 TileMetalExtractorMaster tile = (TileMetalExtractorMaster) world.getTileEntity(pos);
                 ItemStack stack = ((EntityItem) entity).getEntityItem();
-                if(Inventories.insert(tile, stack, TileMetalExtractorMaster.INPUT_SLOT, tile.getOrientation().getOpposite()))
+                if (Inventories.insert(tile, stack, TileMetalExtractorMaster.INPUT_SLOT, tile.getOrientation().getOpposite()))
                     entity.setDead();
             }
         }

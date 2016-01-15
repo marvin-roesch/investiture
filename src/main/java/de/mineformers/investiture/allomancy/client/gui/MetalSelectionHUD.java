@@ -3,10 +3,10 @@ package de.mineformers.investiture.allomancy.client.gui;
 import com.google.common.base.Optional;
 import de.mineformers.investiture.Investiture;
 import de.mineformers.investiture.allomancy.Allomancy;
-import de.mineformers.investiture.allomancy.metal.AllomanticMetal;
-import de.mineformers.investiture.allomancy.metal.AllomanticMetals;
+import de.mineformers.investiture.allomancy.metal.Metal;
 import de.mineformers.investiture.allomancy.metal.MetalBurner;
 import de.mineformers.investiture.allomancy.metal.MetalStorage;
+import de.mineformers.investiture.allomancy.metal.Metals;
 import de.mineformers.investiture.allomancy.network.ToggleBurningMetal;
 import de.mineformers.investiture.client.KeyBindings;
 import de.mineformers.investiture.client.renderer.Shader;
@@ -50,7 +50,7 @@ public class MetalSelectionHUD
     public static final ResourceLocation WHEEL_BG_TEXTURE = new ResourceLocation(Allomancy.DOMAIN, "textures/gui/wheel_background.png");
     public static final ResourceLocation WHEEL_TEXTURE = new ResourceLocation(Allomancy.DOMAIN, "textures/gui/wheel.png");
     private double mouseX, mouseY;
-    private Optional<AllomanticMetal> hoveredMetal = Optional.absent();
+    private Optional<Metal> hoveredMetal = Optional.absent();
     private boolean display;
     private Vec3 previousRotation = new Vec3(0, 0, 0);
     private final Shader wheelShader = new Shader(new ResourceLocation(Allomancy.DOMAIN, "metal_wheel"),
@@ -98,7 +98,7 @@ public class MetalSelectionHUD
         FontRenderer font = Minecraft.getMinecraft().fontRendererObj;
         if (hoveredMetal.isPresent())
         {
-            AllomanticMetal metal = hoveredMetal.get();
+            Metal metal = hoveredMetal.get();
             String text = I18n.format(metal.unlocalisedName());
             int width = font.getStringWidth(text);
             font.drawString(text, centreX - width / 2, centreY - font.FONT_HEIGHT / 2 + 2, 0xFF_FA_FA_FA);
@@ -188,7 +188,7 @@ public class MetalSelectionHUD
         for (int i = 0; i < METALS.length / 2; i++)
         {
             double angle = PI / 4 * (i + 0.5);
-            AllomanticMetal innerMetal = AllomanticMetals.get(METALS[i * 2]).get();
+            Metal innerMetal = Metals.get(METALS[i * 2]).get();
             iconShader.setUniformBool("hovered", hoveredMetal.orNull() == innerMetal);
             // Change the main colour of the icon if the metal is burning
             iconShader.setUniform("backColour", burner.isBurning(innerMetal) ? new Vec3(205 / 255f, 43 / 255f, 0)
@@ -202,7 +202,7 @@ public class MetalSelectionHUD
             Rendering.drawRectangle(centreX + (int) (cos(angle) * 40) - 8,
                                     centreY - (int) (sin(angle) * 40) - 8, 0, 0, 1, 1, 16, 16);
 
-            AllomanticMetal outerMetal = AllomanticMetals.get(METALS[i * 2 + 1]).get();
+            Metal outerMetal = Metals.get(METALS[i * 2 + 1]).get();
             iconShader.setUniformBool("hovered", hoveredMetal.orNull() == outerMetal);
             // Change the main colour of the icon if the metal is burning
             iconShader.setUniform("backColour", burner.isBurning(outerMetal) ? new Vec3(205 / 255f, 43 / 255f, 0)
@@ -291,9 +291,9 @@ public class MetalSelectionHUD
         for (int i = 0; i < METALS.length / 2; i++)
         {
             if (angle > i * 45 && angle <= (i + 1) * 45 && mag > 0.4 && mag <= 0.77)
-                hoveredMetal = AllomanticMetals.get(METALS[i * 2]);
+                hoveredMetal = Metals.get(METALS[i * 2]);
             if (angle > i * 45 && angle <= (i + 1) * 45 && mag > 0.77 && mag <= 1)
-                hoveredMetal = AllomanticMetals.get(METALS[i * 2 + 1]);
+                hoveredMetal = Metals.get(METALS[i * 2 + 1]);
         }
 
         // The hovered metal was clicked,

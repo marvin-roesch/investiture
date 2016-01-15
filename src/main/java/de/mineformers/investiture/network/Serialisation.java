@@ -89,8 +89,7 @@ class Serialisation
         addTranslator(Short.TYPE, new Message.Translator<Short>()
         {
             @Override
-            public void serialiseImpl(
-                Short value, ByteBuf buffer)
+            public void serialiseImpl(Short value, ByteBuf buffer)
             {
                 buffer.writeShort(value);
             }
@@ -268,18 +267,20 @@ class Serialisation
     private Message.Translator<?> findTranslator(Class<?> type)
     {
         // Direct translation available, short circuit
-        if (translators.containsKey(type))
-            return translators.get(type);
+        if (translators.containsKey(type)) return translators.get(type);
 
         // No direct translation available, we have to find one that fits the type nonetheless
-        Optional<Message.Translator<?>> fit = FluentIterable.from(translators.entrySet())
-                                                            .firstMatch(e -> e.getKey().isAssignableFrom(type))
+        Optional<Message.Translator<?>> fit = FluentIterable.from(translators.entrySet()).firstMatch(e -> e.getKey().isAssignableFrom(type))
                                                             .transform(Map.Entry::getValue);
         if (fit.isPresent())
+        {
             return fit.get();
+        }
         else
-            // There doesn't seem to be a translator for this type, we can't handle this particular situation gracefully
+        // There doesn't seem to be a translator for this type, we can't handle this particular situation gracefully
+        {
             throw new RuntimeException("There is no translator for type " + type.getName() + ", consider writing one.");
+        }
     }
 
     /**

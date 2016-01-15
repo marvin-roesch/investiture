@@ -33,7 +33,8 @@ public class SimpleExtractorRecipe implements ExtractorRecipe
     }
 
     @Nonnull
-    public static ExtractorRecipe create(ItemStack input, ExtractorOutput result) {
+    public static ExtractorRecipe create(ItemStack input, ExtractorOutput result)
+    {
         return new SimpleExtractorRecipe(input, result);
     }
 

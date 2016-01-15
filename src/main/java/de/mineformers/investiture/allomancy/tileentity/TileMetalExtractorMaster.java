@@ -116,7 +116,9 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
                             inventory[SECONDARY_OUTPUT_SLOT].stackSize++;
                             processing.poll();
                         }
-                    } else if(primaryFit != null) {
+                    }
+                    else if (primaryFit != null)
+                    {
                         inventory[PRIMARY_OUTPUT_SLOT] = primaryFit;
                         processing.poll();
                     }
@@ -125,8 +127,8 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
             if (inventory[INPUT_SLOT] != null && processing.remainingCapacity() > 0)
             {
                 Optional<Optional<ExtractorOutput>> output = FluentIterable.from(ExtractorRecipes.recipes())
-                                                                 .transform(r -> r.match(inventory[INPUT_SLOT]))
-                                                                 .firstMatch(Optional::isPresent);
+                                                                           .transform(r -> r.match(inventory[INPUT_SLOT]))
+                                                                           .firstMatch(Optional::isPresent);
                 if (output.isPresent() && output.get().isPresent())
                     processing.offer(new Processor(decrStackSize(INPUT_SLOT, 1), output.get().get(), 0));
             }

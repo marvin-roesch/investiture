@@ -49,14 +49,15 @@ public interface SimpleInventory extends IInventory
 
     default void moveStack(int source, int destination)
     {
-        if(getStackInSlot(source) != null && getStackInSlot(destination) == null)
+        if (getStackInSlot(source) != null && getStackInSlot(destination) == null)
         {
             setInventorySlotContents(destination, getStackInSlot(source));
             setInventorySlotContents(source, null);
         }
     }
 
-    default void swapStacks(int slot1, int slot2) {
+    default void swapStacks(int slot1, int slot2)
+    {
         ItemStack stack1 = getStackInSlot(slot1);
         ItemStack stack2 = getStackInSlot(slot2);
         setInventorySlotContents(slot1, stack2);
