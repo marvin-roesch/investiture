@@ -9,5 +9,4 @@ public interface MetalHolder<T>
     Metal getMetal(T stack);
 
     float getMetalQuantity(T stack);
-
 }

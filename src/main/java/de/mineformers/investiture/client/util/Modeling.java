@@ -24,7 +24,8 @@ import java.util.Map;
  */
 public class Modeling
 {
-    private static final Function<ResourceLocation, TextureAtlasSprite> TEXTURE_GETTER = res -> Minecraft.getMinecraft().getTextureMapBlocks().getAtlasSprite(res.toString());
+    private static final Function<ResourceLocation, TextureAtlasSprite> TEXTURE_GETTER = res -> Minecraft.getMinecraft().getTextureMapBlocks()
+                                                                                                         .getAtlasSprite(res.toString());
 
     /**
      * Tries to load and bake an OBJ model using Forge's facilities, substituting it for the "missing" model if any errors occur.
@@ -32,7 +33,6 @@ public class Modeling
      * There will be no texture replacement.
      *
      * @param resource the location of the model to load
-     *
      * @return the baked model if there was no error while trying to load it, substituting it with the missing model otherwise
      */
     public static IFlexibleBakedModel loadOBJModel(ResourceLocation resource)
@@ -46,7 +46,6 @@ public class Modeling
      *
      * @param resource the location of the model to load
      * @param textures a map from texture variables (starting with '#') in the model to the locations of the textures to use
-     *
      * @return the baked model if there was no error while trying to load it, substituting it with the missing model otherwise
      */
     public static IFlexibleBakedModel loadOBJModel(ResourceLocation resource, Map<String, ResourceLocation> textures)
@@ -58,15 +57,32 @@ public class Modeling
      * Tries to load and bake an OBJ model using Forge's facilities, substituting it for the "missing" model if any errors occur.
      * The baked model will contain all groups from the OBJ file.
      *
+     * @param resource      the location of the model to load
+     * @param textures      a map from texture variables (starting with '#') in the model to the locations of the textures to use
+     * @param visibleGroups the groups in the OBJ file to show in the baked model
+     * @return the baked model if there was no error while trying to load it, substituting it with the missing model otherwise
+     */
+    public static IFlexibleBakedModel loadOBJModel(ResourceLocation resource,
+                                                   Map<String, ResourceLocation> textures,
+                                                   List<String> visibleGroups)
+    {
+        return loadOBJModel(resource, textures, visibleGroups, ImmutableMap.of("flip-v", "true"));
+    }
+
+    /**
+     * Tries to load and bake an OBJ model using Forge's facilities, substituting it for the "missing" model if any errors occur.
+     * The baked model will contain all groups from the OBJ file.
+     *
      * @param resource   the location of the model to load
      * @param textures   a map from texture variables (starting with '#') in the model to the locations of the textures to use
      * @param customData the custom data to pass to the OBJ loader
-     *
      * @return the baked model if there was no error while trying to load it, substituting it with the missing model otherwise
      */
-    public static IFlexibleBakedModel loadOBJModel(ResourceLocation resource, Map<String, ResourceLocation> textures, ImmutableMap<String, String> customData)
+    public static IFlexibleBakedModel loadOBJModel(ResourceLocation resource,
+                                                   Map<String, ResourceLocation> textures,
+                                                   ImmutableMap<String, String> customData)
     {
-        return loadOBJModel(resource, textures, customData, ImmutableList.of(OBJModel.Group.ALL));
+        return loadOBJModel(resource, textures, ImmutableList.of(OBJModel.Group.ALL), customData);
     }
 
     /**
@@ -74,21 +90,28 @@ public class Modeling
      *
      * @param resource      the location of the model to load
      * @param textures      a map from texture variables (starting with '#') in the model to the locations of the textures to use
-     * @param customData    the custom data to pass to the OBJ loader
      * @param visibleGroups the groups in the OBJ file to show in the baked model
-     *
+     * @param customData    the custom data to pass to the OBJ loader
      * @return the baked model if there was no error while trying to load it, substituting it with the missing model otherwise
      */
-    public static IFlexibleBakedModel loadOBJModel(ResourceLocation resource, Map<String, ResourceLocation> textures, ImmutableMap<String, String> customData, List<String> visibleGroups)
+    public static IFlexibleBakedModel loadOBJModel(ResourceLocation resource,
+                                                   Map<String, ResourceLocation> textures,
+                                                   List<String> visibleGroups,
+                                                   ImmutableMap<String, String> customData)
     {
-        try {
+        try
+        {
             IModel iModel = ModelLoaderRegistry.getModel(resource);
-            if (iModel instanceof OBJModel) {
+            if (iModel instanceof OBJModel)
+            {
                 OBJModel obj = (OBJModel) iModel;
-                IModel model = ((OBJModel) obj.retexture(FluentIterable.from(textures.keySet()).toMap(k -> textures.get(k).toString()))).process(customData);
+                IModel model = ((OBJModel) obj.retexture(FluentIterable.from(textures.keySet())
+                                                                       .toMap(k -> textures.get(k).toString()))).process(customData);
                 return model.bake(new OBJModel.OBJState(visibleGroups, true), Attributes.DEFAULT_BAKED_FORMAT, TEXTURE_GETTER);
             }
-        } catch (IOException e) {
+        }
+        catch (IOException e)
+        {
             Investiture.log().error("Failed loading OBJ model '%s'", resource.toString(), e);
         }
         return ModelLoaderRegistry.getMissingModel().bake(part -> Optional.absent(), Attributes.DEFAULT_BAKED_FORMAT, TEXTURE_GETTER);

@@ -48,7 +48,8 @@ public class TileMetalExtractorDummy extends TileEntity
     public TileMetalExtractorMaster getMaster()
     {
         TileEntity te = worldObj.getTileEntity(getMasterPosition());
-        if (te instanceof TileMetalExtractorMaster) return (TileMetalExtractorMaster) te;
+        if (te instanceof TileMetalExtractorMaster)
+            return (TileMetalExtractorMaster) te;
         return null;
     }
 }

@@ -2,6 +2,7 @@ package de.mineformers.investiture.allomancy.item;
 
 import com.google.common.base.Optional;
 import de.mineformers.investiture.Investiture;
+import de.mineformers.investiture.allomancy.Allomancy;
 import de.mineformers.investiture.allomancy.metal.Metal;
 import de.mineformers.investiture.allomancy.metal.MetalHolder;
 import de.mineformers.investiture.allomancy.metal.MetalMapping;
@@ -19,6 +20,7 @@ import net.minecraftforge.oredict.OreDictionary;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
+import java.util.concurrent.Callable;
 
 public class MetalItem extends Item implements MetalHolder<ItemStack>
 {
@@ -48,7 +50,6 @@ public class MetalItem extends Item implements MetalHolder<ItemStack>
      * Clamps a given integer to the damage range of the item.
      *
      * @param value the value to clamp
-     *
      * @return the value, if it is contained by [0..13], 0, if the value is lower than 0, or 13, if the value is greater than 4
      */
     public int clampDamage(int value)
@@ -58,7 +59,6 @@ public class MetalItem extends Item implements MetalHolder<ItemStack>
 
     /**
      * @param stack the stack to get the compound from
-     *
      * @return the NBT data held by the given stack
      */
     private NBTTagCompound getCompound(ItemStack stack)
@@ -69,7 +69,6 @@ public class MetalItem extends Item implements MetalHolder<ItemStack>
 
     /**
      * @param stack the stack to get the name from
-     *
      * @return the name of the metal represented by the given stack
      */
     public String getName(ItemStack stack)
@@ -79,7 +78,6 @@ public class MetalItem extends Item implements MetalHolder<ItemStack>
 
     /**
      * @param stack the stack to get the name from
-     *
      * @return the purity of the metal represented by the given stack
      */
     public int getPurity(ItemStack stack)
@@ -101,10 +99,11 @@ public class MetalItem extends Item implements MetalHolder<ItemStack>
         tooltip.add(StatCollector.translateToLocalFormatted("allomancy.message.purity", purity));
     }
 
-    @SideOnly(Side.CLIENT)
-    public void getSubItems(MetalItem item, CreativeTabs tab, List<ItemStack> subItems)
+    @Override
+    public void getSubItems(Item item, CreativeTabs tab, List<ItemStack> subItems)
     {
-        for (int dmg = 0; dmg < this.names.length; dmg++) {
+        for (int dmg = 0; dmg < this.names.length; dmg++)
+        {
             // Add 100% pure metal to creative tab
             ItemStack stack = new ItemStack(item, 1, dmg);
             getCompound(stack).setInteger("purity", 100);
@@ -126,7 +125,8 @@ public class MetalItem extends Item implements MetalHolder<ItemStack>
     {
         Optional<Metal> metal = Metals.get(getName(stack));
 
-        if (metal.isPresent()) {
+        if (metal.isPresent())
+        {
             return metal.get();
         }
 
@@ -145,7 +145,8 @@ public class MetalItem extends Item implements MetalHolder<ItemStack>
 
     public void registerOreDict()
     {
-        for (int i = 0; i < this.names.length; i++) {
+        for (int i = 0; i < this.names.length; i++)
+        {
             String oreName = String.format("ingot%s", StringUtils.capitalize(this.names[i]));
             ItemStack stack = new ItemStack(this, 1, i);
 
@@ -161,13 +162,25 @@ public class MetalItem extends Item implements MetalHolder<ItemStack>
 
     public enum Type
     {
-        NUGGET(1), BEAD(0.5F), INGOT(9), DUST(9), CHUNK(9);
+        NUGGET(1, () -> Allomancy.Items.allomantic_nugget),
+        BEAD(0.5F, () -> Allomancy.Items.allomantic_bead),
+        INGOT(9, () -> Allomancy.Items.allomantic_ingot),
+        DUST(9, () -> Allomancy.Items.allomantic_dust),
+        CHUNK(9, () -> Allomancy.Items.allomantic_chunk);
 
         public final float conversion;
+        public final Callable<MetalItem> getter;
 
-        Type(float conversion)
+        Type(float conversion, Callable<MetalItem> getter)
         {
             this.conversion = conversion;
+            this.getter = getter;
+        }
+
+        @Override
+        public String toString()
+        {
+            return name().toLowerCase();
         }
     }
 }

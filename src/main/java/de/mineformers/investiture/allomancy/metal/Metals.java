@@ -88,7 +88,6 @@ public final class Metals
 
     /**
      * @param id the ID of the searched metal
-     *
      * @return a present {@link Optional} if the metal exists, {@link Optional#absent()} otherwise
      */
     public static Optional<Metal> get(String id)
@@ -121,11 +120,16 @@ public final class Metals
 
     public static Optional<Metal> getMetal(@Nonnull ItemStack stack)
     {
-        if (stack.getItem() instanceof MetalHolder) {
+        if (stack.getItem() instanceof MetalHolder)
+        {
             return Optional.of(((MetalHolder) stack.getItem()).getMetal(stack));
-        } else {
-            for (MetalMapping mapping : MAPPINGS) {
-                if (mapping.matches(stack)) {
+        }
+        else
+        {
+            for (MetalMapping mapping : MAPPINGS)
+            {
+                if (mapping.matches(stack))
+                {
                     return Optional.of(mapping.getMetal(stack));
                 }
             }
@@ -166,10 +170,9 @@ public final class Metals
      */
     private final static class ItemAlloyBurnable extends MetalAlloy.AbstractAlloy
     {
-        ItemAlloyBurnable(@Nonnull String id, Metal alloy, Object... components)
+        ItemAlloyBurnable(@Nonnull String id, Object... components)
         {
-            super(id, alloy, components);
+            super(id, components);
         }
     }
-
 }

@@ -1,25 +1,11 @@
-# Blender MTL File: 'metal_extractor_mirrored.blend'
+newmtl wood
+Kd 1 1 1
 
 newmtl frame
-Ns 0
-Ka 0.000000 0.000000 0.000000
 Kd 1 1 1
-Ks 0.8 0.8 0.8
-d 1
-illum 2
 
 newmtl glass
-Ns 0
-Ka 0.000000 0.000000 0.000000
 Kd 1 1 1
-Ks 0.8 0.8 0.8
-d 1
-illum 2
 
 newmtl grinder
-Ns 0
-Ka 0.000000 0.000000 0.000000
 Kd 1 1 1
-Ks 0.8 0.8 0.8
-d 1
-illum 2

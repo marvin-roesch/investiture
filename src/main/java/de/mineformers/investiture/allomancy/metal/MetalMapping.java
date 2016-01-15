@@ -34,7 +34,8 @@ public interface MetalMapping extends MetalHolder<ItemStack>
         @Override
         public boolean matches(@Nonnull ItemStack stack)
         {
-            if (this.nbt) {
+            if (this.nbt)
+            {
                 return ItemStack.areItemStacksEqual(stack, this.stack) && ItemStack.areItemStackTagsEqual(stack, this.stack);
             }
 
@@ -80,13 +81,12 @@ public interface MetalMapping extends MetalHolder<ItemStack>
         @Override
         public boolean matches(@Nonnull ItemStack stack)
         {
-            if (this.stack != null) {
+            if (this.stack != null)
+            {
                 return OreDictionary.containsMatch(this.nbt, OreDictionary.getOres(this.oreName), stack);
             }
 
             return OreDictionary.itemMatches(this.stack, stack, this.nbt);
         }
-
     }
-
 }

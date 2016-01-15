@@ -5,6 +5,7 @@ import de.mineformers.investiture.Investiture;
 import de.mineformers.investiture.allomancy.block.MetalExtractor;
 import de.mineformers.investiture.allomancy.block.MetalOre;
 import de.mineformers.investiture.allomancy.core.EntityHandler;
+import de.mineformers.investiture.allomancy.extractor.ExtractorRecipes;
 import de.mineformers.investiture.allomancy.item.MetalItem;
 import de.mineformers.investiture.allomancy.metal.Metal;
 import de.mineformers.investiture.allomancy.metal.MetalBurner;
@@ -48,7 +49,6 @@ public final class Allomancy implements Manifestation
 
     /**
      * @param path the path of the resource
-     *
      * @return a resource location pointing at the given path in allomancy's resource domain
      */
     public static ResourceLocation resource(String path)
@@ -67,6 +67,8 @@ public final class Allomancy implements Manifestation
     {
         Blocks.register();
         Items.register();
+        ExtractorRecipes.register(new ItemStack(net.minecraft.init.Blocks.iron_ore), new ItemStack(net.minecraft.init.Items.iron_ingot));
+        ExtractorRecipes.register(new ItemStack(net.minecraft.init.Blocks.gold_ore), new ItemStack(net.minecraft.init.Items.gold_ingot));
         GameRegistry.registerWorldGenerator(new MetalGenerator(), 0);
         Metals.init();
 
@@ -109,7 +111,8 @@ public final class Allomancy implements Manifestation
             GameRegistry.registerTileEntity(TileMetalExtractorOutput.class, "allomancy:metal_extractor_output");
 
             // Add ores to the ore dictionary
-            for (int i = 0; i < MetalOre.NAMES.length; i++) {
+            for (int i = 0; i < MetalOre.NAMES.length; i++)
+            {
                 OreDictionary.registerOre(String.format("ore%s", StringUtils.capitalize(MetalOre.NAMES[i])), new ItemStack(allomantic_ore, 1, i));
             }
         }
@@ -131,11 +134,25 @@ public final class Allomancy implements Manifestation
          */
         public static void register()
         {
-            GameRegistry.registerItem(allomantic_ingot = new MetalItem("allomantic_metal_ingot", "ingot", MetalItem.Type.INGOT, new String[]{"bronze", "brass", "copper", "zinc", "tin", "pewter", "steel", "lead", "nickel", "silver", "bismuth", "duralumin", "nicrosil", "aluminium", "chromium", "cadmium", "electrum", "bendalloy"}));
-            GameRegistry.registerItem(allomantic_nugget = new MetalItem("allomantic_metal_nugget", "nugget", MetalItem.Type.NUGGET, new String[]{"bronze", "brass", "copper", "zinc", "tin", "pewter", "steel", "iron", "lead", "nickel", "silver", "bismuth", "duralumin", "nicrosil", "aluminium", "chromium", "cadmium", "electrum", "bendalloy"}));
-            GameRegistry.registerItem(allomantic_bead = new MetalItem("allomantic_metal_bead", "bead", MetalItem.Type.BEAD, new String[]{"bronze", "brass", "copper", "zinc", "tin", "pewter", "steel", "iron", "lead", "nickel", "silver", "bismuth", "gold", "duralumin", "nicrosil", "aluminium", "chromium", "cadmium", "electrum", "bendalloy"}));
-            GameRegistry.registerItem(allomantic_chunk = new MetalItem("allomantic_metal_chunk", "chunk", MetalItem.Type.CHUNK, new String[]{"copper", "tin", "zinc", "iron", "lead", "aluminium", "chromium", "gold", "cadmium", "silver", "bismuth"}));
-            GameRegistry.registerItem(allomantic_dust = new MetalItem("allomantic_metal_dust", "dust", MetalItem.Type.DUST, new String[]{"bronze", "brass", "copper", "zinc", "tin", "pewter", "steel", "iron", "lead", "nickel", "silver", "bismuth", "gold", "duralumin", "nicrosil", "aluminium", "chromium", "cadmium", "electrum", "bendalloy"}));
+            GameRegistry.registerItem(allomantic_ingot = new MetalItem("allomantic_metal_ingot", "ingot", MetalItem.Type.INGOT, new String[]{
+                "bronze", "brass", "copper", "zinc", "tin", "pewter", "steel", "lead", "nickel", "silver", "bismuth", "duralumin", "nicrosil",
+                "aluminium", "chromium", "cadmium", "electrum", "bendalloy"
+            }));
+            GameRegistry.registerItem(allomantic_nugget = new MetalItem("allomantic_metal_nugget", "nugget", MetalItem.Type.NUGGET, new String[]{
+                "bronze", "brass", "copper", "zinc", "tin", "pewter", "steel", "iron", "lead", "nickel", "silver", "bismuth", "duralumin", "nicrosil",
+                "aluminium", "chromium", "cadmium", "electrum", "bendalloy"
+            }));
+            GameRegistry.registerItem(allomantic_bead = new MetalItem("allomantic_metal_bead", "bead", MetalItem.Type.BEAD, new String[]{
+                "bronze", "brass", "copper", "zinc", "tin", "pewter", "steel", "iron", "lead", "nickel", "silver", "bismuth", "gold", "duralumin",
+                "nicrosil", "aluminium", "chromium", "cadmium", "electrum", "bendalloy"
+            }));
+            GameRegistry.registerItem(allomantic_chunk = new MetalItem("allomantic_metal_chunk", "chunk", MetalItem.Type.CHUNK, new String[]{
+                "copper", "tin", "zinc", "iron", "lead", "aluminium", "chromium", "gold", "cadmium", "silver", "bismuth"
+            }));
+            GameRegistry.registerItem(allomantic_dust = new MetalItem("allomantic_metal_dust", "dust", MetalItem.Type.DUST, new String[]{
+                "bronze", "brass", "copper", "zinc", "tin", "pewter", "steel", "iron", "lead", "nickel", "silver", "bismuth", "gold", "duralumin",
+                "nicrosil", "aluminium", "chromium", "cadmium", "electrum", "bendalloy"
+            }));
 
             // Add items to the ore dictionary
             allomantic_bead.registerOreDict();
@@ -193,11 +210,15 @@ public final class Allomancy implements Manifestation
                     Optional<Metal> optional = Metals.get(msg.metal);
 
                     // Safety measures, in case the client sends bad data
-                    if (optional.isPresent() && burner != null) {
+                    if (optional.isPresent() && burner != null)
+                    {
                         Metal metal = optional.get();
-                        if (burner.isBurning(metal)) {
+                        if (burner.isBurning(metal))
+                        {
                             burner.stopBurning(metal);
-                        } else {
+                        }
+                        else
+                        {
                             burner.startBurning(metal);
                         }
                     }

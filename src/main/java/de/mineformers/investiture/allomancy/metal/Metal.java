@@ -32,7 +32,8 @@ public interface Metal
 
     default boolean matches(@Nonnull ItemStack stack)
     {
-        if (stack.getItem() instanceof MetalHolder) {
+        if (stack.getItem() instanceof MetalHolder)
+        {
             return this.equals(((MetalHolder) stack.getItem()).getMetal(stack));
         }
 
@@ -46,7 +47,8 @@ public interface Metal
      */
     default void applyImpurityEffects(Entity entity)
     {
-        if (entity instanceof EntityLivingBase) {
+        if (entity instanceof EntityLivingBase)
+        {
             ((EntityLivingBase) entity).addPotionEffect(new PotionEffect(Potion.moveSlowdown.id, 30, 3));
         }
     }

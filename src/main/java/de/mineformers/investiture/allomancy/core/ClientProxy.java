@@ -6,6 +6,7 @@ import de.mineformers.investiture.allomancy.Allomancy;
 import de.mineformers.investiture.allomancy.block.MetalExtractor;
 import de.mineformers.investiture.allomancy.client.gui.MetalSelectionHUD;
 import de.mineformers.investiture.allomancy.client.renderer.tileentity.MetalExtractorRenderer;
+import de.mineformers.investiture.allomancy.item.MetalItem;
 import de.mineformers.investiture.allomancy.metal.MetalBurner;
 import de.mineformers.investiture.allomancy.metal.MetalStorage;
 import de.mineformers.investiture.allomancy.network.EntityMetalBurnerUpdate;
@@ -40,30 +41,11 @@ public class ClientProxy implements Proxy
         OBJLoader.instance.addDomain(Allomancy.DOMAIN);
         MinecraftForge.EVENT_BUS.register(new MetalSelectionHUD());
 
-        // Assign models to each allomantic metal ingot
-        final List<ModelResourceLocation> ingotResources = FluentIterable.from(Arrays.asList(Allomancy.Items.allomantic_ingot.getNames())).transform(n -> new ModelResourceLocation(Allomancy.DOMAIN + ":allomantic_metal_ingot", "metal=" + n)).toList();
-        ModelLoader.setCustomMeshDefinition(Allomancy.Items.allomantic_ingot, stack -> ingotResources.get(Allomancy.Items.allomantic_ingot.clampDamage(stack.getItemDamage())));
-        ModelBakery.registerItemVariants(Allomancy.Items.allomantic_ingot, ingotResources.toArray(new ModelResourceLocation[ingotResources.size()]));
-
-        // Assign models to each allomantic metal nugget
-        final List<ModelResourceLocation> nuggetResources = FluentIterable.from(Arrays.asList(Allomancy.Items.allomantic_nugget.getNames())).transform(n -> new ModelResourceLocation(Allomancy.DOMAIN + ":allomantic_metal_nugget", "metal=" + n)).toList();
-        ModelLoader.setCustomMeshDefinition(Allomancy.Items.allomantic_nugget, stack -> nuggetResources.get(Allomancy.Items.allomantic_nugget.clampDamage(stack.getItemDamage())));
-        ModelBakery.registerItemVariants(Allomancy.Items.allomantic_nugget, nuggetResources.toArray(new ModelResourceLocation[nuggetResources.size()]));
-
-        // Assign models to each allomantic metal bead
-        final List<ModelResourceLocation> beadResources = FluentIterable.from(Arrays.asList(Allomancy.Items.allomantic_bead.getNames())).transform(n -> new ModelResourceLocation(Allomancy.DOMAIN + ":allomantic_metal_bead", "metal=" + n)).toList();
-        ModelLoader.setCustomMeshDefinition(Allomancy.Items.allomantic_bead, stack -> beadResources.get(Allomancy.Items.allomantic_bead.clampDamage(stack.getItemDamage())));
-        ModelBakery.registerItemVariants(Allomancy.Items.allomantic_bead, beadResources.toArray(new ModelResourceLocation[beadResources.size()]));
-
-        // Assign models to each allomantic metal chunk
-        final List<ModelResourceLocation> chunkResources = FluentIterable.from(Arrays.asList(Allomancy.Items.allomantic_chunk.getNames())).transform(n -> new ModelResourceLocation(Allomancy.DOMAIN + ":allomantic_metal_chunk", "metal=" + n)).toList();
-        ModelLoader.setCustomMeshDefinition(Allomancy.Items.allomantic_chunk, stack -> chunkResources.get(Allomancy.Items.allomantic_chunk.clampDamage(stack.getItemDamage())));
-        ModelBakery.registerItemVariants(Allomancy.Items.allomantic_chunk, chunkResources.toArray(new ModelResourceLocation[chunkResources.size()]));
-
-        // Assign models to each allomantic metal dust
-        final List<ModelResourceLocation> dustResources = FluentIterable.from(Arrays.asList(Allomancy.Items.allomantic_dust.getNames())).transform(n -> new ModelResourceLocation(Allomancy.DOMAIN + ":allomantic_metal_dust", "metal=" + n)).toList();
-        ModelLoader.setCustomMeshDefinition(Allomancy.Items.allomantic_dust, stack -> dustResources.get(Allomancy.Items.allomantic_dust.clampDamage(stack.getItemDamage())));
-        ModelBakery.registerItemVariants(Allomancy.Items.allomantic_dust, dustResources.toArray(new ModelResourceLocation[dustResources.size()]));
+        registerMetalResources(Allomancy.Items.allomantic_ingot);
+        registerMetalResources(Allomancy.Items.allomantic_chunk);
+        registerMetalResources(Allomancy.Items.allomantic_nugget);
+        registerMetalResources(Allomancy.Items.allomantic_bead);
+        registerMetalResources(Allomancy.Items.allomantic_dust);
 
         registerBlockResources(Allomancy.DOMAIN, Allomancy.Blocks.allomantic_ore);
         registerBlockResources(Allomancy.DOMAIN, Allomancy.Blocks.metal_extractor, ModuleStateMap.builder().ignore(MetalExtractor.MASTER));
@@ -74,7 +56,8 @@ public class ClientProxy implements Proxy
         // Handle changes in a storage of allomantic metals
         Investiture.net().addHandler(EntityMetalStorageUpdate.class, Side.CLIENT, (msg, ctx) -> {
             ctx.schedule(() -> {
-                if (ctx.player() != null) {
+                if (ctx.player() != null)
+                {
                     Entity entity = ctx.player().worldObj.getEntityByID(msg.entity);
                     MetalStorage.from(entity).copy(msg.storage);
                 }
@@ -85,7 +68,8 @@ public class ClientProxy implements Proxy
         // Handle changes in a burner of allomantic metals
         Investiture.net().addHandler(EntityMetalBurnerUpdate.class, Side.CLIENT, (msg, ctx) -> {
             ctx.schedule(() -> {
-                if (ctx.player() != null) {
+                if (ctx.player() != null)
+                {
                     Entity entity = ctx.player().worldObj.getEntityByID(msg.entity);
                     MetalBurner.from(entity).copy(msg.burner);
                 }
@@ -95,9 +79,8 @@ public class ClientProxy implements Proxy
 
         Investiture.net().addHandler(MetalExtractorUpdate.class, Side.CLIENT, (msg, ctx) -> {
             ctx.schedule(() -> {
-                if (ctx.player().worldObj.getTileEntity(msg.pos) instanceof TileMetalExtractorMaster) {
+                if (ctx.player().worldObj.getTileEntity(msg.pos) instanceof TileMetalExtractorMaster)
                     ((TileMetalExtractorMaster) ctx.player().worldObj.getTileEntity(msg.pos)).processUpdate(msg);
-                }
             });
             return null;
         });
@@ -107,5 +90,15 @@ public class ClientProxy implements Proxy
     public void init(FMLInitializationEvent event)
     {
         ClientRegistry.bindTileEntitySpecialRenderer(TileMetalExtractorMaster.class, new MetalExtractorRenderer());
+    }
+
+    private void registerMetalResources(MetalItem item)
+    {
+        final List<ModelResourceLocation> resources = FluentIterable.from(Arrays.asList(item.getNames()))
+                                                                    .transform(n -> new ModelResourceLocation(
+                                                                        Allomancy.DOMAIN + ":allomantic_metal_" + item.getItemType(),
+                                                                        "metal=" + n)).toList();
+        ModelLoader.setCustomMeshDefinition(item, stack -> resources.get(item.clampDamage(stack.getItemDamage())));
+        ModelBakery.registerItemVariants(item, resources.toArray(new ModelResourceLocation[resources.size()]));
     }
 }

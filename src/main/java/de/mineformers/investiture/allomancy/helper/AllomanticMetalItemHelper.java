@@ -1,13 +1,12 @@
 package de.mineformers.investiture.allomancy.helper;
 
 import com.google.common.base.Optional;
-import de.mineformers.investiture.allomancy.Allomancy;
+import de.mineformers.investiture.allomancy.item.MetalItem;
 import de.mineformers.investiture.allomancy.metal.Metal;
 import net.minecraft.item.ItemStack;
 
 public class AllomanticMetalItemHelper
 {
-
     public static Optional<ItemStack> ingot(Metal metal)
     {
         return ingot(metal, 1, 100);
@@ -15,14 +14,7 @@ public class AllomanticMetalItemHelper
 
     public static Optional<ItemStack> ingot(Metal metal, int count, int purity)
     {
-        for (int i = 0; i < MetalIngot.NAMES.length; i++) {
-            if (metal.id().equals(MetalIngot.NAMES[i])) {
-                ItemStack stack = new ItemStack(Allomancy.Items.allomantic_ingot, count);
-                return Optional.of(Allomancy.Items.allomantic_ingot.setPurity(stack, purity));
-            }
-        }
-
-        return Optional.absent();
+        return stack(MetalItem.Type.INGOT, metal, count, purity);
     }
 
     public static Optional<ItemStack> bead(Metal metal)
@@ -32,14 +24,7 @@ public class AllomanticMetalItemHelper
 
     public static Optional<ItemStack> bead(Metal metal, int count, int purity)
     {
-        for (int i = 0; i < MetalBead.NAMES.length; i++) {
-            if (metal.id().equals(MetalBead.NAMES[i])) {
-                ItemStack stack = new ItemStack(Allomancy.Items.allomantic_bead, count);
-                return Optional.of(Allomancy.Items.allomantic_bead.setPurity(stack, purity));
-            }
-        }
-
-        return Optional.absent();
+        return stack(MetalItem.Type.BEAD, metal, count, purity);
     }
 
     public static Optional<ItemStack> chunk(Metal metal)
@@ -49,14 +34,7 @@ public class AllomanticMetalItemHelper
 
     public static Optional<ItemStack> chunk(Metal metal, int count, int purity)
     {
-        for (int i = 0; i < MetalChunk.NAMES.length; i++) {
-            if (metal.id().equals(MetalChunk.NAMES[i])) {
-                ItemStack stack = new ItemStack(Allomancy.Items.allomantic_chunk, count);
-                return Optional.of(Allomancy.Items.allomantic_chunk.setPurity(stack, purity));
-            }
-        }
-
-        return Optional.absent();
+        return stack(MetalItem.Type.CHUNK, metal, count, purity);
     }
 
     public static Optional<ItemStack> dust(Metal metal)
@@ -66,14 +44,7 @@ public class AllomanticMetalItemHelper
 
     public static Optional<ItemStack> dust(Metal metal, int count, int purity)
     {
-        for (int i = 0; i < MetalDust.NAMES.length; i++) {
-            if (metal.id().equals(MetalDust.NAMES[i])) {
-                ItemStack stack = new ItemStack(Allomancy.Items.allomantic_dust, count);
-                return Optional.of(Allomancy.Items.allomantic_dust.setPurity(stack, purity));
-            }
-        }
-
-        return Optional.absent();
+        return stack(MetalItem.Type.DUST, metal, count, purity);
     }
 
     public static Optional<ItemStack> nugget(Metal metal)
@@ -83,14 +54,27 @@ public class AllomanticMetalItemHelper
 
     public static Optional<ItemStack> nugget(Metal metal, int count, int purity)
     {
-        for (int i = 0; i < MetalNugget.NAMES.length; i++) {
-            if (metal.id().equals(MetalNugget.NAMES[i])) {
-                ItemStack stack = new ItemStack(Allomancy.Items.allomantic_nugget, count);
-                return Optional.of(Allomancy.Items.allomantic_nugget.setPurity(stack, purity));
-            }
-        }
-
-        return Optional.absent();
+        return stack(MetalItem.Type.NUGGET, metal, count, purity);
     }
 
+    public static Optional<ItemStack> stack(MetalItem.Type type, Metal metal, int count, int purity)
+    {
+        try
+        {
+            MetalItem item = type.getter.call();
+            for (int i = 0; i < item.getNames().length; i++)
+            {
+                if (metal.id().equals(item.getNames()[i]))
+                {
+                    ItemStack stack = new ItemStack(item, count);
+                    return Optional.of(item.setPurity(stack, purity));
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        return Optional.absent();
+    }
 }

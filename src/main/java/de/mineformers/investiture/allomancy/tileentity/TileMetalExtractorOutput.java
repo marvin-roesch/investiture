@@ -16,7 +16,8 @@ public class TileMetalExtractorOutput extends TileMetalExtractorDummy implements
     @Override
     public int[] getSlotsForFace(EnumFacing side)
     {
-        if (getMaster() == null) return new int[0];
+        if (getMaster() == null)
+            return new int[0];
         return getMaster().getSlotsForFace(side);
     }
 

@@ -34,10 +34,12 @@ public class Shader
     public Shader(ResourceLocation vertex, ResourceLocation fragment)
     {
         program = glCreateProgram();
-        if (vertex != null) {
+        if (vertex != null)
+        {
             addShader("/assets/" + vertex.getResourceDomain() + "/shaders/" + vertex.getResourcePath() + ".vert", GL_VERTEX_SHADER);
         }
-        if (fragment != null) {
+        if (fragment != null)
+        {
             addShader("/assets/" + fragment.getResourceDomain() + "/shaders/" + fragment.getResourcePath() + ".frag", GL_FRAGMENT_SHADER);
         }
     }
@@ -62,7 +64,8 @@ public class Shader
     public void activate()
     {
         if (!initialised) init();
-        if (supported) {
+        if (supported)
+        {
             lastProgram = glGetInteger(GL_CURRENT_PROGRAM);
             glUseProgram(program);
         }
@@ -87,10 +90,14 @@ public class Shader
     private void addShader(String source, int type)
     {
         // Only allow this operation before the shader was initialised
-        if (!initialised) {
-            try {
+        if (!initialised)
+        {
+            try
+            {
                 glAttachShader(program, createShader(source, type));
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 // Catch exceptions if shaders are not supported, no way around this
                 e.printStackTrace();
             }
@@ -103,19 +110,21 @@ public class Shader
      * @param source the location of the shader source file
      * @param type   the type of the shader, either {@link org.lwjgl.opengl.GL20#GL_VERTEX_SHADER GL_VERTEX_SHADER}
      *               or {@link org.lwjgl.opengl.GL20#GL_FRAGMENT_SHADER GL_FRAGMENT_SHADER}
-     *
      * @return the ID of the shader
      */
     private int createShader(String source, int type)
     {
         int shader = 0;
-        try {
+        try
+        {
             shader = glCreateShader(type);
             if (shader == 0) return 0;
             glShaderSource(shader, Source.fromInputStream(Shader.class.getResourceAsStream(source), "UTF-8").mkString());
             glCompileShader(shader);
             return shader;
-        } catch (Exception e) {
+        }
+        catch (Exception e)
+        {
             // Catch exceptions if shaders are not supported, no way around this
             glDeleteShader(shader);
             throw e;
@@ -124,7 +133,6 @@ public class Shader
 
     /**
      * @param name the name of the uniform to look up
-     *
      * @return OpenGL's internal ID of the given uniform
      */
     public int getUniformLocation(String name)
@@ -142,9 +150,11 @@ public class Shader
      */
     public void setUniformInt(String name, int... values)
     {
-        if (supported) {
+        if (supported)
+        {
             int location = getUniformLocation(name);
-            switch (values.length) {
+            switch (values.length)
+            {
                 case 1:
                     glUniform1i(location, values[0]);
                     break;
@@ -169,9 +179,11 @@ public class Shader
      */
     public void setUniformFloat(String name, float... values)
     {
-        if (supported) {
+        if (supported)
+        {
             int location = getUniformLocation(name);
-            switch (values.length) {
+            switch (values.length)
+            {
                 case 1:
                     glUniform1f(location, values[0]);
                     break;

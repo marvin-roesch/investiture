@@ -15,16 +15,23 @@ public interface SimpleInventory extends IInventory
     {
         ItemStack stack = getStackInSlot(index);
         ItemStack returnStack = null;
-        if (stack != null) {
-            if (stack.stackSize <= count) {
+        if (stack != null)
+        {
+            if (stack.stackSize <= count)
+            {
                 returnStack = stack;
                 setInventorySlotContents(index, null);
-            } else {
+            }
+            else
+            {
                 returnStack = stack.splitStack(count);
 
-                if (stack.stackSize == 0) {
+                if (stack.stackSize == 0)
+                {
                     setInventorySlotContents(index, null);
-                } else {
+                }
+                else
+                {
                     markDirty();
                 }
             }
@@ -42,7 +49,8 @@ public interface SimpleInventory extends IInventory
 
     default void moveStack(int source, int destination)
     {
-        if (getStackInSlot(source) != null && getStackInSlot(destination) == null) {
+        if (getStackInSlot(source) != null && getStackInSlot(destination) == null)
+        {
             setInventorySlotContents(destination, getStackInSlot(source));
             setInventorySlotContents(source, null);
         }
@@ -59,9 +67,8 @@ public interface SimpleInventory extends IInventory
     @Override
     default void clear()
     {
-        for (int i = 0; i < getSizeInventory(); i++) {
+        for (int i = 0; i < getSizeInventory(); i++)
             setInventorySlotContents(i, null);
-        }
     }
 
     @Override

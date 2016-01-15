@@ -12,28 +12,26 @@ public interface MetalAlloy extends Metal
 
     abstract class AbstractAlloy extends AbstractMetal implements MetalAlloy
     {
-
-        private final Metal alloy;
-
         private final Map<Metal, Float> components = new HashMap<>();
 
-        public AbstractAlloy(@Nonnull String id, Metal alloy, Object... components)
+        public AbstractAlloy(@Nonnull String id, Object... components)
         {
             super(id);
 
-            this.alloy = alloy;
-
-            if (components.length % 2 != 0) {
+            if (components.length % 2 != 0)
+            {
                 throw new RuntimeException("Invalid alloy components provided");
             }
 
             float totalPer = 0;
 
-            for (int i = 0; i < (components.length / 2); i += 2) {
-                Object metalObj = components[i];
-                Object perObj = components[i + 1];
+            for (int i = 0; i < (components.length / 2); i++)
+            {
+                Object metalObj = components[i * 2];
+                Object perObj = components[i * 2 + 1];
 
-                if (!(metalObj instanceof Metal) || !(perObj instanceof Float)) {
+                if (!(metalObj instanceof Metal) || !(perObj instanceof Float))
+                {
                     throw new RuntimeException("Invalid alloy components provided");
                 }
 
@@ -44,7 +42,8 @@ public interface MetalAlloy extends Metal
                 totalPer += per;
             }
 
-            if (totalPer != 100) {
+            if (totalPer != 1f)
+            {
                 throw new RuntimeException("Alloy percentages do not add up to 100. Do you not understand what percentages are?");
             }
         }
@@ -53,7 +52,5 @@ public interface MetalAlloy extends Metal
         {
             return Collections.unmodifiableMap(this.components);
         }
-
     }
-
 }

@@ -44,19 +44,22 @@ public class ModuleStateMap extends StateMapperBase
         Map<IProperty, Comparable> map = Maps.newLinkedHashMap(state.getProperties());
         String name;
         String domain;
-        if (this.domain == null) {
+        if (this.domain == null)
             domain = Block.blockRegistry.getNameForObject(state.getBlock()).getResourceDomain();
-        } else {
+        else
             domain = this.domain;
-        }
 
-        if (this.name == null) {
+        if (this.name == null)
+        {
             name = String.format("%s:%s", domain, Block.blockRegistry.getNameForObject(state.getBlock()).getResourcePath());
-        } else {
+        }
+        else
+        {
             name = String.format("%s:%s", domain, this.name.getName(map.remove(this.name)));
         }
 
-        if (this.suffix != null) {
+        if (this.suffix != null)
+        {
             name = name + this.suffix;
         }
 
