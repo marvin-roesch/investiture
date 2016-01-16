@@ -1,14 +1,15 @@
 package de.mineformers.investiture.allomancy.metal;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
 import de.mineformers.investiture.allomancy.item.MetalItem;
+import de.mineformers.investiture.util.Functional;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -88,11 +89,11 @@ public final class Metals
 
     /**
      * @param id the ID of the searched metal
-     * @return a present {@link Optional} if the metal exists, {@link Optional#absent()} otherwise
+     * @return a present {@link Optional} if the metal exists, {@link Optional#empty()} otherwise
      */
     public static Optional<Metal> get(String id)
     {
-        return FluentIterable.from(METALS).firstMatch(m -> m.id().equals(id));
+        return Functional.convert(FluentIterable.from(METALS).firstMatch(m -> m.id().equals(id)));
     }
 
     /**
@@ -118,11 +119,12 @@ public final class Metals
         MAPPINGS.add(mapping);
     }
 
+    @SuppressWarnings("unchecked")
     public static Optional<Metal> getMetal(@Nonnull ItemStack stack)
     {
         if (stack.getItem() instanceof MetalHolder)
         {
-            return Optional.of(((MetalHolder) stack.getItem()).getMetal(stack));
+            return Optional.of(((MetalHolder<ItemStack>) stack.getItem()).getMetal(stack));
         }
         else
         {
@@ -135,7 +137,7 @@ public final class Metals
             }
         }
 
-        return Optional.absent();
+        return Optional.empty();
     }
 
     /**

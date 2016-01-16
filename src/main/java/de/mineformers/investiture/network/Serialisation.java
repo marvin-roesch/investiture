@@ -299,6 +299,8 @@ class Serialisation
         fields.put(type.getName(), fs);
         for (Field f : fs)
         {
+            if (f.getAnnotationsByType(ManualTranslation.class).length != 0)
+                continue;
             // Cache the translator for each field, prevents disparities between different points in time
             f.setAccessible(true);
             fieldTranslators.put(type.getName(), f.getName(), findTranslator(f.getType()));

@@ -1,6 +1,5 @@
 package de.mineformers.investiture.allomancy.item;
 
-import com.google.common.base.Optional;
 import de.mineformers.investiture.Investiture;
 import de.mineformers.investiture.allomancy.Allomancy;
 import de.mineformers.investiture.allomancy.metal.Metal;
@@ -20,6 +19,7 @@ import net.minecraftforge.oredict.OreDictionary;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 
 public class MetalItem extends Item implements MetalHolder<ItemStack>

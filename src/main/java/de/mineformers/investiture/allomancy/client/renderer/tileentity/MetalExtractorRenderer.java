@@ -15,8 +15,6 @@ import net.minecraft.client.resources.IReloadableResourceManager;
 import net.minecraft.client.resources.IResourceManager;
 import net.minecraft.client.resources.IResourceManagerReloadListener;
 import net.minecraft.entity.item.EntityItem;
-import net.minecraft.init.Blocks;
-import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.model.IFlexibleBakedModel;
@@ -110,14 +108,16 @@ public class MetalExtractorRenderer extends TileEntitySpecialRenderer<TileMetalE
 
             GlStateManager.pushMatrix();
             GlStateManager.translate(2.5, 0, -2.5);
-            GlStateManager.rotate(angle, 0, 1, 0);
+            if (te.getProcessing().isPresent())
+                GlStateManager.rotate(angle, 0, 1, 0);
             GlStateManager.translate(-2.5, 0, 2.5);
             Rendering.drawModel(modelGrinderTop);
             GlStateManager.popMatrix();
 
             GlStateManager.pushMatrix();
             GlStateManager.translate(2.5, 0, -2.5);
-            GlStateManager.rotate(-angle, 0, 1, 0);
+            if (te.getProcessing().isPresent())
+                GlStateManager.rotate(-angle, 0, 1, 0);
             GlStateManager.translate(-2.5, 0, 2.5);
             Rendering.drawModel(modelGrinderBottom);
             GlStateManager.popMatrix();
@@ -129,12 +129,16 @@ public class MetalExtractorRenderer extends TileEntitySpecialRenderer<TileMetalE
             Rendering.drawModel(modelWaterWheel);
             GlStateManager.popMatrix();
 
-            GlStateManager.translate(2.5, 1.25, -2.5);
-            GlStateManager.scale(2.8, 2.8, 2.8);
-            EntityItem item = new EntityItem(te.getWorld(), te.getPos().getX(), te.getPos().getY(), te.getPos().getZ(),
-                                             new ItemStack(Blocks.gold_ore));
-            item.hoverStart = 0;
-            RENDER_ITEM.doRender(item, 0, 0, 0, 0, 0);
+            if (te.getProcessing().isPresent())
+            {
+                int timer = te.getProcessing().get().timer;
+                GlStateManager.translate(1.5 + 2 * (timer / 40d), 1.25, -2.5);
+                GlStateManager.scale(2.8, 2.8, 2.8);
+                EntityItem item = new EntityItem(te.getWorld(), te.getPos().getX(), te.getPos().getY(), te.getPos().getZ(),
+                                                 te.getProcessing().get().input);
+                item.hoverStart = 0;
+                RENDER_ITEM.doRender(item, 0, 0, 0, 0, 0);
+            }
             GlStateManager.popMatrix();
         }
     }

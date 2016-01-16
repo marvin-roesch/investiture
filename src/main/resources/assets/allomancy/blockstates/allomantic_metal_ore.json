@@ -46,6 +46,11 @@
         "textures": {
           "layer_metal": "allomancy:blocks/ore/lead"
         }
+      },
+      "nickel": {
+        "textures": {
+          "layer_metal": "allomancy:blocks/ore/nickel"
+        }
       }
     }
   }

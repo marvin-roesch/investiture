@@ -36,7 +36,7 @@ public class Message implements IMessage
      * @param buf the buffer to read the data from
      */
     @Override
-    public final void fromBytes(ByteBuf buf)
+    public void fromBytes(ByteBuf buf)
     {
         // Use the internal method for efficient deserialisation
         Serialisation.INSTANCE.deserialiseTo(buf, this);
@@ -48,7 +48,7 @@ public class Message implements IMessage
      * @param buf the buffer to write the data to
      */
     @Override
-    public final void toBytes(ByteBuf buf)
+    public void toBytes(ByteBuf buf)
     {
         // Use the internal method for efficient serialisation
         Serialisation.INSTANCE.serialiseFrom(this, buf);

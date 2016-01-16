@@ -11,7 +11,7 @@ import javax.annotation.Nonnull;
 /**
  * Delegates inventory interactions to master
  */
-public class TileMetalExtractorOutput extends TileMetalExtractorDummy implements DelegatingInventory, ISidedInventory
+public class TileMetalExtractorOutput extends TileMetalExtractorSlave implements DelegatingInventory, ISidedInventory
 {
     @Override
     public int[] getSlotsForFace(EnumFacing side)

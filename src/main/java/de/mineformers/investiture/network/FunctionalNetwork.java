@@ -3,10 +3,13 @@ package de.mineformers.investiture.network;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import io.netty.channel.*;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.network.INetHandler;
 import net.minecraft.network.Packet;
+import net.minecraft.server.management.PlayerManager;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.world.WorldServer;
 import net.minecraftforge.fml.common.FMLLog;
 import net.minecraftforge.fml.common.network.FMLEmbeddedChannel;
 import net.minecraftforge.fml.common.network.FMLOutboundHandler;
@@ -211,6 +214,17 @@ public class FunctionalNetwork
     {
         channels.get(Side.CLIENT).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(FMLOutboundHandler.OutboundTarget.TOSERVER);
         channels.get(Side.CLIENT).writeAndFlush(message).addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
+    }
+
+    public void sendDescription(TileEntity tileEntity)
+    {
+        if (tileEntity.getWorld() instanceof WorldServer)
+        {
+            PlayerManager manager = ((WorldServer) tileEntity.getWorld()).getPlayerManager();
+            for (EntityPlayer player : tileEntity.getWorld().playerEntities)
+                if (manager.isPlayerWatchingChunk((EntityPlayerMP) player, tileEntity.getPos().getX() >> 4, tileEntity.getPos().getZ() >> 4))
+                    ((EntityPlayerMP) player).playerNetServerHandler.sendPacket(tileEntity.getDescriptionPacket());
+        }
     }
 
     /**

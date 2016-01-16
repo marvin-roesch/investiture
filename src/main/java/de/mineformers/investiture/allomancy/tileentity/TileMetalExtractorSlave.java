@@ -10,7 +10,7 @@ import net.minecraft.world.World;
 /**
  * Stores the multi-block's master position
  */
-public class TileMetalExtractorDummy extends TileEntity
+public class TileMetalExtractorSlave extends TileEntity
 {
     private BlockPos master = BlockPos.ORIGIN;
 

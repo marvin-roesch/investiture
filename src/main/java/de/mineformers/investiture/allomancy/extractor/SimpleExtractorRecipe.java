@@ -1,10 +1,9 @@
 package de.mineformers.investiture.allomancy.extractor;
 
-import com.google.common.base.Optional;
-import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 
 import javax.annotation.Nonnull;
+import java.util.Optional;
 
 /**
  * ${JDOC}
@@ -17,7 +16,7 @@ public class SimpleExtractorRecipe implements ExtractorRecipe
     @Nonnull
     public static ExtractorRecipe create(ItemStack input, ItemStack result)
     {
-        return create(input, result, new ItemStack(Blocks.cobblestone));
+        return create(input, result, null);
     }
 
     @Nonnull
@@ -50,6 +49,6 @@ public class SimpleExtractorRecipe implements ExtractorRecipe
     {
         if (ItemStack.areItemsEqual(input, this.input))
             return Optional.of(output);
-        return Optional.absent();
+        return Optional.empty();
     }
 }

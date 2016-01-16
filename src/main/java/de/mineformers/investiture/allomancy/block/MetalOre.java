@@ -23,7 +23,7 @@ import java.util.List;
  */
 public class MetalOre extends Block
 {
-    public static final String[] NAMES = {"copper", "zinc", "tin", "aluminium", "chromium", "silver", "bismuth", "lead"};
+    public static final String[] NAMES = {"copper", "zinc", "tin", "aluminium", "chromium", "silver", "bismuth", "lead", "nickel"};
     public static final PropertyString METAL = new PropertyString("metal", NAMES);
 
     /**
