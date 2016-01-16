@@ -132,7 +132,7 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
             {
                 Optional<ExtractorOutput> output = Functional.flatten(FluentIterable.from(ExtractorRecipes.recipes())
                                                                                     .transform(r -> r.match(inventory[INPUT_SLOT]))
-                                                                                    .firstMatch(Functional::isPresent));
+                                                                                    .firstMatch(Optional::isPresent));
                 if (output.isPresent())
                     processing = Optional.of(new Processor(decrStackSize(INPUT_SLOT, 1), output.get(), 0));
                 markDirty();

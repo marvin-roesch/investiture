@@ -15,10 +15,10 @@ public class Functional
             return Optional.empty();
     }
 
-    public static <T> Optional<T> flatten(com.google.common.base.Optional<com.google.common.base.Optional<T>> optional)
+    public static <T> Optional<T> flatten(com.google.common.base.Optional<Optional<T>> optional)
     {
         if (optional.isPresent())
-            return convert(optional.get());
+            return optional.get();
         else
             return Optional.empty();
     }
