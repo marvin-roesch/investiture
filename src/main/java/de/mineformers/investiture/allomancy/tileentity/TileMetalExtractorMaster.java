@@ -1,18 +1,20 @@
 package de.mineformers.investiture.allomancy.tileentity;
 
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.*;
 import de.mineformers.investiture.Investiture;
 import de.mineformers.investiture.allomancy.Allomancy;
 import de.mineformers.investiture.allomancy.block.MetalExtractor;
 import de.mineformers.investiture.allomancy.block.MetalExtractor.Part;
+import de.mineformers.investiture.allomancy.block.MetalExtractorController;
 import de.mineformers.investiture.allomancy.extractor.ExtractorOutput;
+import de.mineformers.investiture.allomancy.extractor.ExtractorPart;
 import de.mineformers.investiture.allomancy.extractor.ExtractorRecipes;
 import de.mineformers.investiture.allomancy.network.MetalExtractorUpdate;
 import de.mineformers.investiture.inventory.SimpleInventory;
 import de.mineformers.investiture.multiblock.BlockRecipe;
 import de.mineformers.investiture.multiblock.MultiBlock;
+import de.mineformers.investiture.multiblock.MultiBlockPart;
+import de.mineformers.investiture.util.Fluids;
 import de.mineformers.investiture.util.Functional;
 import de.mineformers.investiture.util.ItemStacks;
 import net.minecraft.block.state.BlockWorldState;
@@ -32,6 +34,8 @@ import net.minecraftforge.common.util.Constants;
 
 import javax.annotation.Nonnull;
 import java.util.Arrays;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
 
@@ -67,6 +71,11 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
     private ItemStack[] inventory = new ItemStack[3];
     @Nonnull
     private Optional<Processor> processing = Optional.empty();
+    private Multimap<Boolean, BlockPos> verticalFluidPositions = HashMultimap.create();
+    private Multimap<Boolean, BlockPos> horizontalFluidPositions = HashMultimap.create();
+    private double power = 0;
+    public float prevRotation = 0;
+    public float rotation = 0;
 
     @Override
     public void update()
@@ -80,6 +89,18 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
         }
         if (isValidMultiBlock())
         {
+            prevRotation = rotation;
+            double oldPower = power;
+            power = calculateFlow();
+            double perTick = 360f / 1440 * (1 / 360f) * power;
+            rotation += perTick;
+            rotation %= 1;
+            if (power == 0)
+            {
+                if (power != oldPower)
+                    markDirty();
+                return;
+            }
             if (primaryOutput() != null && primaryOutput().stackSize == 0)
                 inventory[PRIMARY_OUTPUT_SLOT] = null;
             if (secondaryOutput() != null && secondaryOutput().stackSize == 0)
@@ -87,7 +108,8 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
             if (processing.isPresent())
             {
                 Processor current = processing.get();
-                current.timer++;
+                if (current.timer < 40)
+                    current.timer++;
                 if (current.timer >= 40)
                 {
                     ItemStack primaryOutput = current.output.getPrimaryResult().copy();
@@ -97,6 +119,7 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
                         primaryFit = primaryOutput;
                     }
                     else if (primaryOutput().isItemEqual(primaryOutput) &&
+                        Objects.equals(primaryOutput().getTagCompound(), primaryOutput.getTagCompound()) &&
                         (primaryOutput().stackSize + primaryOutput.stackSize) < primaryOutput().getMaxStackSize())
                     {
                         primaryFit = primaryOutput().copy();
@@ -113,6 +136,7 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
                             processing = Optional.empty();
                         }
                         else if (secondaryOutput().isItemEqual(secondaryOutput) &&
+                            Objects.equals(secondaryOutput().getTagCompound(), secondaryOutput.getTagCompound()) &&
                             (secondaryOutput().stackSize + secondaryOutput.stackSize) < secondaryOutput().getMaxStackSize())
                         {
                             inventory[PRIMARY_OUTPUT_SLOT] = primaryFit;
@@ -126,7 +150,6 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
                         processing = Optional.empty();
                     }
                 }
-                markDirty();
             }
             if (inventory[INPUT_SLOT] != null && !processing.isPresent())
             {
@@ -135,21 +158,19 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
                                                                                     .firstMatch(Optional::isPresent));
                 if (output.isPresent())
                     processing = Optional.of(new Processor(decrStackSize(INPUT_SLOT, 1), output.get(), 0));
-                markDirty();
             }
             BlockPos spawnPos = pos.offset(orientation, 5);
             if (primaryOutput() != null && worldObj.isAirBlock(spawnPos))
             {
                 ItemStacks.spawn(worldObj, spawnPos, primaryOutput());
                 inventory[PRIMARY_OUTPUT_SLOT] = null;
-                markDirty();
             }
             if (secondaryOutput() != null && worldObj.isAirBlock(spawnPos))
             {
                 ItemStacks.spawn(worldObj, spawnPos, secondaryOutput());
                 inventory[SECONDARY_OUTPUT_SLOT] = null;
-                markDirty();
             }
+            markDirty();
         }
     }
 
@@ -201,31 +222,51 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
         return s -> s.getBlockState().getBlock() == Allomancy.Blocks.metal_extractor && s.getBlockState().getValue(MetalExtractor.PART) == part;
     }
 
-    private static final MultiBlock multiBlock = BlockRecipe.start()
-                                                            .layer("FFFFF",
-                                                                   "FFFFF",
-                                                                   "FFFFF",
-                                                                   "FFFFF",
-                                                                   "FFFFF")
-                                                            .layer("FGCGF",
-                                                                   "FgggF",
-                                                                   "FgggF",
-                                                                   "FgggF",
-                                                                   "FGCGF")
-                                                            .layer("FGGGF",
-                                                                   "FgggF",
-                                                                   "FgggF",
-                                                                   "FgggF",
-                                                                   "FGGGF")
-                                                            .layer("FFFFF",
-                                                                   "FFFFF",
-                                                                   "FFFFF",
-                                                                   "FFFFF",
-                                                                   "FFFFF")
-                                                            .build(ImmutableMap.of('F', part(FRAME),
-                                                                                   'G', part(GLASS),
-                                                                                   'C', part(CONTROLLER),
-                                                                                   'g', part(GRINDER)));
+    private static final MultiBlock multiBlock;
+
+    static
+    {
+        ImmutableMap.Builder<Character, Predicate<BlockWorldState>> predicates = ImmutableMap.builder();
+        predicates.put(' ', s -> s.getBlockState().getBlock() == Blocks.air);
+        predicates.put('F', part(FRAME));
+        predicates.put('G', part(GLASS));
+        predicates.put('C', s -> s.getBlockState().getBlock() == Allomancy.Blocks.metal_extractor_controller);
+        predicates.put('g', part(GRINDER));
+        predicates.put('W', part(WHEEL));
+        predicates.put('A', s -> true);
+        multiBlock = BlockRecipe.start()
+                                .layer("AAAAAA",
+                                       "AAAAAA",
+                                       "AAAAAA",
+                                       "AAAAAA",
+                                       "AAAAAA")
+                                .layer("AFFFFF",
+                                       "WFFFFF",
+                                       "WFFFFF",
+                                       "WFFFFF",
+                                       "AFFFFF")
+                                .layer("WFGCGF",
+                                       "WFgggF",
+                                       "WFgggF",
+                                       "WFgggF",
+                                       "WFGCGF")
+                                .layer("WFGGGF",
+                                       "WFgggF",
+                                       "WFgggF",
+                                       "WFgggF",
+                                       "WFGGGF")
+                                .layer("WFFFFF",
+                                       "WFFFFF",
+                                       "WFFFFF",
+                                       "WFFFFF",
+                                       "WFFFFF")
+                                .layer("AAAAAA",
+                                       "WAAAAA",
+                                       "WAAAAA",
+                                       "WAAAAA",
+                                       "AAAAAA")
+                                .build(predicates.build());
+    }
 
     public boolean validateMultiBlock()
     {
@@ -234,25 +275,37 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
         Optional<EnumFacing> orientation = Functional.convert(FluentIterable.from(Arrays.asList(EnumFacing.HORIZONTALS))
                                                                             .firstMatch(f -> {
                                                                                 IBlockState state = worldObj.getBlockState(pos.offset(f));
-                                                                                return state.getBlock() == this.getBlockType() &&
+                                                                                return state.getBlock() == Allomancy.Blocks.metal_extractor &&
                                                                                     state.getValue(MetalExtractor.PART) == GRINDER;
                                                                             }));
         validMultiBlock = false;
+        verticalFluidPositions.clear();
+        horizontalFluidPositions.clear();
 
         if (orientation.isPresent())
         {
             this.orientation = orientation.get();
             ImmutableList.Builder<BlockPos> childrenBuilder = ImmutableList.builder();
             EnumFacing horizontal = getHorizontal();
-            BlockPos corner = pos.offset(horizontal.getOpposite(), 2).down();
+            BlockPos corner = pos.offset(horizontal.getOpposite(), 3).down(2);
             if (multiBlock.validate(worldObj, corner, p -> {
-                if (!p.equals(pos)) childrenBuilder.add(p.subtract(pos));
+                if (!p.getPos().equals(pos) && p.getBlockState().getBlock() instanceof ExtractorPart)
+                {
+                    childrenBuilder.add(p.getPos().subtract(pos));
+                    if (p.getBlockState().getBlock() instanceof MetalExtractor && p.getBlockState().getValue(MetalExtractor.PART) == WHEEL)
+                        inspectWheelPart(p);
+                }
             }))
             {
                 this.children = childrenBuilder.build();
                 for (BlockPos child : children)
                 {
-                    worldObj.setBlockState(pos.add(child), worldObj.getBlockState(pos.add(child)).withProperty(MetalExtractor.BUILT, true));
+                    IBlockState state = worldObj.getBlockState(pos.add(child));
+                    if (state.getBlock() == Allomancy.Blocks.metal_extractor)
+                        state = state.withProperty(MetalExtractor.BUILT, true);
+                    else if (state.getBlock() == Allomancy.Blocks.metal_extractor_controller)
+                        state = state.withProperty(MetalExtractorController.BUILT, true);
+                    worldObj.setBlockState(pos.add(child), state);
                     ((TileMetalExtractorSlave) worldObj.getTileEntity(pos.add(child))).setMasterPosition(pos);
                 }
                 this.validMultiBlock = true;
@@ -262,19 +315,88 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
         return validMultiBlock;
     }
 
+    private void inspectWheelPart(MultiBlockPart part)
+    {
+        switch (part.index())
+        {
+            case 36:
+            case 42:
+            case 48:
+                horizontalFluidPositions.put(true, part.getPos().down().subtract(pos));
+                break;
+            case 60:
+                horizontalFluidPositions.put(true, part.getPos().down().subtract(pos));
+                verticalFluidPositions.put(true, part.getPos().offset(orientation.getOpposite()).subtract(pos));
+                break;
+            case 84:
+                horizontalFluidPositions.put(true, part.getPos().down().subtract(pos));
+                verticalFluidPositions.put(false, part.getPos().offset(orientation).subtract(pos));
+                break;
+            case 90:
+                verticalFluidPositions.put(true, part.getPos().offset(orientation.getOpposite()).subtract(pos));
+                break;
+            case 114:
+                verticalFluidPositions.put(false, part.getPos().offset(orientation).subtract(pos));
+                break;
+            case 120:
+                horizontalFluidPositions.put(false, part.getPos().up().subtract(pos));
+                verticalFluidPositions.put(true, part.getPos().offset(orientation.getOpposite()).subtract(pos));
+                break;
+            case 144:
+                horizontalFluidPositions.put(false, part.getPos().up().subtract(pos));
+                verticalFluidPositions.put(false, part.getPos().offset(orientation).subtract(pos));
+                break;
+            case 156:
+            case 162:
+            case 168:
+                horizontalFluidPositions.put(false, part.getPos().up().subtract(pos));
+                break;
+        }
+    }
+
+    private double calculateFlow()
+    {
+        Vec3 horizontal = new Vec3(0, 0, 0);
+        for (Map.Entry<Boolean, BlockPos> entry : horizontalFluidPositions.entries())
+        {
+            Vec3 flowVector = Fluids.getFlowVector(worldObj, pos.add(entry.getValue()));
+            if (entry.getKey())
+                horizontal = horizontal.add(flowVector);
+            else
+                horizontal = horizontal.subtract(flowVector);
+        }
+
+        Vec3 vertical = new Vec3(0, 0, 0);
+        for (Map.Entry<Boolean, BlockPos> entry : verticalFluidPositions.entries())
+        {
+            Vec3 flowVector = Fluids.getFlowVector(worldObj, pos.add(entry.getValue()));
+            if (entry.getKey())
+                vertical = vertical.add(flowVector);
+            else
+                vertical = vertical.subtract(flowVector);
+        }
+        return Math.abs(orientation.getFrontOffsetX()) * horizontal.xCoord +
+            Math.abs(orientation.getFrontOffsetZ()) * horizontal.zCoord + vertical.yCoord;
+    }
+
     public void invalidateMultiBlock()
     {
         if (!validMultiBlock)
             return;
         for (BlockPos child : children)
-            if (worldObj.getBlockState(pos.add(child)).getBlock() == Allomancy.Blocks.metal_extractor)
-                worldObj.setBlockState(pos.add(child), worldObj.getBlockState(pos.add(child))
-                                                               .withProperty(MetalExtractor.BUILT, false)
-                                                               .withProperty(MetalExtractor.MASTER, false));
-        if (worldObj.getBlockState(pos).getBlock() == Allomancy.Blocks.metal_extractor)
+        {
+            BlockPos childPos = pos.add(child);
+            IBlockState state = worldObj.getBlockState(childPos);
+            if (state.getBlock() == Allomancy.Blocks.metal_extractor)
+                worldObj.setBlockState(pos.add(child), state.withProperty(MetalExtractor.BUILT, false));
+            else if (state.getBlock() == Allomancy.Blocks.metal_extractor_controller)
+                worldObj.setBlockState(pos.add(child), state.withProperty(MetalExtractorController.BUILT, false)
+                                                            .withProperty(MetalExtractorController.MASTER, false));
+        }
+        if (worldObj.getBlockState(pos).getBlock() == Allomancy.Blocks.metal_extractor_controller)
             worldObj.setBlockState(pos, worldObj.getBlockState(pos)
-                                                .withProperty(MetalExtractor.BUILT, false)
-                                                .withProperty(MetalExtractor.MASTER, false));
+                                                .withProperty(MetalExtractorController.BUILT, false)
+                                                .withProperty(MetalExtractorController.MASTER, false));
     }
 
     @Override
@@ -313,6 +435,8 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
         {
             this.processing = Optional.empty();
         }
+        this.rotation = update.rotation;
+        this.prevRotation = update.prevRotation;
     }
 
     @Override
@@ -326,7 +450,8 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
     {
         ItemStack processingStack = processing.isPresent() ? processing.get().input : null;
         int processingTimer = processing.isPresent() ? processing.get().timer : -1;
-        return Investiture.net().getPacketFrom(new MetalExtractorUpdate(pos, validMultiBlock, orientation, processingStack, processingTimer));
+        return Investiture.net().getPacketFrom(
+            new MetalExtractorUpdate(pos, validMultiBlock, orientation, processingStack, processingTimer, rotation, prevRotation));
     }
 
     @Override

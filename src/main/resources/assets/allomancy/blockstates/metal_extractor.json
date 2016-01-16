@@ -22,9 +22,9 @@
           "all": "allomancy:blocks/metal_extractor_glass"
         }
       },
-      "controller": {
+      "wheel": {
         "textures": {
-          "all": "allomancy:blocks/metal_extractor_controller"
+          "all": "minecraft:blocks/planks_oak"
         }
       }
     },

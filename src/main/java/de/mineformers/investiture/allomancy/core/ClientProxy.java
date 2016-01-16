@@ -3,7 +3,7 @@ package de.mineformers.investiture.allomancy.core;
 import com.google.common.collect.FluentIterable;
 import de.mineformers.investiture.Investiture;
 import de.mineformers.investiture.allomancy.Allomancy;
-import de.mineformers.investiture.allomancy.block.MetalExtractor;
+import de.mineformers.investiture.allomancy.block.MetalExtractorController;
 import de.mineformers.investiture.allomancy.client.gui.MetalSelectionHUD;
 import de.mineformers.investiture.allomancy.client.renderer.tileentity.MetalExtractorRenderer;
 import de.mineformers.investiture.allomancy.item.MetalItem;
@@ -48,7 +48,9 @@ public class ClientProxy implements Proxy
         registerMetalResources(Allomancy.Items.allomantic_dust);
 
         registerBlockResources(Allomancy.DOMAIN, Allomancy.Blocks.allomantic_ore);
-        registerBlockResources(Allomancy.DOMAIN, Allomancy.Blocks.metal_extractor, ModuleStateMap.builder().ignore(MetalExtractor.MASTER));
+        registerBlockResources(Allomancy.DOMAIN, Allomancy.Blocks.metal_extractor);
+        registerBlockResources(Allomancy.DOMAIN, Allomancy.Blocks.metal_extractor_controller,
+                               ModuleStateMap.builder().ignore(MetalExtractorController.MASTER));
 
         // Register key bindings
         ClientRegistry.registerKeyBinding(KeyBindings.SHOW_DIAL);

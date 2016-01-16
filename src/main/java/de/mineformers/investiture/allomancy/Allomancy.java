@@ -2,6 +2,7 @@ package de.mineformers.investiture.allomancy;
 
 import de.mineformers.investiture.Investiture;
 import de.mineformers.investiture.allomancy.block.MetalExtractor;
+import de.mineformers.investiture.allomancy.block.MetalExtractorController;
 import de.mineformers.investiture.allomancy.block.MetalOre;
 import de.mineformers.investiture.allomancy.core.EntityHandler;
 import de.mineformers.investiture.allomancy.extractor.ExtractorRecipes;
@@ -106,6 +107,7 @@ public final class Allomancy implements Manifestation
     {
         public static MetalOre allomantic_ore;
         public static MetalExtractor metal_extractor;
+        public static MetalExtractorController metal_extractor_controller;
 
         /**
          * Adds all blocks to the game's registry.
@@ -114,6 +116,7 @@ public final class Allomancy implements Manifestation
         {
             GameRegistry.registerBlock(allomantic_ore = new MetalOre(), MetalOre.ItemRepresentation.class);
             GameRegistry.registerBlock(metal_extractor = new MetalExtractor(), MetalExtractor.ItemRepresentation.class);
+            GameRegistry.registerBlock(metal_extractor_controller = new MetalExtractorController());
             GameRegistry.registerTileEntity(TileMetalExtractorMaster.class, "allomancy:metal_extractor_master");
             GameRegistry.registerTileEntity(TileMetalExtractorSlave.class, "allomancy:metal_extractor_slave");
             GameRegistry.registerTileEntity(TileMetalExtractorOutput.class, "allomancy:metal_extractor_output");
