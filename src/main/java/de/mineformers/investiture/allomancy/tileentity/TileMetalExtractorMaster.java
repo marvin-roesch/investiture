@@ -1,7 +1,5 @@
 package de.mineformers.investiture.allomancy.tileentity;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.EvictingQueue;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -15,9 +13,12 @@ import de.mineformers.investiture.allomancy.network.MetalExtractorUpdate;
 import de.mineformers.investiture.inventory.SimpleInventory;
 import de.mineformers.investiture.multiblock.BlockRecipe;
 import de.mineformers.investiture.multiblock.MultiBlock;
+import de.mineformers.investiture.util.Functional;
+import de.mineformers.investiture.util.ItemStacks;
 import net.minecraft.block.state.BlockWorldState;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
 import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -28,9 +29,10 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.*;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
-import net.minecraftforge.fml.common.network.NetworkRegistry;
 
+import javax.annotation.Nonnull;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import static de.mineformers.investiture.allomancy.block.MetalExtractor.Part.*;
@@ -40,7 +42,7 @@ import static de.mineformers.investiture.allomancy.block.MetalExtractor.Part.*;
  */
 public class TileMetalExtractorMaster extends TileEntity implements SimpleInventory, ISidedInventory, ITickable
 {
-    private static class Processor
+    public static class Processor
     {
         public final ItemStack input;
         public final ExtractorOutput output;
@@ -63,7 +65,8 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
     private boolean checkedValidity = false;
     private ImmutableList<BlockPos> children = ImmutableList.of();
     private ItemStack[] inventory = new ItemStack[3];
-    private EvictingQueue<Processor> processing = EvictingQueue.create(3);
+    @Nonnull
+    private Optional<Processor> processing = Optional.empty();
 
     @Override
     public void update()
@@ -77,62 +80,93 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
         }
         if (isValidMultiBlock())
         {
-            if (inventory[PRIMARY_OUTPUT_SLOT] != null && inventory[PRIMARY_OUTPUT_SLOT].stackSize == 0)
+            if (primaryOutput() != null && primaryOutput().stackSize == 0)
                 inventory[PRIMARY_OUTPUT_SLOT] = null;
-            if (inventory[SECONDARY_OUTPUT_SLOT] != null && inventory[SECONDARY_OUTPUT_SLOT].stackSize == 0)
+            if (secondaryOutput() != null && secondaryOutput().stackSize == 0)
                 inventory[SECONDARY_OUTPUT_SLOT] = null;
-            for (Processor process : processing)
-                process.timer++;
-            if (!processing.isEmpty())
+            if (processing.isPresent())
             {
-                Processor current = processing.peek();
-                if (current.timer == 40)
+                Processor current = processing.get();
+                current.timer++;
+                if (current.timer >= 40)
                 {
                     ItemStack primaryOutput = current.output.getPrimaryResult().copy();
-                    ItemStack secondaryOutput = current.output.getSecondaryResult().copy();
                     ItemStack primaryFit = null;
-                    if (inventory[PRIMARY_OUTPUT_SLOT] == null)
+                    if (primaryOutput() == null)
                     {
                         primaryFit = primaryOutput;
                     }
-                    else if (inventory[PRIMARY_OUTPUT_SLOT].isItemEqual(secondaryOutput) &&
-                        inventory[PRIMARY_OUTPUT_SLOT].stackSize < inventory[PRIMARY_OUTPUT_SLOT].getMaxStackSize())
+                    else if (primaryOutput().isItemEqual(primaryOutput) &&
+                        (primaryOutput().stackSize + primaryOutput.stackSize) < primaryOutput().getMaxStackSize())
                     {
-                        primaryFit = inventory[PRIMARY_OUTPUT_SLOT].copy();
-                        primaryFit.stackSize++;
+                        primaryFit = primaryOutput().copy();
+                        primaryFit.stackSize += primaryOutput.stackSize;
                     }
-                    if (primaryFit != null && Math.random() <= current.output.getSecondaryChance())
+                    if (primaryFit != null && (Math.random() <= current.output.getSecondaryChance() || current.output.getSecondaryResult() != null))
                     {
-                        if (inventory[SECONDARY_OUTPUT_SLOT] == null)
+                        ItemStack secondaryOutput = current.output.getSecondaryResult() != null ? current.output.getSecondaryResult().copy()
+                                                                                                : new ItemStack(Blocks.cobblestone);
+                        if (secondaryOutput() == null)
                         {
                             inventory[PRIMARY_OUTPUT_SLOT] = primaryFit;
                             inventory[SECONDARY_OUTPUT_SLOT] = secondaryOutput;
-                            processing.poll();
+                            processing = Optional.empty();
                         }
-                        else if (inventory[SECONDARY_OUTPUT_SLOT].isItemEqual(secondaryOutput) &&
-                            inventory[SECONDARY_OUTPUT_SLOT].stackSize < inventory[SECONDARY_OUTPUT_SLOT].getMaxStackSize())
+                        else if (secondaryOutput().isItemEqual(secondaryOutput) &&
+                            (secondaryOutput().stackSize + secondaryOutput.stackSize) < secondaryOutput().getMaxStackSize())
                         {
                             inventory[PRIMARY_OUTPUT_SLOT] = primaryFit;
-                            inventory[SECONDARY_OUTPUT_SLOT].stackSize++;
-                            processing.poll();
+                            inventory[SECONDARY_OUTPUT_SLOT].stackSize += secondaryOutput.stackSize;
+                            processing = Optional.empty();
                         }
                     }
                     else if (primaryFit != null)
                     {
                         inventory[PRIMARY_OUTPUT_SLOT] = primaryFit;
-                        processing.poll();
+                        processing = Optional.empty();
                     }
                 }
+                markDirty();
             }
-            if (inventory[INPUT_SLOT] != null && processing.remainingCapacity() > 0)
+            if (inventory[INPUT_SLOT] != null && !processing.isPresent())
             {
-                Optional<Optional<ExtractorOutput>> output = FluentIterable.from(ExtractorRecipes.recipes())
-                                                                           .transform(r -> r.match(inventory[INPUT_SLOT]))
-                                                                           .firstMatch(Optional::isPresent);
-                if (output.isPresent() && output.get().isPresent())
-                    processing.offer(new Processor(decrStackSize(INPUT_SLOT, 1), output.get().get(), 0));
+                Optional<ExtractorOutput> output = Functional.flatten(FluentIterable.from(ExtractorRecipes.recipes())
+                                                                                    .transform(r -> r.match(inventory[INPUT_SLOT]))
+                                                                                    .firstMatch(Functional::isPresent));
+                if (output.isPresent())
+                    processing = Optional.of(new Processor(decrStackSize(INPUT_SLOT, 1), output.get(), 0));
+                markDirty();
+            }
+            BlockPos spawnPos = pos.offset(orientation, 5);
+            if (primaryOutput() != null && worldObj.isAirBlock(spawnPos))
+            {
+                ItemStacks.spawn(worldObj, spawnPos, primaryOutput());
+                inventory[PRIMARY_OUTPUT_SLOT] = null;
+                markDirty();
+            }
+            if (secondaryOutput() != null && worldObj.isAirBlock(spawnPos))
+            {
+                ItemStacks.spawn(worldObj, spawnPos, secondaryOutput());
+                inventory[SECONDARY_OUTPUT_SLOT] = null;
+                markDirty();
             }
         }
+    }
+
+    public ItemStack primaryOutput()
+    {
+        return inventory[PRIMARY_OUTPUT_SLOT];
+    }
+
+    public ItemStack secondaryOutput()
+    {
+        return inventory[SECONDARY_OUTPUT_SLOT];
+    }
+
+    @Nonnull
+    public Optional<Processor> getProcessing()
+    {
+        return processing;
     }
 
     @Override
@@ -197,12 +231,12 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
     {
         if (worldObj.isRemote)
             return false;
-        Optional<EnumFacing> orientation = FluentIterable.from(Arrays.asList(EnumFacing.HORIZONTALS))
-                                                         .firstMatch(f -> {
-                                                             IBlockState state = worldObj.getBlockState(pos.offset(f));
-                                                             return state.getBlock() == this.getBlockType() &&
-                                                                 state.getValue(MetalExtractor.PART) == GRINDER;
-                                                         });
+        Optional<EnumFacing> orientation = Functional.convert(FluentIterable.from(Arrays.asList(EnumFacing.HORIZONTALS))
+                                                                            .firstMatch(f -> {
+                                                                                IBlockState state = worldObj.getBlockState(pos.offset(f));
+                                                                                return state.getBlock() == this.getBlockType() &&
+                                                                                    state.getValue(MetalExtractor.PART) == GRINDER;
+                                                                            }));
         validMultiBlock = false;
 
         if (orientation.isPresent())
@@ -219,12 +253,10 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
                 for (BlockPos child : children)
                 {
                     worldObj.setBlockState(pos.add(child), worldObj.getBlockState(pos.add(child)).withProperty(MetalExtractor.BUILT, true));
-                    ((TileMetalExtractorDummy) worldObj.getTileEntity(pos.add(child))).setMasterPosition(pos);
+                    ((TileMetalExtractorSlave) worldObj.getTileEntity(pos.add(child))).setMasterPosition(pos);
                 }
                 this.validMultiBlock = true;
-                Investiture.net().sendToAllAround(new MetalExtractorUpdate(pos, true, orientation.get()),
-                                                  new NetworkRegistry.TargetPoint(worldObj.provider.getDimensionId(),
-                                                                                  pos.getX(), pos.getY(), pos.getZ(), 32));
+                Investiture.net().sendDescription(this);
             }
         }
         return validMultiBlock;
@@ -273,6 +305,14 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
     {
         this.validMultiBlock = update.validMultiBlock;
         this.orientation = update.orientation;
+        if (update.processingInput != null)
+        {
+            this.processing = Optional.of(new Processor(update.processingInput, null, update.processingTimer));
+        }
+        else
+        {
+            this.processing = Optional.empty();
+        }
     }
 
     @Override
@@ -284,7 +324,9 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
     @Override
     public Packet getDescriptionPacket()
     {
-        return Investiture.net().getPacketFrom(new MetalExtractorUpdate(pos, validMultiBlock, orientation));
+        ItemStack processingStack = processing.isPresent() ? processing.get().input : null;
+        int processingTimer = processing.isPresent() ? processing.get().timer : -1;
+        return Investiture.net().getPacketFrom(new MetalExtractorUpdate(pos, validMultiBlock, orientation, processingStack, processingTimer));
     }
 
     @Override
@@ -332,6 +374,13 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
     {
         inventory[index] = stack;
         markDirty();
+    }
+
+    @Override
+    public void markDirty()
+    {
+        super.markDirty();
+        Investiture.net().sendDescription(this);
     }
 
     @Override

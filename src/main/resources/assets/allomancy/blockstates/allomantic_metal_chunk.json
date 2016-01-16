@@ -65,6 +65,11 @@
         "textures": {
           "layer0": "allomancy:items/chunk/gold"
         }
+      },
+      "nickel": {
+        "textures": {
+          "layer0": "allomancy:items/chunk/nickel"
+        }
       }
     }
   }

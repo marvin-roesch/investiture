@@ -1,6 +1,5 @@
 package de.mineformers.investiture.allomancy;
 
-import com.google.common.base.Optional;
 import de.mineformers.investiture.Investiture;
 import de.mineformers.investiture.allomancy.block.MetalExtractor;
 import de.mineformers.investiture.allomancy.block.MetalOre;
@@ -15,9 +14,9 @@ import de.mineformers.investiture.allomancy.network.EntityMetalBurnerUpdate;
 import de.mineformers.investiture.allomancy.network.EntityMetalStorageUpdate;
 import de.mineformers.investiture.allomancy.network.MetalExtractorUpdate;
 import de.mineformers.investiture.allomancy.network.ToggleBurningMetal;
-import de.mineformers.investiture.allomancy.tileentity.TileMetalExtractorDummy;
 import de.mineformers.investiture.allomancy.tileentity.TileMetalExtractorMaster;
 import de.mineformers.investiture.allomancy.tileentity.TileMetalExtractorOutput;
+import de.mineformers.investiture.allomancy.tileentity.TileMetalExtractorSlave;
 import de.mineformers.investiture.allomancy.world.MetalGenerator;
 import de.mineformers.investiture.core.Manifestation;
 import de.mineformers.investiture.core.Proxy;
@@ -33,6 +32,8 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.oredict.OreDictionary;
 import org.apache.commons.lang3.StringUtils;
+
+import java.util.Optional;
 
 /**
  * The "Allomancy" module is based on the "Mistborn" series of books by Brandon Sanderson.
@@ -67,8 +68,16 @@ public final class Allomancy implements Manifestation
     {
         Blocks.register();
         Items.register();
-        ExtractorRecipes.register(new ItemStack(net.minecraft.init.Blocks.iron_ore), new ItemStack(net.minecraft.init.Items.iron_ingot));
-        ExtractorRecipes.register(new ItemStack(net.minecraft.init.Blocks.gold_ore), new ItemStack(net.minecraft.init.Items.gold_ingot));
+        ExtractorRecipes.register(Metals.IRON);
+        ExtractorRecipes.register(Metals.GOLD);
+        ExtractorRecipes.register(Metals.COPPER);
+        ExtractorRecipes.register(Metals.ZINC, Metals.ZINC, Metals.CADMIUM, 0.5f);
+        ExtractorRecipes.register(Metals.TIN);
+        ExtractorRecipes.register(Metals.ALUMINIUM);
+        ExtractorRecipes.register(Metals.CHROMIUM);
+        ExtractorRecipes.register(Metals.SILVER);
+        ExtractorRecipes.register(Metals.BISMUTH);
+        ExtractorRecipes.register(Metals.LEAD);
         GameRegistry.registerWorldGenerator(new MetalGenerator(), 0);
         Metals.init();
 
@@ -87,7 +96,6 @@ public final class Allomancy implements Manifestation
     @Override
     public void postInit(FMLPostInitializationEvent event)
     {
-
         proxy.postInit(event);
     }
 
@@ -107,7 +115,7 @@ public final class Allomancy implements Manifestation
             GameRegistry.registerBlock(allomantic_ore = new MetalOre(), MetalOre.ItemRepresentation.class);
             GameRegistry.registerBlock(metal_extractor = new MetalExtractor(), MetalExtractor.ItemRepresentation.class);
             GameRegistry.registerTileEntity(TileMetalExtractorMaster.class, "allomancy:metal_extractor_master");
-            GameRegistry.registerTileEntity(TileMetalExtractorDummy.class, "allomancy:metal_extractor_slave");
+            GameRegistry.registerTileEntity(TileMetalExtractorSlave.class, "allomancy:metal_extractor_slave");
             GameRegistry.registerTileEntity(TileMetalExtractorOutput.class, "allomancy:metal_extractor_output");
 
             // Add ores to the ore dictionary
@@ -147,7 +155,7 @@ public final class Allomancy implements Manifestation
                 "nicrosil", "aluminium", "chromium", "cadmium", "electrum", "bendalloy"
             }));
             GameRegistry.registerItem(allomantic_chunk = new MetalItem("allomantic_metal_chunk", "chunk", MetalItem.Type.CHUNK, new String[]{
-                "copper", "tin", "zinc", "iron", "lead", "aluminium", "chromium", "gold", "cadmium", "silver", "bismuth"
+                "copper", "tin", "zinc", "iron", "lead", "aluminium", "chromium", "gold", "cadmium", "silver", "bismuth", "nickel"
             }));
             GameRegistry.registerItem(allomantic_dust = new MetalItem("allomantic_metal_dust", "dust", MetalItem.Type.DUST, new String[]{
                 "bronze", "brass", "copper", "zinc", "tin", "pewter", "steel", "iron", "lead", "nickel", "silver", "bismuth", "gold", "duralumin",

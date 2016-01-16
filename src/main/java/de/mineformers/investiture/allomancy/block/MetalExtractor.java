@@ -1,10 +1,10 @@
 package de.mineformers.investiture.allomancy.block;
 
 import de.mineformers.investiture.Investiture;
-import de.mineformers.investiture.allomancy.tileentity.TileMetalExtractorDummy;
 import de.mineformers.investiture.allomancy.tileentity.TileMetalExtractorMaster;
 import de.mineformers.investiture.allomancy.tileentity.TileMetalExtractorOutput;
-import de.mineformers.investiture.util.Inventories;
+import de.mineformers.investiture.allomancy.tileentity.TileMetalExtractorSlave;
+import de.mineformers.investiture.inventory.Inventories;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.PropertyBool;
@@ -115,8 +115,8 @@ public class MetalExtractor extends Block
                     EnumFacing orientation = EnumFacing.NORTH;
                     if (state.getValue(MASTER))
                         orientation = ((TileMetalExtractorMaster) tile).getOrientation();
-                    else if (((TileMetalExtractorDummy) tile).getMaster() != null)
-                        orientation = ((TileMetalExtractorDummy) tile).getMaster().getOrientation();
+                    else if (((TileMetalExtractorSlave) tile).getMaster() != null)
+                        orientation = ((TileMetalExtractorSlave) tile).getMaster().getOrientation();
                     float minDepth = 0.4375f;
                     float maxDepth = 0.5625f;
                     setBlockBounds(orientation.getAxis() == EnumFacing.Axis.X ? minDepth : 0, 0,
@@ -231,7 +231,7 @@ public class MetalExtractor extends Block
         else if (state.getValue(PART) == Part.CONTROLLER && !state.getValue(MASTER))
             return new TileMetalExtractorOutput();
         else
-            return new TileMetalExtractorDummy();
+            return new TileMetalExtractorSlave();
     }
 
     @Override
@@ -259,8 +259,8 @@ public class MetalExtractor extends Block
         TileEntity tile = world.getTileEntity(pos);
         if (tile instanceof TileMetalExtractorMaster)
             ((TileMetalExtractorMaster) tile).invalidateMultiBlock();
-        else if (tile instanceof TileMetalExtractorDummy)
-            ((TileMetalExtractorDummy) tile).getMaster().invalidateMultiBlock();
+        else if (tile instanceof TileMetalExtractorSlave)
+            ((TileMetalExtractorSlave) tile).getMaster().invalidateMultiBlock();
         super.breakBlock(world, pos, state);
     }
 

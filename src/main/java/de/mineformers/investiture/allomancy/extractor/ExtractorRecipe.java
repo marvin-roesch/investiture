@@ -1,9 +1,9 @@
 package de.mineformers.investiture.allomancy.extractor;
 
-import com.google.common.base.Optional;
 import net.minecraft.item.ItemStack;
 
 import javax.annotation.Nonnull;
+import java.util.Optional;
 
 /**
  * ${JDOC}

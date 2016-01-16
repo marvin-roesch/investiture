@@ -1,6 +1,5 @@
 package de.mineformers.investiture.allomancy.metal;
 
-import com.google.common.base.Optional;
 import de.mineformers.investiture.Investiture;
 import de.mineformers.investiture.allomancy.Allomancy;
 import de.mineformers.investiture.allomancy.network.EntityMetalStorageUpdate;
@@ -15,6 +14,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import net.minecraftforge.common.IExtendedEntityProperties;
 import net.minecraftforge.fml.common.network.ByteBufUtils;
+
+import java.util.Optional;
 
 /**
  * Provides storage capabilities for both pure and impure metals.

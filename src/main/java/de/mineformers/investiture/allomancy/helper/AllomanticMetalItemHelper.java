@@ -1,12 +1,35 @@
 package de.mineformers.investiture.allomancy.helper;
 
-import com.google.common.base.Optional;
+import de.mineformers.investiture.allomancy.Allomancy;
+import de.mineformers.investiture.allomancy.block.MetalOre;
 import de.mineformers.investiture.allomancy.item.MetalItem;
 import de.mineformers.investiture.allomancy.metal.Metal;
+import de.mineformers.investiture.allomancy.metal.Metals;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
+
+import java.util.Arrays;
+import java.util.Optional;
 
 public class AllomanticMetalItemHelper
 {
+    public static Optional<ItemStack> ore(Metal metal)
+    {
+        return ore(metal, 1);
+    }
+
+    public static Optional<ItemStack> ore(Metal metal, int count)
+    {
+        if (metal == Metals.IRON)
+            return Optional.of(new ItemStack(Blocks.iron_ore, count));
+        if (metal == Metals.GOLD)
+            return Optional.of(new ItemStack(Blocks.gold_ore, count));
+        int dmg = Arrays.asList(MetalOre.NAMES).indexOf(metal.id());
+        if (dmg != -1)
+            return Optional.of(new ItemStack(Allomancy.Blocks.allomantic_ore, count, dmg));
+        return Optional.empty();
+    }
+
     public static Optional<ItemStack> ingot(Metal metal)
     {
         return ingot(metal, 1, 100);
@@ -66,7 +89,7 @@ public class AllomanticMetalItemHelper
             {
                 if (metal.id().equals(item.getNames()[i]))
                 {
-                    ItemStack stack = new ItemStack(item, count);
+                    ItemStack stack = new ItemStack(item, count, i);
                     return Optional.of(item.setPurity(stack, purity));
                 }
             }
@@ -75,6 +98,6 @@ public class AllomanticMetalItemHelper
         {
             e.printStackTrace();
         }
-        return Optional.absent();
+        return Optional.empty();
     }
 }

@@ -1,6 +1,5 @@
 package de.mineformers.investiture.inventory;
 
-import de.mineformers.investiture.util.Inventories;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;

@@ -1,6 +1,5 @@
 package de.mineformers.investiture.allomancy.client.gui;
 
-import com.google.common.base.Optional;
 import de.mineformers.investiture.Investiture;
 import de.mineformers.investiture.allomancy.Allomancy;
 import de.mineformers.investiture.allomancy.metal.Metal;
@@ -30,6 +29,7 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.input.Mouse;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 import static java.lang.Math.*;
 import static org.lwjgl.opengl.GL11.*;
@@ -50,7 +50,7 @@ public class MetalSelectionHUD
     public static final ResourceLocation WHEEL_BG_TEXTURE = new ResourceLocation(Allomancy.DOMAIN, "textures/gui/wheel_background.png");
     public static final ResourceLocation WHEEL_TEXTURE = new ResourceLocation(Allomancy.DOMAIN, "textures/gui/wheel.png");
     private double mouseX, mouseY;
-    private Optional<Metal> hoveredMetal = Optional.absent();
+    private Optional<Metal> hoveredMetal = Optional.empty();
     private boolean display;
     private Vec3 previousRotation = new Vec3(0, 0, 0);
     private final Shader wheelShader = new Shader(new ResourceLocation(Allomancy.DOMAIN, "metal_wheel"),
@@ -189,7 +189,7 @@ public class MetalSelectionHUD
         {
             double angle = PI / 4 * (i + 0.5);
             Metal innerMetal = Metals.get(METALS[i * 2]).get();
-            iconShader.setUniformBool("hovered", hoveredMetal.orNull() == innerMetal);
+            iconShader.setUniformBool("hovered", hoveredMetal.orElse(null) == innerMetal);
             // Change the main colour of the icon if the metal is burning
             iconShader.setUniform("backColour", burner.isBurning(innerMetal) ? new Vec3(205 / 255f, 43 / 255f, 0)
                                                                              : new Vec3(0.1f, 0.1f, 0.1f));
@@ -203,7 +203,7 @@ public class MetalSelectionHUD
                                     centreY - (int) (sin(angle) * 40) - 8, 0, 0, 1, 1, 16, 16);
 
             Metal outerMetal = Metals.get(METALS[i * 2 + 1]).get();
-            iconShader.setUniformBool("hovered", hoveredMetal.orNull() == outerMetal);
+            iconShader.setUniformBool("hovered", hoveredMetal.orElse(null) == outerMetal);
             // Change the main colour of the icon if the metal is burning
             iconShader.setUniform("backColour", burner.isBurning(outerMetal) ? new Vec3(205 / 255f, 43 / 255f, 0)
                                                                              : new Vec3(0.1f, 0.1f, 0.1f));
@@ -287,7 +287,7 @@ public class MetalSelectionHUD
         double angle = (450 + toDegrees(atan2(mouseX, mouseY))) % 360;
 
         // Rest the hovered metal and check each metal individually
-        hoveredMetal = Optional.absent();
+        hoveredMetal = Optional.empty();
         for (int i = 0; i < METALS.length / 2; i++)
         {
             if (angle > i * 45 && angle <= (i + 1) * 45 && mag > 0.4 && mag <= 0.77)

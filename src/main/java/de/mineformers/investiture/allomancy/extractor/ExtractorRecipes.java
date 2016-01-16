@@ -1,6 +1,7 @@
 package de.mineformers.investiture.allomancy.extractor;
 
-import net.minecraft.init.Blocks;
+import de.mineformers.investiture.allomancy.helper.AllomanticMetalItemHelper;
+import de.mineformers.investiture.allomancy.metal.Metal;
 import net.minecraft.item.ItemStack;
 
 import java.util.ArrayList;
@@ -16,7 +17,7 @@ public class ExtractorRecipes
 
     public static void register(ItemStack input, ItemStack result)
     {
-        register(input, result, new ItemStack(Blocks.cobblestone));
+        register(input, result, null);
     }
 
     public static void register(ItemStack input, ItemStack primaryResult, ItemStack secondaryResult)
@@ -32,6 +33,41 @@ public class ExtractorRecipes
     public static void register(ItemStack input, ExtractorOutput result)
     {
         register(new SimpleExtractorRecipe(input, result));
+    }
+
+    public static void register(Metal input)
+    {
+        register(input, input);
+    }
+
+    public static void register(Metal input, Metal result)
+    {
+        register(AllomanticMetalItemHelper.ore(input).get(), result);
+    }
+
+    public static void register(Metal input, Metal primaryResult, Metal secondaryResult)
+    {
+        register(AllomanticMetalItemHelper.ore(input).get(), primaryResult, secondaryResult);
+    }
+
+    public static void register(Metal input, Metal primaryResult, Metal secondaryResult, float secondaryChance)
+    {
+        register(AllomanticMetalItemHelper.ore(input).get(), primaryResult, secondaryResult, secondaryChance);
+    }
+
+    public static void register(ItemStack input, Metal result)
+    {
+        register(input, result, null);
+    }
+
+    public static void register(ItemStack input, Metal primaryResult, Metal secondaryResult)
+    {
+        register(input, primaryResult, secondaryResult, 1);
+    }
+
+    public static void register(ItemStack input, Metal primaryResult, Metal secondaryResult, float secondaryChance)
+    {
+        register(new MetalExtractorRecipe(input, primaryResult, secondaryResult, secondaryChance));
     }
 
     public static void register(ExtractorRecipe recipe)

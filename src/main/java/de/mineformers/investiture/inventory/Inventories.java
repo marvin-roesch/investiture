@@ -1,4 +1,4 @@
-package de.mineformers.investiture.util;
+package de.mineformers.investiture.inventory;
 
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.ISidedInventory;
