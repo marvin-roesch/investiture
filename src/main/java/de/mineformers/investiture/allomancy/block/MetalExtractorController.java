@@ -44,14 +44,14 @@ public class MetalExtractorController extends Block implements ExtractorPart
         setDefaultState(blockState.getBaseState()
                                   .withProperty(BUILT, false)
                                   .withProperty(MASTER, false));
-        setUnlocalizedName("metal_extractor_controller");
+        setUnlocalizedName("metal_extractor.controller");
         setCreativeTab(Investiture.CREATIVE_TAB);
         setRegistryName("metal_extractor_controller");
     }
 
     @Override
-    public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumFacing side, float hitX, float hitY,
-                                    float hitZ)
+    public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer playerIn,
+                                    EnumFacing side, float hitX, float hitY, float hitZ)
     {
         if (!world.isRemote && !state.getValue(BUILT))
         {
