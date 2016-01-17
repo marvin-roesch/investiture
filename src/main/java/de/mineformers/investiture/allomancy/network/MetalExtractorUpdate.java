@@ -14,18 +14,23 @@ public class MetalExtractorUpdate extends TileEntityUpdate
     public EnumFacing orientation;
     public ItemStack processingInput;
     public int processingTimer;
+    public float rotation;
+    public float prevRotation;
 
     public MetalExtractorUpdate()
     {
         super();
     }
 
-    public MetalExtractorUpdate(BlockPos pos, boolean validMultiBlock, EnumFacing orientation, ItemStack processingInput, int processingTimer)
+    public MetalExtractorUpdate(BlockPos pos, boolean validMultiBlock, EnumFacing orientation,
+                                ItemStack processingInput, int processingTimer, float rotation, float prevRotation)
     {
         super(pos);
         this.validMultiBlock = validMultiBlock;
         this.orientation = orientation;
         this.processingInput = processingInput;
         this.processingTimer = processingTimer;
+        this.rotation = rotation;
+        this.prevRotation = prevRotation;
     }
 }

@@ -29,7 +29,7 @@ public class MultiBlock
         this.pattern = pattern;
     }
 
-    public boolean validate(World world, BlockPos corner, Consumer<BlockPos> operation)
+    public boolean validate(World world, BlockPos corner, Consumer<MultiBlockPart> operation)
     {
         return validateImpl(world, corner, EnumFacing.UP, EnumFacing.EAST, EnumFacing.SOUTH, operation) ||
             validateImpl(world, corner, EnumFacing.UP, EnumFacing.SOUTH, EnumFacing.EAST, operation) ||
@@ -42,8 +42,9 @@ public class MultiBlock
     }
 
     private boolean validateImpl(World world, BlockPos corner, EnumFacing direction, EnumFacing horizontal, EnumFacing vertical,
-                                 Consumer<BlockPos> operation)
+                                 Consumer<MultiBlockPart> operation)
     {
+        int id = 0;
         for (int depth = 0; depth < pattern.length; depth++)
         {
             Predicate<BlockWorldState>[][] layer = pattern[depth];
@@ -56,7 +57,8 @@ public class MultiBlock
                     if (!row[width].test(new BlockWorldState(world, childPos, true)))
                         return false;
 
-                    operation.accept(childPos);
+                    operation.accept(new MultiBlockPart(world, childPos, true, id));
+                    id++;
                 }
             }
         }

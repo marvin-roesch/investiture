@@ -103,8 +103,7 @@ public class MetalExtractorRenderer extends TileEntitySpecialRenderer<TileMetalE
                     break;
             }
             Rendering.drawModel(modelFrame);
-            float angle = te.getWorld().getTotalWorldTime();
-            angle = lerp(angle, angle + 1, partialTicks);
+            float angle = 360 * te.rotation - (te.rotation - te.prevRotation < 4 ? 0 : partialTicks);
 
             GlStateManager.pushMatrix();
             GlStateManager.translate(2.5, 0, -2.5);
@@ -123,9 +122,9 @@ public class MetalExtractorRenderer extends TileEntitySpecialRenderer<TileMetalE
             GlStateManager.popMatrix();
 
             GlStateManager.pushMatrix();
-            GlStateManager.translate(2.5, 2, -2.5);
+            GlStateManager.translate(2.5, 2.5, -2.5);
             GlStateManager.rotate(angle, 0, 0, 1);
-            GlStateManager.translate(-2.5, -2, 2.5);
+            GlStateManager.translate(-2.5, -2.5, 2.5);
             Rendering.drawModel(modelWaterWheel);
             GlStateManager.popMatrix();
 
