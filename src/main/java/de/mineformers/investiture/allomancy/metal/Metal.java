@@ -7,13 +7,14 @@ import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 
 import javax.annotation.Nonnull;
+import java.util.Comparator;
 import java.util.Objects;
 
 /**
  * Interface representing the properties of any allomantic metal.
  * This is to be used like Vanilla's Blocks and Items, not storing any data itself.
  */
-public interface Metal
+public interface Metal extends Comparable<Metal>
 {
     /**
      * @return the metal's internal ID
@@ -92,6 +93,12 @@ public interface Metal
             if (obj == null) return false;
             if (getClass() != obj.getClass()) return false;
             return Objects.equals(id(), ((Metal) obj).id());
+        }
+
+        @Override
+        public int compareTo(Metal o)
+        {
+            return hashCode() - o.hashCode();
         }
     }
 }
