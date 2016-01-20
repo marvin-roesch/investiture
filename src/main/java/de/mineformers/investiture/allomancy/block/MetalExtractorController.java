@@ -11,21 +11,23 @@ import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.PropertyBool;
 import net.minecraft.block.state.BlockState;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.particle.EffectRenderer;
+import net.minecraft.client.particle.EntityDiggingFX;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumWorldBlockLayer;
+import net.minecraft.util.*;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 import java.util.List;
+import java.util.Random;
 
 /**
  * Provides the block for the metal extractor controller.
@@ -191,6 +193,47 @@ public class MetalExtractorController extends Block implements ExtractorPart
         else if (tile instanceof TileMetalExtractorSlave)
             ((TileMetalExtractorSlave) tile).getMaster().invalidateMultiBlock();
         super.breakBlock(world, pos, state);
+    }
+
+    @SideOnly(Side.CLIENT)
+    @Override
+    public void randomDisplayTick(World world, BlockPos pos, IBlockState state, Random rand)
+    {
+        if (world.getTileEntity(pos) instanceof TileMetalExtractorMaster)
+        {
+            TileMetalExtractorMaster tile = (TileMetalExtractorMaster) world.getTileEntity(pos);
+            tile.getProcessing().ifPresent(p -> {
+                world.playSound(pos.getX(), pos.getY(), pos.getZ(), "allomancy:extractor.grind", 1, 1, true);
+                if (p.input.getItem() instanceof ItemBlock)
+                {
+                    ItemBlock ib = (ItemBlock) p.input.getItem();
+                    int particleState = Block.getStateId(ib.getBlock().getStateFromMeta(ib.getMetadata(p.input)));
+                    double offset = 1.5 + 2 * (p.timer / 40d);
+                    Vec3 start = new Vec3(pos.getX() + tile.getOrientation().getFrontOffsetX() * offset,
+                                          pos.getY(),
+                                          pos.getZ() + tile.getOrientation().getFrontOffsetZ() * offset);
+                    int count = 8;
+
+                    for (int j = 0; j < count; ++j)
+                    {
+                        for (int k = 0; k < count; ++k)
+                        {
+                            for (int l = 0; l < count; ++l)
+                            {
+                                double x = start.xCoord + (j + 0.5D) / count;
+                                double y = start.yCoord + (k + 0.5D) / count;
+                                double z = start.zCoord + (l + 0.5D) / count;
+                                EffectRenderer effects = Minecraft.getMinecraft().effectRenderer;
+                                ((EntityDiggingFX) effects.spawnEffectParticle(EnumParticleTypes.BLOCK_CRACK.getParticleID(), x, y, z,
+                                                                               x - start.xCoord - 0.5D,
+                                                                               y - start.yCoord - 0.5D,
+                                                                               z - start.zCoord - 0.5D, particleState)).func_174846_a(pos);
+                            }
+                        }
+                    }
+                }
+            });
+        }
     }
 
     @Override

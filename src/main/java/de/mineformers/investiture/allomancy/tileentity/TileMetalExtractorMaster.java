@@ -10,6 +10,7 @@ import de.mineformers.investiture.allomancy.extractor.ExtractorOutput;
 import de.mineformers.investiture.allomancy.extractor.ExtractorPart;
 import de.mineformers.investiture.allomancy.extractor.ExtractorRecipes;
 import de.mineformers.investiture.allomancy.network.MetalExtractorUpdate;
+import de.mineformers.investiture.client.util.Sounds;
 import de.mineformers.investiture.inventory.SimpleInventory;
 import de.mineformers.investiture.multiblock.BlockRecipe;
 import de.mineformers.investiture.multiblock.MultiBlock;
@@ -437,6 +438,14 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
         }
         this.rotation = update.rotation;
         this.prevRotation = update.prevRotation;
+        if (processing.isPresent() && !Sounds.isPlaying(Allomancy.resource("extractor.grind")))
+        {
+            worldObj.playSound(pos.getX(), pos.getY(), pos.getZ(), "allomancy:extractor.grind", 1, 1, true);
+        }
+        else
+        {
+            Sounds.stop(Allomancy.resource("extractor.grind"));
+        }
     }
 
     @Override

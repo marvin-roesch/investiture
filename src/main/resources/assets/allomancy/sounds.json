@@ -1,0 +1,11 @@
+{
+  "extractor.grind": {
+    "sounds": [
+      {
+        "name": "extractor/grind",
+        "stream": true
+      }
+    ],
+    "category": "block"
+  }
+}
