@@ -61,10 +61,11 @@ public class Sounds
         }
     }
 
-    public static boolean isPlaying(ResourceLocation resource) {
+    public static boolean isPlaying(ResourceLocation resource)
+    {
         for (ISound sound : playingSounds().values())
         {
-            if(sound.getSoundLocation().equals(resource))
+            if (sound.getSoundLocation().equals(resource))
             {
                 return soundManager().isSoundPlaying(sound);
             }
@@ -76,7 +77,7 @@ public class Sounds
     {
         for (ISound sound : playingSounds().values())
         {
-            if(sound.getSoundLocation().equals(resource))
+            if (sound.getSoundLocation().equals(resource))
             {
                 Minecraft.getMinecraft().getSoundHandler().stopSound(sound);
                 return;

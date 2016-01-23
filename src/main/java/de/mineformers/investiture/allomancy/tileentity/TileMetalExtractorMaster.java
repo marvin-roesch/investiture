@@ -10,7 +10,6 @@ import de.mineformers.investiture.allomancy.extractor.ExtractorOutput;
 import de.mineformers.investiture.allomancy.extractor.ExtractorPart;
 import de.mineformers.investiture.allomancy.extractor.ExtractorRecipes;
 import de.mineformers.investiture.allomancy.network.MetalExtractorUpdate;
-import de.mineformers.investiture.client.util.Sounds;
 import de.mineformers.investiture.inventory.SimpleInventory;
 import de.mineformers.investiture.multiblock.BlockRecipe;
 import de.mineformers.investiture.multiblock.MultiBlock;
@@ -93,9 +92,6 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
             prevRotation = rotation;
             double oldPower = power;
             power = calculateFlow();
-            double perTick = 360f / 1440 * (1 / 360f) * power;
-            rotation += perTick;
-            rotation %= 1;
             if (power == 0)
             {
                 if (power != oldPower)
@@ -108,6 +104,9 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
                 inventory[SECONDARY_OUTPUT_SLOT] = null;
             if (processing.isPresent())
             {
+                double perTick = 360f / 1440 * (1 / 360f) * power;
+                rotation += perTick;
+                rotation %= 1;
                 Processor current = processing.get();
                 if (current.timer < 40)
                     current.timer++;
@@ -438,14 +437,6 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
         }
         this.rotation = update.rotation;
         this.prevRotation = update.prevRotation;
-        if (processing.isPresent() && !Sounds.isPlaying(Allomancy.resource("extractor.grind")))
-        {
-            worldObj.playSound(pos.getX(), pos.getY(), pos.getZ(), "allomancy:extractor.grind", 1, 1, true);
-        }
-        else
-        {
-            Sounds.stop(Allomancy.resource("extractor.grind"));
-        }
     }
 
     @Override

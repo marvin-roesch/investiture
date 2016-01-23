@@ -6,6 +6,8 @@ import de.mineformers.investiture.allomancy.Allomancy;
 import de.mineformers.investiture.allomancy.tileentity.TileMetalExtractorMaster;
 import de.mineformers.investiture.client.util.Modeling;
 import de.mineformers.investiture.client.util.Rendering;
+import de.mineformers.investiture.client.util.Textures;
+import de.mineformers.investiture.client.util.Textures.TextureType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.entity.RenderEntityItem;
@@ -25,8 +27,7 @@ import net.minecraftforge.client.model.IFlexibleBakedModel;
 public class MetalExtractorRenderer extends TileEntitySpecialRenderer<TileMetalExtractorMaster> implements IResourceManagerReloadListener
 {
     private IFlexibleBakedModel modelFrame;
-    private IFlexibleBakedModel modelGrinderTop;
-    private IFlexibleBakedModel modelGrinderBottom;
+    private IFlexibleBakedModel modelGrinder;
     private IFlexibleBakedModel modelWaterWheel;
     private static final RenderEntityItem RENDER_ITEM = new RenderEntityItem(Minecraft.getMinecraft().getRenderManager(),
                                                                              Minecraft.getMinecraft().getRenderItem())
@@ -47,21 +48,18 @@ public class MetalExtractorRenderer extends TileEntitySpecialRenderer<TileMetalE
     public MetalExtractorRenderer()
     {
         ((IReloadableResourceManager) Minecraft.getMinecraft().getResourceManager()).registerReloadListener(this);
+        Textures.stitch(Allomancy.DOMAIN, TextureType.BLOCK, "metal_extractor");
     }
 
     @Override
     public void onResourceManagerReload(IResourceManager resourceManager)
     {
         modelFrame = Modeling.loadOBJModel(Allomancy.resource("block/metal_extractor.obj"),
-                                           ImmutableMap.of("#frame", Allomancy.resource("blocks/metal_extractor_frame"),
-                                                           "#glass", Allomancy.resource("blocks/metal_extractor_glass")),
-                                           ImmutableList.of("Frame", "Input", "Output"));
-        modelGrinderTop = Modeling.loadOBJModel(Allomancy.resource("block/metal_extractor.obj"),
-                                                ImmutableMap.of("#grinder", Allomancy.resource("blocks/metal_extractor_grinder")),
-                                                ImmutableList.of("GrinderTop"));
-        modelGrinderBottom = Modeling.loadOBJModel(Allomancy.resource("block/metal_extractor.obj"),
-                                                   ImmutableMap.of("#grinder", Allomancy.resource("blocks/metal_extractor_grinder")),
-                                                   ImmutableList.of("GrinderBottom"));
+                                           ImmutableMap.of("#extractor", Allomancy.resource("blocks/metal_extractor")),
+                                           ImmutableList.of("Frame"));
+        modelGrinder = Modeling.loadOBJModel(Allomancy.resource("block/metal_extractor.obj"),
+                                             ImmutableMap.of("#extractor", Allomancy.resource("blocks/metal_extractor")),
+                                             ImmutableList.of("Grinder"));
         modelWaterWheel = Modeling.loadOBJModel(Allomancy.resource("block/metal_extractor.obj"),
                                                 ImmutableMap.of("#wood", new ResourceLocation("blocks/planks_oak")),
                                                 ImmutableList.of("WaterWheel", "WaterWheelConnection"));
@@ -107,18 +105,9 @@ public class MetalExtractorRenderer extends TileEntitySpecialRenderer<TileMetalE
 
             GlStateManager.pushMatrix();
             GlStateManager.translate(2.5, 0, -2.5);
-            if (te.getProcessing().isPresent())
-                GlStateManager.rotate(angle, 0, 1, 0);
+            GlStateManager.rotate(angle, 0, 1, 0);
             GlStateManager.translate(-2.5, 0, 2.5);
-            Rendering.drawModel(modelGrinderTop);
-            GlStateManager.popMatrix();
-
-            GlStateManager.pushMatrix();
-            GlStateManager.translate(2.5, 0, -2.5);
-            if (te.getProcessing().isPresent())
-                GlStateManager.rotate(-angle, 0, 1, 0);
-            GlStateManager.translate(-2.5, 0, 2.5);
-            Rendering.drawModel(modelGrinderBottom);
+            Rendering.drawModel(modelGrinder);
             GlStateManager.popMatrix();
 
             GlStateManager.pushMatrix();
@@ -131,8 +120,12 @@ public class MetalExtractorRenderer extends TileEntitySpecialRenderer<TileMetalE
             if (te.getProcessing().isPresent())
             {
                 int timer = te.getProcessing().get().timer;
-                GlStateManager.translate(1.5 + 2 * (timer / 40d), 1.25, -2.5);
-                GlStateManager.scale(2.8, 2.8, 2.8);
+                GlStateManager.translate(1.3 + 2 * (timer / 40d), 0.5, -2.5);
+                if (timer < 15)
+                {
+                    GlStateManager.rotate(-20.5f + 20.5f * (timer / 15f), 0, 0, 1);
+                }
+                GlStateManager.scale(4, 4, 4);
                 EntityItem item = new EntityItem(te.getWorld(), te.getPos().getX(), te.getPos().getY(), te.getPos().getZ(),
                                                  te.getProcessing().get().input);
                 item.hoverStart = 0;

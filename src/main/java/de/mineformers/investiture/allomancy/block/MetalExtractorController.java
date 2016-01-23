@@ -203,12 +203,11 @@ public class MetalExtractorController extends Block implements ExtractorPart
         {
             TileMetalExtractorMaster tile = (TileMetalExtractorMaster) world.getTileEntity(pos);
             tile.getProcessing().ifPresent(p -> {
-                world.playSound(pos.getX(), pos.getY(), pos.getZ(), "allomancy:extractor.grind", 1, 1, true);
                 if (p.input.getItem() instanceof ItemBlock)
                 {
                     ItemBlock ib = (ItemBlock) p.input.getItem();
                     int particleState = Block.getStateId(ib.getBlock().getStateFromMeta(ib.getMetadata(p.input)));
-                    double offset = 1.5 + 2 * (p.timer / 40d);
+                    double offset = 1.3 + 2 * (p.timer / 40d);
                     Vec3 start = new Vec3(pos.getX() + tile.getOrientation().getFrontOffsetX() * offset,
                                           pos.getY(),
                                           pos.getZ() + tile.getOrientation().getFrontOffsetZ() * offset);

@@ -1,6 +1,5 @@
 package de.mineformers.investiture.util;
 
-import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
 import net.minecraftforge.fml.relauncher.ReflectionHelper;
 
