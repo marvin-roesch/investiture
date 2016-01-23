@@ -141,11 +141,20 @@ public class MetalExtractor extends Block implements ExtractorPart
     public void breakBlock(World world, BlockPos pos, IBlockState state)
     {
         TileEntity tile = world.getTileEntity(pos);
-        if (tile instanceof TileMetalExtractorMaster)
-            ((TileMetalExtractorMaster) tile).invalidateMultiBlock();
-        else if (tile instanceof TileMetalExtractorSlave)
-            ((TileMetalExtractorSlave) tile).getMaster().invalidateMultiBlock();
+        if (tile instanceof TileMetalExtractorSlave)
+            ((TileMetalExtractorSlave) tile).getMaster().revalidateMultiBlock();
         super.breakBlock(world, pos, state);
+    }
+
+    @Override
+    public void onNeighborBlockChange(World world, BlockPos pos, IBlockState state, Block neighborBlock)
+    {
+        if (!world.isRemote && state.getValue(PART) == Part.WHEEL)
+        {
+            TileEntity tile = world.getTileEntity(pos);
+            if (tile instanceof TileMetalExtractorSlave)
+                ((TileMetalExtractorSlave) tile).getMaster().revalidateMultiBlock();
+        }
     }
 
     @Override

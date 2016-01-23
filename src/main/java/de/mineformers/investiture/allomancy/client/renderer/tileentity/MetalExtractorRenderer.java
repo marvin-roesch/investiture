@@ -120,10 +120,19 @@ public class MetalExtractorRenderer extends TileEntitySpecialRenderer<TileMetalE
             if (te.getProcessing().isPresent())
             {
                 int timer = te.getProcessing().get().timer;
-                GlStateManager.translate(1.3 + 2 * (timer / 40d), 0.5, -2.5);
-                if (timer < 15)
+                float progress = (float) (timer / te.getProcessingTime());
+                float incomingEnd = (float) (0.375 * te.getProcessingTime());
+                float outgoingStart = (float) (0.625 * te.getProcessingTime());
+                GlStateManager.translate(1.3 + 3 * progress, 0.5, -2.5);
+                if (timer < incomingEnd)
                 {
-                    GlStateManager.rotate(-20.5f + 20.5f * (timer / 15f), 0, 0, 1);
+                    GlStateManager.rotate(-20.5f + 20.5f * (timer / incomingEnd), 0, 0, 1);
+                }
+                else if (timer > outgoingStart)
+                {
+                    GlStateManager.translate(-0.5, 0, 0);
+                    GlStateManager.rotate((float) (20.5f * ((timer - outgoingStart) / (te.getProcessingTime() - outgoingStart))), 0, 0, 1);
+                    GlStateManager.translate(0.5, 0, 0);
                 }
                 GlStateManager.scale(4, 4, 4);
                 EntityItem item = new EntityItem(te.getWorld(), te.getPos().getX(), te.getPos().getY(), te.getPos().getZ(),
@@ -133,11 +142,6 @@ public class MetalExtractorRenderer extends TileEntitySpecialRenderer<TileMetalE
             }
             GlStateManager.popMatrix();
         }
-    }
-
-    float lerp(float v0, float v1, float t)
-    {
-        return (1 - t) * v0 + t * v1;
     }
 
     @Override

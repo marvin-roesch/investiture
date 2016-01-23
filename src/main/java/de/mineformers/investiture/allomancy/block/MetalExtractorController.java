@@ -189,9 +189,9 @@ public class MetalExtractorController extends Block implements ExtractorPart
     {
         TileEntity tile = world.getTileEntity(pos);
         if (tile instanceof TileMetalExtractorMaster)
-            ((TileMetalExtractorMaster) tile).invalidateMultiBlock();
+            ((TileMetalExtractorMaster) tile).revalidateMultiBlock();
         else if (tile instanceof TileMetalExtractorSlave)
-            ((TileMetalExtractorSlave) tile).getMaster().invalidateMultiBlock();
+            ((TileMetalExtractorSlave) tile).getMaster().revalidateMultiBlock();
         super.breakBlock(world, pos, state);
     }
 
@@ -203,11 +203,11 @@ public class MetalExtractorController extends Block implements ExtractorPart
         {
             TileMetalExtractorMaster tile = (TileMetalExtractorMaster) world.getTileEntity(pos);
             tile.getProcessing().ifPresent(p -> {
-                if (p.input.getItem() instanceof ItemBlock)
+                if (p.input.getItem() instanceof ItemBlock && tile.getPower() != 0)
                 {
                     ItemBlock ib = (ItemBlock) p.input.getItem();
                     int particleState = Block.getStateId(ib.getBlock().getStateFromMeta(ib.getMetadata(p.input)));
-                    double offset = 1.3 + 2 * (p.timer / 40d);
+                    double offset = 1.3 + 2 * (p.timer / tile.getProcessingTime());
                     Vec3 start = new Vec3(pos.getX() + tile.getOrientation().getFrontOffsetX() * offset,
                                           pos.getY(),
                                           pos.getZ() + tile.getOrientation().getFrontOffsetZ() * offset);
@@ -226,7 +226,7 @@ public class MetalExtractorController extends Block implements ExtractorPart
                                 ((EntityDiggingFX) effects.spawnEffectParticle(EnumParticleTypes.BLOCK_CRACK.getParticleID(), x, y, z,
                                                                                x - start.xCoord - 0.5D,
                                                                                y - start.yCoord - 0.5D,
-                                                                               z - start.zCoord - 0.5D, particleState)).func_174846_a(pos);
+                                                                               z - start.zCoord - 0.5D, particleState)).setBlockPos(pos);
                             }
                         }
                     }
