@@ -2,10 +2,10 @@ package de.mineformers.investiture.allomancy.client.gui;
 
 import de.mineformers.investiture.Investiture;
 import de.mineformers.investiture.allomancy.Allomancy;
-import de.mineformers.investiture.allomancy.metal.Metal;
-import de.mineformers.investiture.allomancy.metal.MetalBurner;
-import de.mineformers.investiture.allomancy.metal.MetalStorage;
-import de.mineformers.investiture.allomancy.metal.Metals;
+import de.mineformers.investiture.allomancy.api.metal.Metal;
+import de.mineformers.investiture.allomancy.api.metal.MetalBurner;
+import de.mineformers.investiture.allomancy.api.metal.MetalStorage;
+import de.mineformers.investiture.allomancy.api.metal.Metals;
 import de.mineformers.investiture.allomancy.network.ToggleBurningMetal;
 import de.mineformers.investiture.client.KeyBindings;
 import de.mineformers.investiture.client.renderer.Shader;

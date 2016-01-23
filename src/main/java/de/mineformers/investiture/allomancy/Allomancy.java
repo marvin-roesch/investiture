@@ -7,10 +7,10 @@ import de.mineformers.investiture.allomancy.block.MetalOre;
 import de.mineformers.investiture.allomancy.core.EntityHandler;
 import de.mineformers.investiture.allomancy.extractor.ExtractorRecipes;
 import de.mineformers.investiture.allomancy.item.MetalItem;
-import de.mineformers.investiture.allomancy.metal.Metal;
-import de.mineformers.investiture.allomancy.metal.MetalBurner;
-import de.mineformers.investiture.allomancy.metal.MetalStorage;
-import de.mineformers.investiture.allomancy.metal.Metals;
+import de.mineformers.investiture.allomancy.api.metal.Metal;
+import de.mineformers.investiture.allomancy.api.metal.MetalBurner;
+import de.mineformers.investiture.allomancy.api.metal.MetalStorage;
+import de.mineformers.investiture.allomancy.api.metal.Metals;
 import de.mineformers.investiture.allomancy.network.EntityMetalBurnerUpdate;
 import de.mineformers.investiture.allomancy.network.EntityMetalStorageUpdate;
 import de.mineformers.investiture.allomancy.network.MetalExtractorUpdate;
@@ -183,7 +183,7 @@ public final class Allomancy implements Manifestation
          * The ID of both the {@link net.minecraftforge.common.IExtendedEntityProperties IEEP} used for storage of a {@link MetalStorage} in an
          * entity as well as the corresponding NBT compound tag.
          *
-         * @see de.mineformers.investiture.allomancy.metal.MetalStorage.EntityMetalStorage
+         * @see de.mineformers.investiture.allomancy.api.metal.MetalStorage.EntityMetalStorage
          */
         public static final String STORAGE_ID = "allomancy_metal_storage";
 

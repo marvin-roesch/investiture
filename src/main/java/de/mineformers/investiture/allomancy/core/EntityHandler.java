@@ -1,7 +1,7 @@
 package de.mineformers.investiture.allomancy.core;
 
 import de.mineformers.investiture.allomancy.Allomancy;
-import de.mineformers.investiture.allomancy.metal.MetalBurner;
+import de.mineformers.investiture.allomancy.api.metal.MetalBurner;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;

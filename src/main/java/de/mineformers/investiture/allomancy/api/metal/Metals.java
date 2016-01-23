@@ -1,4 +1,4 @@
-package de.mineformers.investiture.allomancy.metal;
+package de.mineformers.investiture.allomancy.api.metal;
 
 import com.google.common.collect.FluentIterable;
 import de.mineformers.investiture.allomancy.item.MetalItem;

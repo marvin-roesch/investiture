@@ -2,10 +2,10 @@ package de.mineformers.investiture.allomancy.item;
 
 import de.mineformers.investiture.Investiture;
 import de.mineformers.investiture.allomancy.Allomancy;
-import de.mineformers.investiture.allomancy.metal.Metal;
-import de.mineformers.investiture.allomancy.metal.MetalHolder;
-import de.mineformers.investiture.allomancy.metal.MetalMapping;
-import de.mineformers.investiture.allomancy.metal.Metals;
+import de.mineformers.investiture.allomancy.api.metal.Metal;
+import de.mineformers.investiture.allomancy.api.metal.MetalHolder;
+import de.mineformers.investiture.allomancy.api.metal.MetalMapping;
+import de.mineformers.investiture.allomancy.api.metal.Metals;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;

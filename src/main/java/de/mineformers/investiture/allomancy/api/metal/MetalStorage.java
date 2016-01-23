@@ -1,4 +1,4 @@
-package de.mineformers.investiture.allomancy.metal;
+package de.mineformers.investiture.allomancy.api.metal;
 
 import de.mineformers.investiture.Investiture;
 import de.mineformers.investiture.allomancy.Allomancy;

@@ -3,8 +3,8 @@ package de.mineformers.investiture.allomancy.helper;
 import de.mineformers.investiture.allomancy.Allomancy;
 import de.mineformers.investiture.allomancy.block.MetalOre;
 import de.mineformers.investiture.allomancy.item.MetalItem;
-import de.mineformers.investiture.allomancy.metal.Metal;
-import de.mineformers.investiture.allomancy.metal.Metals;
+import de.mineformers.investiture.allomancy.api.metal.Metal;
+import de.mineformers.investiture.allomancy.api.metal.Metals;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 

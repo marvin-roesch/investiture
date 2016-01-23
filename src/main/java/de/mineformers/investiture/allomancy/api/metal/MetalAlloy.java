@@ -1,4 +1,4 @@
-package de.mineformers.investiture.allomancy.metal;
+package de.mineformers.investiture.allomancy.api.metal;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
