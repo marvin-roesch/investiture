@@ -4,7 +4,6 @@ import com.google.common.collect.FluentIterable;
 import de.mineformers.investiture.Investiture;
 import de.mineformers.investiture.allomancy.Allomancy;
 import de.mineformers.investiture.allomancy.network.EntityMetalBurnerUpdate;
-import de.mineformers.investiture.network.Message;
 import gnu.trove.TCollections;
 import gnu.trove.map.TObjectIntMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
@@ -153,7 +152,7 @@ public class MetalBurner extends MetalStorage
     /**
      * Translates a metal burner to and from a byte buffer
      */
-    public static class Translator implements Message.Translator<MetalBurner>
+    public static class Translator implements de.mineformers.investiture.serialisation.Translator<MetalBurner, NBTTagCompound>
     {
         @Override
         public void serialiseImpl(MetalBurner value, ByteBuf buffer)
@@ -207,6 +206,18 @@ public class MetalBurner extends MetalStorage
             }
 
             return burner;
+        }
+
+        @Override
+        public NBTTagCompound serialiseImpl(MetalBurner value)
+        {
+            return null;
+        }
+
+        @Override
+        public MetalBurner deserialiseImpl(NBTTagCompound tag)
+        {
+            return null;
         }
     }
 

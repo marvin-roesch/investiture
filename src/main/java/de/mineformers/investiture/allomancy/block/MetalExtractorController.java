@@ -1,7 +1,9 @@
 package de.mineformers.investiture.allomancy.block;
 
 import de.mineformers.investiture.Investiture;
+import de.mineformers.investiture.allomancy.api.misting.Smoker;
 import de.mineformers.investiture.allomancy.extractor.ExtractorPart;
+import de.mineformers.investiture.allomancy.impl.AllomancyAPIImpl;
 import de.mineformers.investiture.allomancy.tileentity.TileMetalExtractorMaster;
 import de.mineformers.investiture.allomancy.tileentity.TileMetalExtractorOutput;
 import de.mineformers.investiture.allomancy.tileentity.TileMetalExtractorSlave;
@@ -16,10 +18,7 @@ import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumWorldBlockLayer;
+import net.minecraft.util.*;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
@@ -53,6 +52,11 @@ public class MetalExtractorController extends Block implements ExtractorPart
     public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer playerIn,
                                     EnumFacing side, float hitX, float hitY, float hitZ)
     {
+        if (!world.isRemote)
+        {
+//            AllomancyAPIImpl.INSTANCE.toAllomancer(playerIn).get().grantPower(Smoker.class).setCategory(pos.toString() + ": " + hitY);
+            playerIn.addChatComponentMessage(new ChatComponentText(AllomancyAPIImpl.INSTANCE.toAllomancer(playerIn).get().grantPower(Smoker.class).category()));
+        }
         if (!world.isRemote && !state.getValue(BUILT))
         {
             world.setBlockState(pos, state.withProperty(BUILT, true).withProperty(MASTER, true));

@@ -1,5 +1,6 @@
 package de.mineformers.investiture.allomancy.api;
 
+import de.mineformers.investiture.allomancy.api.misting.Misting;
 import net.minecraft.entity.Entity;
 
 import javax.annotation.Nonnull;
@@ -12,7 +13,7 @@ import java.util.Optional;
  * An instance of this interface can be acquired through IMC.
  */
 @ParametersAreNonnullByDefault
-public interface AllomancerProvider
+public interface AllomancyAPI
 {
     /**
      * Checks if the given entity is an Allomancer.
@@ -22,7 +23,7 @@ public interface AllomancerProvider
      */
     default boolean isAllomancer(Entity entity)
     {
-        return get(entity).isPresent();
+        return toAllomancer(entity).isPresent();
     }
 
     /**
@@ -32,5 +33,7 @@ public interface AllomancerProvider
      * @return a present optional if the entity is an Allomancer, <code>Optional.empty()</code> otherwise
      */
     @Nonnull
-    Optional<Allomancer> get(Entity entity);
+    Optional<Allomancer> toAllomancer(Entity entity);
+
+    <T extends Misting> void registerMisting(Class<T> type, MistingFactory<? extends T> factory);
 }

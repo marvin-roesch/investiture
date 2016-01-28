@@ -132,9 +132,7 @@ public class MetalExtractor extends Block implements ExtractorPart
     @Override
     public int getLightOpacity(IBlockAccess world, BlockPos pos)
     {
-        if (world.getBlockState(pos).getBlock() != this)
-            return super.getLightOpacity(world, pos);
-        return world.getBlockState(pos).getValue(PART) == Part.GLASS || world.getBlockState(pos).getValue(BUILT) ? 0 : 255;
+        return 0;
     }
 
     @Override

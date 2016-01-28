@@ -17,6 +17,8 @@ import static de.mineformers.investiture.allomancy.api.power.Scope.INTERNAL;
 @AllomanticPower(category = MENTAL, scope = INTERNAL, effect = PULL)
 public interface Smoker extends Misting
 {
+    void setCategory(String test);
+
     @Override
     default Metal baseMetal()
     {

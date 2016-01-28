@@ -1,9 +1,6 @@
 package de.mineformers.investiture.allomancy.api.power;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
  * Marker annotation for all Allomantic powers (i.e. sub classes of {@link de.mineformers.investiture.allomancy.api.misting.Misting Misting}).
@@ -11,6 +8,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
+@Inherited
 public @interface AllomanticPower
 {
     /**

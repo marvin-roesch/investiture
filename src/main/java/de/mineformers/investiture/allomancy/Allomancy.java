@@ -1,16 +1,18 @@
 package de.mineformers.investiture.allomancy;
 
 import de.mineformers.investiture.Investiture;
+import de.mineformers.investiture.allomancy.api.metal.Metal;
+import de.mineformers.investiture.allomancy.api.metal.MetalBurner;
+import de.mineformers.investiture.allomancy.api.metal.MetalStorage;
+import de.mineformers.investiture.allomancy.api.metal.Metals;
 import de.mineformers.investiture.allomancy.block.MetalExtractor;
 import de.mineformers.investiture.allomancy.block.MetalExtractorController;
 import de.mineformers.investiture.allomancy.block.MetalOre;
 import de.mineformers.investiture.allomancy.core.EntityHandler;
 import de.mineformers.investiture.allomancy.extractor.ExtractorRecipes;
+import de.mineformers.investiture.allomancy.impl.AllomancyAPIImpl;
+import de.mineformers.investiture.allomancy.impl.CapabilityHandler;
 import de.mineformers.investiture.allomancy.item.MetalItem;
-import de.mineformers.investiture.allomancy.api.metal.Metal;
-import de.mineformers.investiture.allomancy.api.metal.MetalBurner;
-import de.mineformers.investiture.allomancy.api.metal.MetalStorage;
-import de.mineformers.investiture.allomancy.api.metal.Metals;
 import de.mineformers.investiture.allomancy.network.EntityMetalBurnerUpdate;
 import de.mineformers.investiture.allomancy.network.EntityMetalStorageUpdate;
 import de.mineformers.investiture.allomancy.network.MetalExtractorUpdate;
@@ -22,6 +24,8 @@ import de.mineformers.investiture.allomancy.world.MetalGenerator;
 import de.mineformers.investiture.core.Manifestation;
 import de.mineformers.investiture.core.Proxy;
 import de.mineformers.investiture.network.Message;
+import de.mineformers.investiture.serialisation.Serialisation;
+import de.mineformers.investiture.serialisation.Translator;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
@@ -81,8 +85,11 @@ public final class Allomancy implements Manifestation
         ExtractorRecipes.register(Metals.LEAD);
         GameRegistry.registerWorldGenerator(new MetalGenerator(), 0);
         Metals.init();
+        AllomancyAPIImpl.INSTANCE.init();
+        CapabilityHandler.init();
 
         MinecraftForge.EVENT_BUS.register(new EntityHandler());
+        MinecraftForge.EVENT_BUS.register(new CapabilityHandler());
         CommonNetworking.init();
 
         proxy.preInit(event);
@@ -201,13 +208,13 @@ public final class Allomancy implements Manifestation
     {
         /**
          * Initialise the Allomancy network sub-module and register
-         * {@link de.mineformers.investiture.network.Message.Translator Translators}, {@link Message Messages}
+         * {@link Translator Translators}, {@link Message Messages}
          * or {@link de.mineformers.investiture.network.Message.Handler handlers}.
          */
         public static void init()
         {
-            Message.registerTranslator(MetalStorage.class, new MetalStorage.Translator());
-            Message.registerTranslator(MetalBurner.class, new MetalBurner.Translator());
+            Serialisation.INSTANCE.registerTranslator(MetalStorage.class, new MetalStorage.Translator());
+            Serialisation.INSTANCE.registerTranslator(MetalBurner.class, new MetalBurner.Translator());
 
             Investiture.net().registerMessage(EntityMetalStorageUpdate.class);
             Investiture.net().registerMessage(EntityMetalBurnerUpdate.class);

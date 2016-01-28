@@ -1,9 +1,11 @@
 package de.mineformers.investiture.allomancy.api;
 
 import de.mineformers.investiture.allomancy.api.misting.Misting;
+import de.mineformers.investiture.allomancy.api.misting.Smoker;
 
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Optional;
 
@@ -37,8 +39,20 @@ public interface Allomancer
     @Nonnull
     default <T extends Misting> Optional<T> as(Class<T> type)
     {
-        return powers().stream().filter(m -> m.getClass().isAssignableFrom(type)).map(type::cast).findFirst();
+        return powers().stream().filter(m -> type.isAssignableFrom(m.getClass())).map(type::cast).findFirst();
     }
+
+    <T extends Misting> T grantPower(Class<T> type);
+
+    boolean takePower(Class<? extends Misting> type);
+
+    void increaseStrength();
+
+    void decreaseStrength();
+
+    void increaseStrength(Class<? extends Misting> type);
+
+    void decreaseStrength(Class<? extends Misting> type);
 
     /**
      * @return a view of all powers this Allomancer has access to

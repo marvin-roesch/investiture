@@ -2,6 +2,7 @@ package de.mineformers.investiture.network;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
+import de.mineformers.investiture.serialisation.Serialisation;
 import io.netty.channel.*;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -119,7 +120,7 @@ public class FunctionalNetwork
     public <IN extends Message> void registerMessage(Class<IN> type, int discriminator)
     {
         packetCodec.addDiscriminator(discriminator, type);
-        Serialisation.INSTANCE.registerMessage(type);
+        Serialisation.INSTANCE.registerClass(type, false);
         if (lastDiscriminator < discriminator) lastDiscriminator = discriminator;
     }
 
