@@ -1,5 +1,6 @@
 package de.mineformers.investiture.serialisation;
 
+import com.google.common.base.Throwables;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
@@ -15,10 +16,8 @@ import net.minecraftforge.fml.common.network.ByteBufUtils;
 import org.apache.commons.lang3.ClassUtils;
 
 import java.lang.reflect.Field;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 /**
@@ -406,6 +405,36 @@ public class Serialisation
                 return BlockPos.fromLong(tag.getLong());
             }
         });
+
+        registerTranslator(byte[].class, new Translator<byte[], NBTTagByteArray>()
+        {
+            @Override
+            public void serialiseImpl(byte[] value, ByteBuf buffer)
+            {
+                buffer.writeInt(value.length);
+                buffer.writeBytes(value);
+            }
+
+            @Override
+            public byte[] deserialiseImpl(ByteBuf buffer)
+            {
+                byte[] result = new byte[buffer.readInt()];
+                buffer.readBytes(result);
+                return result;
+            }
+
+            @Override
+            public NBTTagByteArray serialiseImpl(byte[] value)
+            {
+                return new NBTTagByteArray(value);
+            }
+
+            @Override
+            public byte[] deserialiseImpl(NBTTagByteArray tag)
+            {
+                return tag.getByteArray();
+            }
+        });
     }
 
     /**
@@ -447,6 +476,13 @@ public class Serialisation
         }
     }
 
+    public Set<FieldData> getNetFields(Class<?> type, boolean onlyAnnotated)
+    {
+        if (!fields.containsKey(type.getName()))
+            registerClass(type, onlyAnnotated);
+        return fields.get(type.getName()).stream().filter(f -> f.net).collect(Collectors.toSet());
+    }
+
     /**
      * Registers a message to the serialisation framework. Allows faster serialisation due to caching of the results of intensive reflective
      * operations.
@@ -471,7 +507,7 @@ public class Serialisation
                     nbt = serialise.nbt();
                     net = serialise.net();
                 }
-                else if(onlyAnnotated)
+                else if (onlyAnnotated)
                     return;
 
                 fields.put(type.getName(), new FieldData(f, nbt, net));
@@ -486,19 +522,11 @@ public class Serialisation
         String className = object.getClass().getName();
         for (FieldData f : this.fields.get(className))
         {
+            if (!f.nbt)
+                continue;
             Translator<?, ?> translator = fieldTranslators.get(className, f.name);
-            // Fields might be private
-            f.field.setAccessible(true);
-            try
-            {
-                Optional<? extends NBTBase> value = translator.serialise(f.field.get(object));
-                value.ifPresent(v -> compound.setTag(f.name, v));
-            }
-            catch (IllegalAccessException e)
-            {
-                // Should never happen
-                e.printStackTrace();
-            }
+            Optional<? extends NBTBase> value = translator.serialise(f.get(object));
+            value.ifPresent(v -> compound.setTag(f.name, v));
         }
     }
 
@@ -507,75 +535,76 @@ public class Serialisation
         String className = object.getClass().getName();
         for (FieldData f : this.fields.get(className))
         {
+            if (!f.nbt)
+                continue;
             Translator<?, ?> translator = fieldTranslators.get(className, f.name);
-            // Fields might be private
-            f.field.setAccessible(true);
-            try
-            {
-                f.field.set(object, translator.deserialise(compound.hasKey(f.name) ? Optional.ofNullable(compound.getTag(f.name))
-                                                                                  : Optional.empty()));
-            }
-            catch (IllegalAccessException e)
-            {
-                // Should never happen
-                e.printStackTrace();
-            }
+            f.set(object, translator.deserialise(compound.hasKey(f.name) ? Optional.ofNullable(compound.getTag(f.name))
+                                                                         : Optional.empty()));
         }
     }
 
     /**
      * Serialises each field of a message to a byte buffer, utilising translators that fit each field's type best.
      *
-     * @param message the message to serialise
-     * @param buffer  the buffer to serialise the message into
+     * @param object the message to serialise
+     * @param buffer the buffer to serialise the message into
      */
-    public void serialiseFrom(Message message, ByteBuf buffer)
+    public void serialiseFrom(Object object, ByteBuf buffer)
     {
-        String className = message.getClass().getName();
+        String className = object.getClass().getName();
         for (FieldData f : this.fields.get(className))
         {
+            if (!f.net)
+                continue;
             Translator<?, ?> translator = fieldTranslators.get(className, f.name);
-            // Fields might be private
-            f.field.setAccessible(true);
-            try
-            {
-                translator.serialise(f.field.get(message), buffer);
-            }
-            catch (IllegalAccessException e)
-            {
-                // Should never happen
-                e.printStackTrace();
-            }
+            translator.serialise(f.get(object), buffer);
         }
     }
 
     /**
      * Deserialises the contents of a byte buffer into a message, writing each field utilising translators.
      *
-     * @param buffer  the buffer to deserialise from
-     * @param message the message to deserialise into
+     * @param buffer the buffer to deserialise from
+     * @param object the message to deserialise into
      */
-    public void deserialiseTo(ByteBuf buffer, Message message)
+    public void deserialiseTo(ByteBuf buffer, Object object)
     {
-        String className = message.getClass().getName();
+        String className = object.getClass().getName();
         for (FieldData f : this.fields.get(className))
         {
+            if (!f.net)
+                continue;
             Translator<?, ?> translator = fieldTranslators.get(className, f.name);
-            // Fields might be private
-            f.field.setAccessible(true);
-            try
-            {
-                f.field.set(message, translator.deserialise(buffer));
-            }
-            catch (IllegalAccessException e)
-            {
-                // Should never happen
-                e.printStackTrace();
-            }
+            f.set(object, translator.deserialise(buffer));
         }
     }
 
-    private static class FieldData
+    public void serialiseFieldsFrom(Object object, Collection<FieldData> fields, ByteBuf buffer)
+    {
+        String className = object.getClass().getName();
+        buffer.writeInt(fields.size());
+        for (FieldData f : fields)
+        {
+            ByteBufUtils.writeUTF8String(buffer, f.name);
+            Translator<?, ?> translator = fieldTranslators.get(className, f.name);
+            translator.serialise(f.get(object), buffer);
+        }
+    }
+
+    public void deserialiseFieldsTo(ByteBuf buffer, Object object)
+    {
+        String className = object.getClass().getName();
+        int count = buffer.readInt();
+        for (int i = 0; i < count; i++)
+        {
+            String fieldName =  ByteBufUtils.readUTF8String(buffer);
+            FieldData f = fields.get(className).stream().filter(field -> Objects.equals(field.name, fieldName)).findFirst().get();
+            Translator<?, ?> translator = fieldTranslators.get(className, f.name);
+            f.set(object, translator.deserialise(buffer));
+        }
+    }
+
+    public static class FieldData
     {
         public final Field field;
         public final String name;
@@ -588,6 +617,50 @@ public class Serialisation
             this.name = field.getName();
             this.nbt = nbt;
             this.net = net;
+        }
+
+        public void set(Object instance, Object value)
+        {
+            field.setAccessible(true);
+            try
+            {
+                field.set(instance, value);
+            }
+            catch (IllegalAccessException e)
+            {
+                e.printStackTrace();
+            }
+        }
+
+        public Object get(Object instance)
+        {
+            field.setAccessible(true);
+            try
+            {
+                return field.get(instance);
+            }
+            catch (IllegalAccessException e)
+            {
+                Throwables.propagate(e);
+            }
+            return null;
+        }
+
+        @Override
+        public int hashCode()
+        {
+            return Objects.hash(field, nbt, net);
+        }
+
+        @Override
+        public boolean equals(Object obj)
+        {
+            if (obj == null)
+                return false;
+            if (obj.getClass() != this.getClass())
+                return false;
+            FieldData data = (FieldData) obj;
+            return Objects.equals(field, data.field) && nbt == data.nbt && net == data.net;
         }
     }
 }

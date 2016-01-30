@@ -52,7 +52,7 @@ public class MetalExtractorController extends Block implements ExtractorPart
     public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer playerIn,
                                     EnumFacing side, float hitX, float hitY, float hitZ)
     {
-        if (!world.isRemote)
+        if (world.isRemote)
         {
 //            AllomancyAPIImpl.INSTANCE.toAllomancer(playerIn).get().grantPower(Smoker.class).setCategory(pos.toString() + ": " + hitY);
             playerIn.addChatComponentMessage(new ChatComponentText(AllomancyAPIImpl.INSTANCE.toAllomancer(playerIn).get().grantPower(Smoker.class).category()));

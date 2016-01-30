@@ -13,6 +13,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * ${JDOC}
@@ -26,6 +27,13 @@ public class EntityAllomancer implements Allomancer, INBTSerializable<NBTTagComp
     public EntityAllomancer(Entity entity)
     {
         this.entity = entity;
+    }
+
+    @Nonnull
+    @Override
+    public <T extends Misting> Optional<T> as(Class<T> type)
+    {
+        return powers().stream().filter(type::isAssignableFrom).map(powers::get).map(type::cast).findFirst();
     }
 
     @Override
@@ -79,9 +87,9 @@ public class EntityAllomancer implements Allomancer, INBTSerializable<NBTTagComp
 
     @Nonnull
     @Override
-    public Collection<Misting> powers()
+    public Collection<Class<? extends Misting>> powers()
     {
-        return powers.values();
+        return powers.keySet();
     }
 
     @Override

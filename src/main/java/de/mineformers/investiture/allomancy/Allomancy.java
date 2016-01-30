@@ -13,10 +13,7 @@ import de.mineformers.investiture.allomancy.extractor.ExtractorRecipes;
 import de.mineformers.investiture.allomancy.impl.AllomancyAPIImpl;
 import de.mineformers.investiture.allomancy.impl.CapabilityHandler;
 import de.mineformers.investiture.allomancy.item.MetalItem;
-import de.mineformers.investiture.allomancy.network.EntityMetalBurnerUpdate;
-import de.mineformers.investiture.allomancy.network.EntityMetalStorageUpdate;
-import de.mineformers.investiture.allomancy.network.MetalExtractorUpdate;
-import de.mineformers.investiture.allomancy.network.ToggleBurningMetal;
+import de.mineformers.investiture.allomancy.network.*;
 import de.mineformers.investiture.allomancy.tileentity.TileMetalExtractorMaster;
 import de.mineformers.investiture.allomancy.tileentity.TileMetalExtractorOutput;
 import de.mineformers.investiture.allomancy.tileentity.TileMetalExtractorSlave;
@@ -220,6 +217,7 @@ public final class Allomancy implements Manifestation
             Investiture.net().registerMessage(EntityMetalBurnerUpdate.class);
             Investiture.net().registerMessage(ToggleBurningMetal.class);
             Investiture.net().registerMessage(MetalExtractorUpdate.class);
+            Investiture.net().registerMessage(EntityAllomancerUpdate.class);
 
             // Add handler for toggling the burning of a metal
             Investiture.net().addHandler(ToggleBurningMetal.class, Side.SERVER, (msg, ctx) -> {

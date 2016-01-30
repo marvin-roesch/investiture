@@ -1,14 +1,18 @@
 package de.mineformers.investiture.allomancy.core;
 
+import com.google.common.base.Throwables;
 import com.google.common.collect.FluentIterable;
 import de.mineformers.investiture.Investiture;
 import de.mineformers.investiture.allomancy.Allomancy;
+import de.mineformers.investiture.allomancy.api.metal.MetalBurner;
+import de.mineformers.investiture.allomancy.api.metal.MetalStorage;
+import de.mineformers.investiture.allomancy.api.misting.Misting;
 import de.mineformers.investiture.allomancy.block.MetalExtractorController;
 import de.mineformers.investiture.allomancy.client.gui.MetalSelectionHUD;
 import de.mineformers.investiture.allomancy.client.renderer.tileentity.MetalExtractorRenderer;
+import de.mineformers.investiture.allomancy.impl.AllomancyAPIImpl;
 import de.mineformers.investiture.allomancy.item.MetalItem;
-import de.mineformers.investiture.allomancy.api.metal.MetalBurner;
-import de.mineformers.investiture.allomancy.api.metal.MetalStorage;
+import de.mineformers.investiture.allomancy.network.EntityAllomancerUpdate;
 import de.mineformers.investiture.allomancy.network.EntityMetalBurnerUpdate;
 import de.mineformers.investiture.allomancy.network.EntityMetalStorageUpdate;
 import de.mineformers.investiture.allomancy.network.MetalExtractorUpdate;
@@ -36,6 +40,7 @@ import java.util.List;
 public class ClientProxy implements Proxy
 {
     @Override
+    @SuppressWarnings("unchecked")
     public void preInit(FMLPreInitializationEvent event)
     {
         OBJLoader.instance.addDomain(Allomancy.DOMAIN);
@@ -83,6 +88,21 @@ public class ClientProxy implements Proxy
             ctx.schedule(() -> {
                 if (ctx.player().worldObj.getTileEntity(msg.pos) instanceof TileMetalExtractorMaster)
                     ((TileMetalExtractorMaster) ctx.player().worldObj.getTileEntity(msg.pos)).processUpdate(msg);
+            });
+            return null;
+        });
+
+        Investiture.net().addHandler(EntityAllomancerUpdate.class, Side.CLIENT, (msg, ctx) -> {
+            ctx.schedule(() -> {
+                Entity entity = ctx.player().worldObj.getEntityByID(msg.entityId);
+                try
+                {
+                    AllomancyAPIImpl.INSTANCE.read(entity, (Class<? extends Misting>) Class.forName(msg.type), msg.data);
+                }
+                catch (ClassNotFoundException e)
+                {
+                    Throwables.propagate(e);
+                }
             });
             return null;
         });

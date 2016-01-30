@@ -37,10 +37,7 @@ public interface Allomancer
      * @return a present optional if this Allomancer has the ability, <code>Optional.empty()</code> otherwise
      */
     @Nonnull
-    default <T extends Misting> Optional<T> as(Class<T> type)
-    {
-        return powers().stream().filter(m -> type.isAssignableFrom(m.getClass())).map(type::cast).findFirst();
-    }
+    <T extends Misting> Optional<T> as(Class<T> type);
 
     <T extends Misting> T grantPower(Class<T> type);
 
@@ -58,5 +55,5 @@ public interface Allomancer
      * @return a view of all powers this Allomancer has access to
      */
     @Nonnull
-    Collection<Misting> powers();
+    Collection<Class<? extends Misting>> powers();
 }

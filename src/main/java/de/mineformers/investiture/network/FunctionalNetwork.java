@@ -10,6 +10,8 @@ import net.minecraft.network.INetHandler;
 import net.minecraft.network.Packet;
 import net.minecraft.server.management.PlayerManager;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.BlockPos;
+import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.fml.common.FMLLog;
 import net.minecraftforge.fml.common.network.FMLEmbeddedChannel;
@@ -170,7 +172,7 @@ public class FunctionalNetwork
      * @param message The message to send
      * @param player  The player to send it to
      */
-    public void sendTo(IMessage message, EntityPlayerMP player)
+    public void sendTo(Message message, EntityPlayerMP player)
     {
         channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(FMLOutboundHandler.OutboundTarget.PLAYER);
         channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS).set(player);
@@ -184,7 +186,7 @@ public class FunctionalNetwork
      * @param message The message to send
      * @param point   The {@link NetworkRegistry.TargetPoint} around which to send
      */
-    public void sendToAllAround(IMessage message, NetworkRegistry.TargetPoint point)
+    public void sendToAllAround(Message message, NetworkRegistry.TargetPoint point)
     {
         channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(FMLOutboundHandler.OutboundTarget.ALLAROUNDPOINT);
         channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS).set(point);
@@ -198,7 +200,7 @@ public class FunctionalNetwork
      * @param message     The message to send
      * @param dimensionId The dimension id to target
      */
-    public void sendToDimension(IMessage message, int dimensionId)
+    public void sendToDimension(Message message, int dimensionId)
     {
         channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(FMLOutboundHandler.OutboundTarget.DIMENSION);
         channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS).set(dimensionId);
@@ -211,7 +213,7 @@ public class FunctionalNetwork
      *
      * @param message The message to send
      */
-    public void sendToServer(IMessage message)
+    public void sendToServer(Message message)
     {
         channels.get(Side.CLIENT).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(FMLOutboundHandler.OutboundTarget.TOSERVER);
         channels.get(Side.CLIENT).writeAndFlush(message).addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
@@ -225,6 +227,17 @@ public class FunctionalNetwork
             for (EntityPlayer player : tileEntity.getWorld().playerEntities)
                 if (manager.isPlayerWatchingChunk((EntityPlayerMP) player, tileEntity.getPos().getX() >> 4, tileEntity.getPos().getZ() >> 4))
                     ((EntityPlayerMP) player).playerNetServerHandler.sendPacket(tileEntity.getDescriptionPacket());
+        }
+    }
+
+    public void sendToWatching(World world, BlockPos pos, Message message)
+    {
+        if (world instanceof WorldServer)
+        {
+            PlayerManager manager = ((WorldServer) world).getPlayerManager();
+            for (EntityPlayer player : world.playerEntities)
+                if (manager.isPlayerWatchingChunk((EntityPlayerMP) player, pos.getX() >> 4, pos.getZ() >> 4))
+                    sendTo(message, (EntityPlayerMP) player);
         }
     }
 
