@@ -1,11 +1,10 @@
 package de.mineformers.investiture.allomancy.api;
 
+import de.mineformers.investiture.allomancy.api.metal.Metal;
 import de.mineformers.investiture.allomancy.api.misting.Misting;
-import de.mineformers.investiture.allomancy.api.misting.Smoker;
 
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Optional;
 
@@ -38,6 +37,12 @@ public interface Allomancer
      */
     @Nonnull
     <T extends Misting> Optional<T> as(Class<T> type);
+
+    @Nonnull
+    default Optional<Misting> asMetalUser(Metal metal)
+    {
+        return powers().stream().map(this::grantPower).filter(m -> m.baseMetal().equals(metal)).findFirst();
+    }
 
     <T extends Misting> T grantPower(Class<T> type);
 

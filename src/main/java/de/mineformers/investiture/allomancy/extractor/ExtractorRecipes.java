@@ -1,7 +1,7 @@
 package de.mineformers.investiture.allomancy.extractor;
 
-import de.mineformers.investiture.allomancy.helper.AllomanticMetalItemHelper;
 import de.mineformers.investiture.allomancy.api.metal.Metal;
+import de.mineformers.investiture.allomancy.helper.AllomanticMetalItemHelper;
 import net.minecraft.item.ItemStack;
 
 import java.util.ArrayList;

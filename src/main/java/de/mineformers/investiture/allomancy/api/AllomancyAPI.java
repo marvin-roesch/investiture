@@ -6,6 +6,8 @@ import net.minecraft.entity.Entity;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Optional;
+import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
 
 /**
  * Provides access to {@link Allomancer} instances of entities.
@@ -36,4 +38,6 @@ public interface AllomancyAPI
     Optional<Allomancer> toAllomancer(Entity entity);
 
     <T extends Misting> void registerMisting(Class<T> type, MistingFactory<? extends T> factory);
+
+    <T> void registerEquality(Class<T> type, BiPredicate<T, T> predicate);
 }

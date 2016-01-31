@@ -13,5 +13,6 @@ import java.lang.annotation.Target;
 public @interface Serialise
 {
     boolean nbt() default true;
+
     boolean net() default true;
 }

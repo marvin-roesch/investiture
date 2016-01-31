@@ -110,7 +110,7 @@ public class EntityAllomancer implements Allomancer, INBTSerializable<NBTTagComp
     @Override
     public void deserializeNBT(NBTTagCompound nbt)
     {
-        for(String misting : nbt.getKeySet())
+        for (String misting : nbt.getKeySet())
         {
             NBTTagCompound mistingData = nbt.getCompoundTag(misting);
             try

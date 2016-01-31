@@ -597,7 +597,7 @@ public class Serialisation
         int count = buffer.readInt();
         for (int i = 0; i < count; i++)
         {
-            String fieldName =  ByteBufUtils.readUTF8String(buffer);
+            String fieldName = ByteBufUtils.readUTF8String(buffer);
             FieldData f = fields.get(className).stream().filter(field -> Objects.equals(field.name, fieldName)).findFirst().get();
             Translator<?, ?> translator = fieldTranslators.get(className, f.name);
             f.set(object, translator.deserialise(buffer));

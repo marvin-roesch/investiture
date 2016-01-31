@@ -55,7 +55,7 @@ public interface Translator<T, N extends NBTBase>
     @SuppressWarnings("unchecked")
     default T deserialise(Optional<NBTBase> tag)
     {
-        if(!tag.isPresent())
+        if (!tag.isPresent())
             return null;
         else
             return deserialiseImpl((N) tag.get());
