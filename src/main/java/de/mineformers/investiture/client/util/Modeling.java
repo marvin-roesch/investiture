@@ -9,10 +9,7 @@ import de.mineformers.investiture.Investiture;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.client.model.Attributes;
-import net.minecraftforge.client.model.IFlexibleBakedModel;
-import net.minecraftforge.client.model.IModel;
-import net.minecraftforge.client.model.ModelLoaderRegistry;
+import net.minecraftforge.client.model.*;
 import net.minecraftforge.client.model.obj.OBJModel;
 
 import java.io.IOException;
@@ -35,9 +32,9 @@ public class Modeling
      * @param resource the location of the model to load
      * @return the baked model if there was no error while trying to load it, substituting it with the missing model otherwise
      */
-    public static IFlexibleBakedModel loadOBJModel(ResourceLocation resource)
+    public static IFlexibleBakedModel loadModel(ResourceLocation resource)
     {
-        return loadOBJModel(resource, ImmutableMap.of());
+        return loadModel(resource, ImmutableMap.of());
     }
 
     /**
@@ -48,9 +45,9 @@ public class Modeling
      * @param textures a map from texture variables (starting with '#') in the model to the locations of the textures to use
      * @return the baked model if there was no error while trying to load it, substituting it with the missing model otherwise
      */
-    public static IFlexibleBakedModel loadOBJModel(ResourceLocation resource, Map<String, ResourceLocation> textures)
+    public static IFlexibleBakedModel loadModel(ResourceLocation resource, Map<String, ResourceLocation> textures)
     {
-        return loadOBJModel(resource, textures, ImmutableMap.of("flip-v", "true"));
+        return loadModel(resource, textures, ImmutableMap.of("flip-v", "true"));
     }
 
     /**
@@ -62,11 +59,11 @@ public class Modeling
      * @param visibleGroups the groups in the OBJ file to show in the baked model
      * @return the baked model if there was no error while trying to load it, substituting it with the missing model otherwise
      */
-    public static IFlexibleBakedModel loadOBJModel(ResourceLocation resource,
-                                                   Map<String, ResourceLocation> textures,
-                                                   List<String> visibleGroups)
+    public static IFlexibleBakedModel loadModel(ResourceLocation resource,
+                                                Map<String, ResourceLocation> textures,
+                                                List<String> visibleGroups)
     {
-        return loadOBJModel(resource, textures, visibleGroups, ImmutableMap.of("flip-v", "true"));
+        return loadModel(resource, textures, visibleGroups, ImmutableMap.of("flip-v", "true"));
     }
 
     /**
@@ -78,11 +75,11 @@ public class Modeling
      * @param customData the custom data to pass to the OBJ loader
      * @return the baked model if there was no error while trying to load it, substituting it with the missing model otherwise
      */
-    public static IFlexibleBakedModel loadOBJModel(ResourceLocation resource,
-                                                   Map<String, ResourceLocation> textures,
-                                                   ImmutableMap<String, String> customData)
+    public static IFlexibleBakedModel loadModel(ResourceLocation resource,
+                                                Map<String, ResourceLocation> textures,
+                                                ImmutableMap<String, String> customData)
     {
-        return loadOBJModel(resource, textures, ImmutableList.of(OBJModel.Group.ALL), customData);
+        return loadModel(resource, textures, ImmutableList.of(OBJModel.Group.ALL), customData);
     }
 
     /**
@@ -94,21 +91,24 @@ public class Modeling
      * @param customData    the custom data to pass to the OBJ loader
      * @return the baked model if there was no error while trying to load it, substituting it with the missing model otherwise
      */
-    public static IFlexibleBakedModel loadOBJModel(ResourceLocation resource,
-                                                   Map<String, ResourceLocation> textures,
-                                                   List<String> visibleGroups,
-                                                   ImmutableMap<String, String> customData)
+    public static IFlexibleBakedModel loadModel(ResourceLocation resource,
+                                                Map<String, ResourceLocation> textures,
+                                                List<String> visibleGroups,
+                                                ImmutableMap<String, String> customData)
     {
         try
         {
-            IModel iModel = ModelLoaderRegistry.getModel(resource);
-            if (iModel instanceof OBJModel)
+            IModel model = ModelLoaderRegistry.getModel(resource);
+            if (model instanceof IRetexturableModel)
             {
-                OBJModel obj = (OBJModel) iModel;
-                IModel model = ((OBJModel) obj.retexture(FluentIterable.from(textures.keySet())
-                                                                       .toMap(k -> textures.get(k).toString()))).process(customData);
-                return model.bake(new OBJModel.OBJState(visibleGroups, true), Attributes.DEFAULT_BAKED_FORMAT, TEXTURE_GETTER);
+                model = ((IRetexturableModel) model).retexture(FluentIterable.from(textures.keySet())
+                                                                             .toMap(k -> textures.get(k).toString()));
             }
+            if (model instanceof IModelCustomData)
+            {
+                model = ((IModelCustomData) model).process(customData);
+            }
+            return model.bake(new OBJModel.OBJState(visibleGroups, true), Attributes.DEFAULT_BAKED_FORMAT, TEXTURE_GETTER);
         }
         catch (IOException e)
         {

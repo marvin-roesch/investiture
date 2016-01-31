@@ -54,15 +54,15 @@ public class MetalExtractorRenderer extends TileEntitySpecialRenderer<TileMetalE
     @Override
     public void onResourceManagerReload(IResourceManager resourceManager)
     {
-        modelFrame = Modeling.loadOBJModel(Allomancy.resource("block/metal_extractor.obj"),
-                                           ImmutableMap.of("#extractor", Allomancy.resource("blocks/metal_extractor")),
-                                           ImmutableList.of("Frame"));
-        modelGrinder = Modeling.loadOBJModel(Allomancy.resource("block/metal_extractor.obj"),
-                                             ImmutableMap.of("#extractor", Allomancy.resource("blocks/metal_extractor")),
-                                             ImmutableList.of("Grinder"));
-        modelWaterWheel = Modeling.loadOBJModel(Allomancy.resource("block/metal_extractor.obj"),
-                                                ImmutableMap.of("#wood", new ResourceLocation("blocks/planks_oak")),
-                                                ImmutableList.of("WaterWheel", "WaterWheelConnection"));
+        modelFrame = Modeling.loadModel(Allomancy.resource("block/metal_extractor.obj"),
+                                        ImmutableMap.of("#extractor", Allomancy.resource("blocks/metal_extractor")),
+                                        ImmutableList.of("Frame"));
+        modelGrinder = Modeling.loadModel(Allomancy.resource("block/metal_extractor.obj"),
+                                          ImmutableMap.of("#extractor", Allomancy.resource("blocks/metal_extractor")),
+                                          ImmutableList.of("Grinder"));
+        modelWaterWheel = Modeling.loadModel(Allomancy.resource("block/metal_extractor.obj"),
+                                             ImmutableMap.of("#wood", new ResourceLocation("blocks/planks_oak")),
+                                             ImmutableList.of("WaterWheel", "WaterWheelConnection"));
     }
 
     @Override
