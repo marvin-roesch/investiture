@@ -33,7 +33,7 @@
         "textures": {
           "particle": "allomancy:blocks/metal_extractor_frame"
         },
-        "model": "builtin/generated"
+        "model": "investiture:empty"
       },
       "false": {
         "model": "cube_all"

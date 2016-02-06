@@ -253,35 +253,30 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
         predicates.put('W', part(WHEEL));
         predicates.put('A', s -> true);
         multiBlock = BlockRecipe.start()
+                                .layer("FFFFFA",
+                                       "FFFFFW",
+                                       "FFFFFW",
+                                       "FFFFFW",
+                                       "FFFFFA")
+                                .layer("FFCFFW",
+                                       "GgggFW",
+                                       "GgggFW",
+                                       "GgggFW",
+                                       "FFCFFW")
+                                .layer("FFFFFW",
+                                       "GgggFW",
+                                       "GgggFW",
+                                       "GgggFW",
+                                       "FFFFFW")
+                                .layer("FFFFFW",
+                                       "FFFFFW",
+                                       "FFFFFW",
+                                       "FFFFFW",
+                                       "FFFFFW")
                                 .layer("AAAAAA",
-                                       "AAAAAA",
-                                       "AAAAAA",
-                                       "AAAAAA",
-                                       "AAAAAA")
-                                .layer("AFFFFF",
-                                       "WFFFFF",
-                                       "WFFFFF",
-                                       "WFFFFF",
-                                       "AFFFFF")
-                                .layer("WFFCFF",
-                                       "WFgggG",
-                                       "WFgggG",
-                                       "WFgggG",
-                                       "WFFCFF")
-                                .layer("WFFFFF",
-                                       "WFgggG",
-                                       "WFgggG",
-                                       "WFgggG",
-                                       "WFFFFF")
-                                .layer("WFFFFF",
-                                       "WFFFFF",
-                                       "WFFFFF",
-                                       "WFFFFF",
-                                       "WFFFFF")
-                                .layer("AAAAAA",
-                                       "WAAAAA",
-                                       "WAAAAA",
-                                       "WAAAAA",
+                                       "AAAAAW",
+                                       "AAAAAW",
+                                       "AAAAAW",
                                        "AAAAAA")
                                 .build(predicates.build());
     }
@@ -305,7 +300,7 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
             this.orientation = orientation.get();
             ImmutableList.Builder<BlockPos> childrenBuilder = ImmutableList.builder();
             EnumFacing horizontal = getHorizontal();
-            BlockPos corner = pos.offset(horizontal.getOpposite(), 3).down(2);
+            BlockPos corner = pos.offset(horizontal.getOpposite(), 2).down();
             if (multiBlock.validate(worldObj, corner, p -> {
                 if (!p.getPos().equals(pos) && p.getBlockState().getBlock() instanceof ExtractorPart)
                 {
@@ -429,7 +424,17 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
 
     public EnumFacing getHorizontal()
     {
-        return orientation.getAxis() == EnumFacing.Axis.X ? EnumFacing.SOUTH : EnumFacing.EAST;
+        switch (orientation)
+        {
+            case NORTH:
+                return EnumFacing.EAST;
+            case SOUTH:
+                return EnumFacing.WEST;
+            case WEST:
+                return EnumFacing.NORTH;
+            default:
+                return EnumFacing.SOUTH;
+        }
     }
 
     public void processUpdate(MetalExtractorUpdate update)

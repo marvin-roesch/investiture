@@ -2,7 +2,6 @@ package de.mineformers.investiture.allomancy.block;
 
 import de.mineformers.investiture.Investiture;
 import de.mineformers.investiture.allomancy.extractor.ExtractorPart;
-import de.mineformers.investiture.allomancy.tileentity.TileMetalExtractorMaster;
 import de.mineformers.investiture.allomancy.tileentity.TileMetalExtractorSlave;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
@@ -11,14 +10,13 @@ import net.minecraft.block.properties.PropertyEnum;
 import net.minecraft.block.state.BlockState;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.entity.Entity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.EnumWorldBlockLayer;
-import net.minecraft.util.IStringSerializable;
-import net.minecraft.util.MathHelper;
+import net.minecraft.util.*;
+import net.minecraft.world.Explosion;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
@@ -75,6 +73,40 @@ public class MetalExtractor extends Block implements ExtractorPart
         setUnlocalizedName("metal_extractor");
         setCreativeTab(Investiture.CREATIVE_TAB);
         setRegistryName("metal_extractor");
+    }
+
+    @Override
+    public float getBlockHardness(World world, BlockPos pos)
+    {
+        IBlockState state = world.getBlockState(pos);
+        if(state.getBlock() == this)
+        {
+            switch (state.getValue(PART))
+            {
+                case GLASS:
+                    return 0.3f;
+                default:
+                    return 2;
+            }
+        }
+        return super.getBlockHardness(world, pos);
+    }
+
+    @Override
+    public float getExplosionResistance(World world, BlockPos pos, Entity exploder, Explosion explosion)
+    {
+        IBlockState state = world.getBlockState(pos);
+        if(state.getBlock() == this)
+        {
+            switch (state.getValue(PART))
+            {
+                case GLASS:
+                    return 0;
+                default:
+                    return 2;
+            }
+        }
+        return super.getBlockHardness(world, pos);
     }
 
     /**
@@ -135,6 +167,16 @@ public class MetalExtractor extends Block implements ExtractorPart
         if (world.getBlockState(pos).getBlock() != this)
             return super.getLightOpacity(world, pos);
         return world.getBlockState(pos).getValue(PART) == Part.GLASS || world.getBlockState(pos).getValue(BUILT) ? 0 : 255;
+    }
+
+    @Override
+    public boolean shouldSideBeRendered(IBlockAccess world, BlockPos pos, EnumFacing side)
+    {
+        IBlockState state = world.getBlockState(pos);
+        IBlockState oppositeState = world.getBlockState(pos.offset(side.getOpposite()));
+        return !(oppositeState.getBlock() == this && state.getBlock() == this &&
+            state.getValue(PART) == Part.GLASS && oppositeState.getValue(PART) == Part.GLASS) &&
+            super.shouldSideBeRendered(world, pos, side);
     }
 
     @Override
