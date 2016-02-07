@@ -1,11 +1,5 @@
+newmtl extractor
+Kd 1 1 1
+
 newmtl wood
-Kd 1 1 1
-
-newmtl frame
-Kd 1 1 1
-
-newmtl glass
-Kd 1 1 1
-
-newmtl grinder
 Kd 1 1 1

@@ -1,6 +1,8 @@
 package de.mineformers.investiture.allomancy.tileentity;
 
-import com.google.common.collect.*;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import de.mineformers.investiture.Investiture;
 import de.mineformers.investiture.allomancy.Allomancy;
 import de.mineformers.investiture.allomancy.block.MetalExtractor;
@@ -15,6 +17,7 @@ import de.mineformers.investiture.multiblock.BlockRecipe;
 import de.mineformers.investiture.multiblock.MultiBlock;
 import de.mineformers.investiture.multiblock.MultiBlockPart;
 import de.mineformers.investiture.util.Fluids;
+import de.mineformers.investiture.util.Fluids.FlowPoint;
 import de.mineformers.investiture.util.Functional;
 import de.mineformers.investiture.util.ItemStacks;
 import net.minecraft.block.state.BlockWorldState;
@@ -33,10 +36,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
 
 import javax.annotation.Nonnull;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Predicate;
 
 import static de.mineformers.investiture.allomancy.block.MetalExtractor.Part.*;
@@ -71,8 +71,8 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
     private ItemStack[] inventory = new ItemStack[3];
     @Nonnull
     private Optional<Processor> processing = Optional.empty();
-    private Multimap<Boolean, BlockPos> verticalFluidPositions = HashMultimap.create();
-    private Multimap<Boolean, BlockPos> horizontalFluidPositions = HashMultimap.create();
+    private List<FlowPoint> verticalFluidPositions = new ArrayList<>();
+    private List<FlowPoint> horizontalFluidPositions = new ArrayList<>();
     private double power = 0;
     public float prevRotation = 0;
     public float rotation = 0;
@@ -84,7 +84,7 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
             return;
         if (!checkedValidity)
         {
-            validMultiBlock = validateMultiBlock();
+            revalidateMultiBlock();
             checkedValidity = true;
         }
         if (isValidMultiBlock())
@@ -92,9 +92,6 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
             prevRotation = rotation;
             double oldPower = power;
             power = calculateFlow();
-            double perTick = 360f / 1440 * (1 / 360f) * power;
-            rotation += perTick;
-            rotation %= 1;
             if (power == 0)
             {
                 if (power != oldPower)
@@ -107,10 +104,13 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
                 inventory[SECONDARY_OUTPUT_SLOT] = null;
             if (processing.isPresent())
             {
+                double perTick = 360f / 1440 * (1 / 360f) * power;
+                rotation += perTick;
+                rotation %= 1;
                 Processor current = processing.get();
-                if (current.timer < 40)
+                if (current.timer < getProcessingTime())
                     current.timer++;
-                if (current.timer >= 40)
+                if (current.timer >= getProcessingTime())
                 {
                     ItemStack primaryOutput = current.output.getPrimaryResult().copy();
                     ItemStack primaryFit = null;
@@ -174,6 +174,12 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
         }
     }
 
+    @Override
+    public int getInventoryStackLimit()
+    {
+        return 1;
+    }
+
     public ItemStack primaryOutput()
     {
         return inventory[PRIMARY_OUTPUT_SLOT];
@@ -190,6 +196,16 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
         return processing;
     }
 
+    public double getProcessingTime()
+    {
+        return 100 / Math.abs(power);
+    }
+
+    public double getPower()
+    {
+        return power;
+    }
+
     @Override
     public void writeToNBT(NBTTagCompound compound)
     {
@@ -200,6 +216,7 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
         compound.setTag("Children", children);
         compound.setBoolean("ValidMultiBlock", validMultiBlock);
         compound.setInteger("Orientation", orientation.getHorizontalIndex());
+        compound.setFloat("Rotation", rotation);
         writeInventoryToNBT(compound);
     }
 
@@ -214,6 +231,7 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
         this.children = childrenBuilder.build();
         this.validMultiBlock = compound.getBoolean("ValidMultiBlock");
         this.orientation = EnumFacing.getHorizontal(compound.getInteger("Orientation"));
+        this.rotation = compound.getFloat("Rotation");
         readInventoryFromNBT(compound);
     }
 
@@ -235,35 +253,30 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
         predicates.put('W', part(WHEEL));
         predicates.put('A', s -> true);
         multiBlock = BlockRecipe.start()
+                                .layer("FFFFFA",
+                                       "FFFFFW",
+                                       "FFFFFW",
+                                       "FFFFFW",
+                                       "FFFFFA")
+                                .layer("FFCFFW",
+                                       "GgggFW",
+                                       "GgggFW",
+                                       "GgggFW",
+                                       "FFCFFW")
+                                .layer("FFFFFW",
+                                       "GgggFW",
+                                       "GgggFW",
+                                       "GgggFW",
+                                       "FFFFFW")
+                                .layer("FFFFFW",
+                                       "FFFFFW",
+                                       "FFFFFW",
+                                       "FFFFFW",
+                                       "FFFFFW")
                                 .layer("AAAAAA",
-                                       "AAAAAA",
-                                       "AAAAAA",
-                                       "AAAAAA",
-                                       "AAAAAA")
-                                .layer("AFFFFF",
-                                       "WFFFFF",
-                                       "WFFFFF",
-                                       "WFFFFF",
-                                       "AFFFFF")
-                                .layer("WFGCGF",
-                                       "WFgggF",
-                                       "WFgggF",
-                                       "WFgggF",
-                                       "WFGCGF")
-                                .layer("WFGGGF",
-                                       "WFgggF",
-                                       "WFgggF",
-                                       "WFgggF",
-                                       "WFGGGF")
-                                .layer("WFFFFF",
-                                       "WFFFFF",
-                                       "WFFFFF",
-                                       "WFFFFF",
-                                       "WFFFFF")
-                                .layer("AAAAAA",
-                                       "WAAAAA",
-                                       "WAAAAA",
-                                       "WAAAAA",
+                                       "AAAAAW",
+                                       "AAAAAW",
+                                       "AAAAAW",
                                        "AAAAAA")
                                 .build(predicates.build());
     }
@@ -287,7 +300,7 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
             this.orientation = orientation.get();
             ImmutableList.Builder<BlockPos> childrenBuilder = ImmutableList.builder();
             EnumFacing horizontal = getHorizontal();
-            BlockPos corner = pos.offset(horizontal.getOpposite(), 3).down(2);
+            BlockPos corner = pos.offset(horizontal.getOpposite(), 2).down();
             if (multiBlock.validate(worldObj, corner, p -> {
                 if (!p.getPos().equals(pos) && p.getBlockState().getBlock() instanceof ExtractorPart)
                 {
@@ -322,66 +335,57 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
             case 36:
             case 42:
             case 48:
-                horizontalFluidPositions.put(true, part.getPos().down().subtract(pos));
+                horizontalFluidPositions.add(FlowPoint.withAddition(part.getPos().down().subtract(pos)));
                 break;
             case 60:
-                horizontalFluidPositions.put(true, part.getPos().down().subtract(pos));
-                verticalFluidPositions.put(true, part.getPos().offset(orientation.getOpposite()).subtract(pos));
+                horizontalFluidPositions.add(FlowPoint.withAddition(part.getPos().down().subtract(pos)));
+                verticalFluidPositions.add(FlowPoint.withAddition(part.getPos().offset(orientation.getOpposite()).subtract(pos)));
                 break;
             case 84:
-                horizontalFluidPositions.put(true, part.getPos().down().subtract(pos));
-                verticalFluidPositions.put(false, part.getPos().offset(orientation).subtract(pos));
+                horizontalFluidPositions.add(FlowPoint.withAddition(part.getPos().down().subtract(pos)));
+                verticalFluidPositions.add(FlowPoint.withSubtraction(part.getPos().offset(orientation).subtract(pos)));
                 break;
             case 90:
-                verticalFluidPositions.put(true, part.getPos().offset(orientation.getOpposite()).subtract(pos));
+                verticalFluidPositions.add(FlowPoint.withAddition(part.getPos().offset(orientation.getOpposite()).subtract(pos)));
                 break;
             case 114:
-                verticalFluidPositions.put(false, part.getPos().offset(orientation).subtract(pos));
+                verticalFluidPositions.add(FlowPoint.withSubtraction(part.getPos().offset(orientation).subtract(pos)));
                 break;
             case 120:
-                horizontalFluidPositions.put(false, part.getPos().up().subtract(pos));
-                verticalFluidPositions.put(true, part.getPos().offset(orientation.getOpposite()).subtract(pos));
+                horizontalFluidPositions.add(FlowPoint.withSubtraction(part.getPos().up().subtract(pos)));
+                verticalFluidPositions.add(FlowPoint.withAddition(part.getPos().offset(orientation.getOpposite()).subtract(pos)));
                 break;
             case 144:
-                horizontalFluidPositions.put(false, part.getPos().up().subtract(pos));
-                verticalFluidPositions.put(false, part.getPos().offset(orientation).subtract(pos));
+                horizontalFluidPositions.add(FlowPoint.withSubtraction(part.getPos().up().subtract(pos)));
+                verticalFluidPositions.add(FlowPoint.withSubtraction(part.getPos().offset(orientation).subtract(pos)));
                 break;
             case 156:
             case 162:
             case 168:
-                horizontalFluidPositions.put(false, part.getPos().up().subtract(pos));
+                horizontalFluidPositions.add(FlowPoint.withSubtraction(part.getPos().up().subtract(pos)));
                 break;
         }
     }
 
     private double calculateFlow()
     {
-        Vec3 horizontal = new Vec3(0, 0, 0);
-        for (Map.Entry<Boolean, BlockPos> entry : horizontalFluidPositions.entries())
-        {
-            Vec3 flowVector = Fluids.getFlowVector(worldObj, pos.add(entry.getValue()));
-            if (entry.getKey())
-                horizontal = horizontal.add(flowVector);
-            else
-                horizontal = horizontal.subtract(flowVector);
-        }
-
-        Vec3 vertical = new Vec3(0, 0, 0);
-        for (Map.Entry<Boolean, BlockPos> entry : verticalFluidPositions.entries())
-        {
-            Vec3 flowVector = Fluids.getFlowVector(worldObj, pos.add(entry.getValue()));
-            if (entry.getKey())
-                vertical = vertical.add(flowVector);
-            else
-                vertical = vertical.subtract(flowVector);
-        }
+        Vec3 horizontal = Fluids.getFlowVector(worldObj, pos, horizontalFluidPositions);
+        Vec3 vertical = Fluids.getFlowVector(worldObj, pos, verticalFluidPositions);
         return Math.abs(orientation.getFrontOffsetX()) * horizontal.xCoord +
             Math.abs(orientation.getFrontOffsetZ()) * horizontal.zCoord + vertical.yCoord;
     }
 
-    public void invalidateMultiBlock()
+    public void revalidateMultiBlock()
     {
-        if (!validMultiBlock)
+        if (!validateMultiBlock())
+        {
+            invalidateMultiBlock(true);
+        }
+    }
+
+    public void invalidateMultiBlock(boolean force)
+    {
+        if (!validMultiBlock && !force)
             return;
         for (BlockPos child : children)
         {
@@ -420,7 +424,17 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
 
     public EnumFacing getHorizontal()
     {
-        return orientation.getAxis() == EnumFacing.Axis.X ? EnumFacing.SOUTH : EnumFacing.EAST;
+        switch (orientation)
+        {
+            case NORTH:
+                return EnumFacing.EAST;
+            case SOUTH:
+                return EnumFacing.WEST;
+            case WEST:
+                return EnumFacing.NORTH;
+            default:
+                return EnumFacing.SOUTH;
+        }
     }
 
     public void processUpdate(MetalExtractorUpdate update)
@@ -437,6 +451,7 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
         }
         this.rotation = update.rotation;
         this.prevRotation = update.prevRotation;
+        this.power = update.power;
     }
 
     @Override
@@ -451,7 +466,7 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
         ItemStack processingStack = processing.isPresent() ? processing.get().input : null;
         int processingTimer = processing.isPresent() ? processing.get().timer : -1;
         return Investiture.net().getPacketFrom(
-            new MetalExtractorUpdate(pos, validMultiBlock, orientation, processingStack, processingTimer, rotation, prevRotation));
+            new MetalExtractorUpdate(pos, validMultiBlock, orientation, processingStack, processingTimer, rotation, prevRotation, power));
     }
 
     @Override
