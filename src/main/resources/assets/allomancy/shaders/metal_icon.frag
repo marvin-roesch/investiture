@@ -6,7 +6,7 @@ uniform float deltaBrightness;
 uniform vec3 backColour;
 uniform vec3 impurityColour;
 uniform vec3 metalColour;
-uniform vec3 hoverdColour;
+uniform vec3 hoveredColour;
 
 uniform bool hovered;
 
@@ -49,7 +49,7 @@ void main()
     vec3 impurityHSV = rgb2hsv(impurityColour);
     vec3 impurityColourEnd = hsv2rgb(vec3(impurityHSV.x, impurityHSV.y, impurityHSV.z - deltaBrightness));
 
-    vec3 hoverHSV = rgb2hsv(hoverdColour);
+    vec3 hoverHSV = rgb2hsv(hoveredColour);
     vec3 hoverColourEnd = hsv2rgb(vec3(hoverHSV.x, hoverHSV.y, hoverHSV.z - deltaBrightness));
 
     vec3 colourStart = vec3(0, 0, 0);
@@ -71,8 +71,8 @@ void main()
     else
     {
         // The UVs are not in the range of any level, so use the default ones
-        colourStart = backColour;
-        colourEnd = backColourEnd;
+        colourStart = hovered ? hoveredColour : backColour;
+        colourEnd = hovered ? hoverColourEnd : backColourEnd;
     }
 
     // Calculate a gradient from top left to bottom right

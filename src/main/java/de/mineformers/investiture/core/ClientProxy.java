@@ -1,6 +1,8 @@
 package de.mineformers.investiture.core;
 
 import de.mineformers.investiture.client.util.Textures;
+import net.minecraft.client.Minecraft;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 
 /**
@@ -12,5 +14,10 @@ public class ClientProxy implements Proxy
     public void preInit(FMLPreInitializationEvent event)
     {
         Textures.init();
+    }
+
+    public EntityPlayer localPlayer()
+    {
+        return Minecraft.getMinecraft().thePlayer;
     }
 }

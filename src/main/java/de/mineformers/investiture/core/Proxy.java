@@ -6,6 +6,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.resources.model.ModelBakery;
 import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
@@ -48,6 +49,10 @@ public interface Proxy
      */
     default void postInit(FMLPostInitializationEvent event)
     {
+    }
+
+    default EntityPlayer localPlayer() {
+        return null;
     }
 
     /**

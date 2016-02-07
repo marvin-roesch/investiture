@@ -1,9 +1,8 @@
-package de.mineformers.investiture.allomancy.metal;
+package de.mineformers.investiture.allomancy.api.metal;
 
 import de.mineformers.investiture.Investiture;
 import de.mineformers.investiture.allomancy.Allomancy;
 import de.mineformers.investiture.allomancy.network.EntityMetalStorageUpdate;
-import de.mineformers.investiture.network.Message;
 import gnu.trove.TCollections;
 import gnu.trove.map.TObjectIntMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
@@ -191,7 +190,7 @@ public class MetalStorage
     /**
      * Translates a metal storage to and from a byte buffer
      */
-    public static class Translator implements Message.Translator<MetalStorage>
+    public static class Translator implements de.mineformers.investiture.serialisation.Translator<MetalStorage, NBTTagCompound>
     {
         @Override
         public void serialiseImpl(MetalStorage value, ByteBuf buffer)
@@ -231,6 +230,18 @@ public class MetalStorage
             }
 
             return storage;
+        }
+
+        @Override
+        public NBTTagCompound serialiseImpl(MetalStorage value)
+        {
+            return null;
+        }
+
+        @Override
+        public MetalStorage deserialiseImpl(NBTTagCompound tag)
+        {
+            return null;
         }
     }
 

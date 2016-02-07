@@ -1,4 +1,4 @@
-package de.mineformers.investiture.allomancy.metal;
+package de.mineformers.investiture.allomancy.api.metal;
 
 /**
  * Provides access to the user of a metal after they start or stop burning it.

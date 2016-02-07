@@ -2,13 +2,18 @@ package de.mineformers.investiture.network;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
+import de.mineformers.investiture.serialisation.Serialisation;
 import io.netty.channel.*;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityTracker;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.network.INetHandler;
 import net.minecraft.network.Packet;
 import net.minecraft.server.management.PlayerManager;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.BlockPos;
+import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.fml.common.FMLLog;
 import net.minecraftforge.fml.common.network.FMLEmbeddedChannel;
@@ -119,7 +124,7 @@ public class FunctionalNetwork
     public <IN extends Message> void registerMessage(Class<IN> type, int discriminator)
     {
         packetCodec.addDiscriminator(discriminator, type);
-        Serialisation.INSTANCE.registerMessage(type);
+        Serialisation.INSTANCE.registerClass(type, false);
         if (lastDiscriminator < discriminator) lastDiscriminator = discriminator;
     }
 
@@ -166,10 +171,10 @@ public class FunctionalNetwork
      * Send this message to the specified player.
      * The {@link IMessageHandler} for this message type should be on the CLIENT side.
      *
-     * @param message The message to send
      * @param player  The player to send it to
+     * @param message The message to send
      */
-    public void sendTo(IMessage message, EntityPlayerMP player)
+    public void sendTo(EntityPlayerMP player, Message message)
     {
         channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(FMLOutboundHandler.OutboundTarget.PLAYER);
         channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS).set(player);
@@ -180,10 +185,10 @@ public class FunctionalNetwork
      * Send this message to everyone within a certain range of a point.
      * The {@link IMessageHandler} for this message type should be on the CLIENT side.
      *
-     * @param message The message to send
      * @param point   The {@link NetworkRegistry.TargetPoint} around which to send
+     * @param message The message to send
      */
-    public void sendToAllAround(IMessage message, NetworkRegistry.TargetPoint point)
+    public void sendToAllAround(NetworkRegistry.TargetPoint point, Message message)
     {
         channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(FMLOutboundHandler.OutboundTarget.ALLAROUNDPOINT);
         channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS).set(point);
@@ -194,10 +199,10 @@ public class FunctionalNetwork
      * Send this message to everyone within the supplied dimension.
      * The {@link IMessageHandler} for this message type should be on the CLIENT side.
      *
-     * @param message     The message to send
      * @param dimensionId The dimension id to target
+     * @param message     The message to send
      */
-    public void sendToDimension(IMessage message, int dimensionId)
+    public void sendToDimension(int dimensionId, Message message)
     {
         channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(FMLOutboundHandler.OutboundTarget.DIMENSION);
         channels.get(Side.SERVER).attr(FMLOutboundHandler.FML_MESSAGETARGETARGS).set(dimensionId);
@@ -210,7 +215,7 @@ public class FunctionalNetwork
      *
      * @param message The message to send
      */
-    public void sendToServer(IMessage message)
+    public void sendToServer(Message message)
     {
         channels.get(Side.CLIENT).attr(FMLOutboundHandler.FML_MESSAGETARGET).set(FMLOutboundHandler.OutboundTarget.TOSERVER);
         channels.get(Side.CLIENT).writeAndFlush(message).addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
@@ -224,6 +229,29 @@ public class FunctionalNetwork
             for (EntityPlayer player : tileEntity.getWorld().playerEntities)
                 if (manager.isPlayerWatchingChunk((EntityPlayerMP) player, tileEntity.getPos().getX() >> 4, tileEntity.getPos().getZ() >> 4))
                     ((EntityPlayerMP) player).playerNetServerHandler.sendPacket(tileEntity.getDescriptionPacket());
+        }
+    }
+
+    public void sendToWatching(World world, BlockPos pos, Message message)
+    {
+        if (world instanceof WorldServer)
+        {
+            PlayerManager manager = ((WorldServer) world).getPlayerManager();
+            for (EntityPlayer player : world.playerEntities)
+                if (manager.isPlayerWatchingChunk((EntityPlayerMP) player, pos.getX() >> 4, pos.getZ() >> 4))
+                    sendTo((EntityPlayerMP) player, message);
+        }
+    }
+
+    public void sendToTracking(Entity entity, Message message)
+    {
+        if (entity.worldObj instanceof WorldServer)
+        {
+            EntityTracker tracker = ((WorldServer) entity.worldObj).getEntityTracker();
+            for(EntityPlayer p : tracker.getTrackingPlayers(entity))
+                sendTo((EntityPlayerMP) p, message);
+            if(entity instanceof EntityPlayerMP)
+                sendTo((EntityPlayerMP) entity, message);
         }
     }
 

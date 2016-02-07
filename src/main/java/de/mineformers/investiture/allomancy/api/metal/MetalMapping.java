@@ -1,4 +1,4 @@
-package de.mineformers.investiture.allomancy.metal;
+package de.mineformers.investiture.allomancy.api.metal;
 
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.oredict.OreDictionary;

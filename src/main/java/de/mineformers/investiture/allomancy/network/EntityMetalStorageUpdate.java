@@ -1,6 +1,6 @@
 package de.mineformers.investiture.allomancy.network;
 
-import de.mineformers.investiture.allomancy.metal.MetalStorage;
+import de.mineformers.investiture.allomancy.api.metal.MetalStorage;
 import de.mineformers.investiture.network.Message;
 
 /**

@@ -2,14 +2,15 @@ package de.mineformers.investiture.allomancy.client.gui;
 
 import de.mineformers.investiture.Investiture;
 import de.mineformers.investiture.allomancy.Allomancy;
-import de.mineformers.investiture.allomancy.metal.Metal;
-import de.mineformers.investiture.allomancy.metal.MetalBurner;
-import de.mineformers.investiture.allomancy.metal.MetalStorage;
-import de.mineformers.investiture.allomancy.metal.Metals;
+import de.mineformers.investiture.allomancy.api.Allomancer;
+import de.mineformers.investiture.allomancy.api.metal.Metal;
+import de.mineformers.investiture.allomancy.api.metal.Metals;
+import de.mineformers.investiture.allomancy.impl.AllomancyAPIImpl;
 import de.mineformers.investiture.allomancy.network.ToggleBurningMetal;
 import de.mineformers.investiture.client.KeyBindings;
 import de.mineformers.investiture.client.renderer.Shader;
 import de.mineformers.investiture.client.util.Colour;
+import de.mineformers.investiture.client.util.Guis;
 import de.mineformers.investiture.client.util.Rendering;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
@@ -18,6 +19,7 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.WorldRenderer;
 import net.minecraft.client.resources.I18n;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.ResourceLocation;
@@ -28,9 +30,11 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.input.Mouse;
 
-import java.util.Arrays;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
+import static de.mineformers.investiture.allomancy.api.metal.Metals.*;
 import static java.lang.Math.*;
 import static org.lwjgl.opengl.GL11.*;
 
@@ -39,40 +43,50 @@ import static org.lwjgl.opengl.GL11.*;
  */
 public class MetalSelectionHUD
 {
-    public static final String[] METALS = {
-        "bronze", "brass", "copper", "zinc", "tin", "iron", "pewter", "steel",
-        "duralumin", "nicrosil", "aluminium", "chromium", "gold", "cadmium", "electrum", "bendalloy"
+    private static final Metal[] METALS = {
+        BRONZE, BRASS, COPPER, ZINC, TIN, IRON, PEWTER, STEEL,
+        DURALUMIN, NICROSIL, ALUMINIUM, CHROMIUM, GOLD, CADMIUM, ELECTRUM, BENDALLOY
     };
-    public static final ResourceLocation[] METAL_TEXTURES = (ResourceLocation[])
-        Arrays.stream(METALS)
-              .map(m -> new ResourceLocation(Allomancy.DOMAIN, "textures/metals/" + m + ".png"))
-              .toArray(ResourceLocation[]::new);
+    public static final Map<Metal, ResourceLocation> METAL_TEXTURES =
+        Metals.BASE_METALS.stream()
+                          .collect(Collectors.toMap(m -> m, m -> new ResourceLocation(Allomancy.DOMAIN, "textures/metals/" + m.id() + ".png")));
     public static final ResourceLocation WHEEL_BG_TEXTURE = new ResourceLocation(Allomancy.DOMAIN, "textures/gui/wheel_background.png");
     public static final ResourceLocation WHEEL_TEXTURE = new ResourceLocation(Allomancy.DOMAIN, "textures/gui/wheel.png");
-    private double mouseX, mouseY;
     private Optional<Metal> hoveredMetal = Optional.empty();
     private boolean display;
-    private Vec3 previousRotation = new Vec3(0, 0, 0);
     private final Shader wheelShader = new Shader(new ResourceLocation(Allomancy.DOMAIN, "metal_wheel"),
                                                   new ResourceLocation(Allomancy.DOMAIN, "metal_wheel"));
     private final Shader iconShader = new Shader(null, new ResourceLocation(Allomancy.DOMAIN, "metal_icon"));
 
-    /**
-     * Renders the actual HUD
-     *
-     * @param event the event triggering this method
-     */
     @SubscribeEvent
-    public void onRenderOverlay(RenderGameOverlayEvent.Post event)
+    public void onRenderOverlay(RenderGameOverlayEvent.Pre event)
     {
-        // We only need to draw if everything else on the screen was and only if the key binding is active
-        if (event.type != RenderGameOverlayEvent.ElementType.ALL || !display)
+        if (!display || event.type != RenderGameOverlayEvent.ElementType.CROSSHAIRS)
             return;
+        event.setCanceled(true);
+        int centreX = event.resolution.getScaledWidth() / 2;
+        int centreY = event.resolution.getScaledHeight() / 2;
+        int mouseX = Guis.getMouseX(event.resolution);
+        int mouseY = Guis.getMouseY(event.resolution);
 
-        // We need the ScaledResolution for properly positioning objects disregarding the user's settings
-        ScaledResolution sr = new ScaledResolution(Minecraft.getMinecraft());
-        int centreX = sr.getScaledWidth() / 2;
-        int centreY = sr.getScaledHeight() / 2;
+        hoveredMetal = Optional.empty();
+        for (int i = 0; i < METALS.length / 2; i++)
+        {
+            double angle = PI / 4 * (i + 0.5);
+            int startX = centreX + (int) (cos(angle) * 40) - 8;
+            int startY = centreY - (int) (sin(angle) * 40) - 8;
+            int endX = startX + 16;
+            int endY = startY + 16;
+            if (mouseX >= startX && mouseX <= endX && mouseY >= startY && mouseY <= endY)
+                hoveredMetal = Optional.of(METALS[i * 2]);
+            angle = PI / 4 * (i + 0.5);
+            startX = centreX + (int) (cos(angle) * 75) - 8;
+            startY = centreY - (int) (sin(angle) * 75) - 8;
+            endX = startX + 16;
+            endY = startY + 16;
+            if (mouseX >= startX && mouseX <= endX && mouseY >= startY && mouseY <= endY)
+                hoveredMetal = Optional.of(METALS[i * 2 + 1]);
+        }
 
         // We need blending or we won't get translucency
         GlStateManager.enableBlend();
@@ -177,7 +191,7 @@ public class MetalSelectionHUD
     private void drawMetalIcons(int centreX, int centreY)
     {
         GlStateManager.color(1, 1, 1, 1);
-        MetalBurner burner = MetalBurner.from(Minecraft.getMinecraft().thePlayer);
+        Allomancer allomancer = AllomancyAPIImpl.INSTANCE.toAllomancer(Minecraft.getMinecraft().thePlayer).get();
         // The icon shader will replace the colours of the metal icons entirely, depending on the amount stored of the respective metal
         iconShader.activate();
         iconShader.setUniformInt("tex", 0);
@@ -188,30 +202,34 @@ public class MetalSelectionHUD
         for (int i = 0; i < METALS.length / 2; i++)
         {
             double angle = PI / 4 * (i + 0.5);
-            Metal innerMetal = Metals.get(METALS[i * 2]).get();
+            Metal innerMetal = METALS[i * 2];
             iconShader.setUniformBool("hovered", hoveredMetal.orElse(null) == innerMetal);
             // Change the main colour of the icon if the metal is burning
-            iconShader.setUniform("backColour", burner.isBurning(innerMetal) ? new Vec3(205 / 255f, 43 / 255f, 0)
-                                                                             : new Vec3(0.1f, 0.1f, 0.1f));
-            iconShader.setUniformFloat("metalLevel", (float) burner.get(innerMetal) / MetalStorage.MAX_STORAGE);
-            iconShader.setUniformFloat("impurityLevel", (float) burner.getImpurity(innerMetal) / MetalStorage.MAX_STORAGE);
+            iconShader.setUniform("backColour", allomancer.activePowers().contains(innerMetal.mistingType()) ? new Vec3(205 / 255f, 43 / 255f, 0)
+                                                                                                             : new Vec3(0.1f, 0.1f, 0.1f));
+//            iconShader.setUniformFloat("metalLevel", (float) burner.get(innerMetal) / MetalStorage.MAX_STORAGE);
+//            iconShader.setUniformFloat("impurityLevel", (float) burner.getImpurity(innerMetal) / MetalStorage.MAX_STORAGE);
+            iconShader.setUniformFloat("metalLevel", 0);
+            iconShader.setUniformFloat("impurityLevel", 0);
 
             // The textures in the array are aligned in pairs of two
-            Minecraft.getMinecraft().getTextureManager().bindTexture(METAL_TEXTURES[i * 2]);
+            Minecraft.getMinecraft().getTextureManager().bindTexture(METAL_TEXTURES.get(innerMetal));
             // Draw the inner icon 40 units away from the circle's centre
             Rendering.drawRectangle(centreX + (int) (cos(angle) * 40) - 8,
                                     centreY - (int) (sin(angle) * 40) - 8, 0, 0, 1, 1, 16, 16);
 
-            Metal outerMetal = Metals.get(METALS[i * 2 + 1]).get();
+            Metal outerMetal = METALS[i * 2 + 1];
             iconShader.setUniformBool("hovered", hoveredMetal.orElse(null) == outerMetal);
             // Change the main colour of the icon if the metal is burning
-            iconShader.setUniform("backColour", burner.isBurning(outerMetal) ? new Vec3(205 / 255f, 43 / 255f, 0)
-                                                                             : new Vec3(0.1f, 0.1f, 0.1f));
-            iconShader.setUniformFloat("metalLevel", (float) burner.get(outerMetal) / MetalStorage.MAX_STORAGE);
-            iconShader.setUniformFloat("impurityLevel", (float) burner.getImpurity(outerMetal) / MetalStorage.MAX_STORAGE);
+            iconShader.setUniform("backColour", allomancer.activePowers().contains(outerMetal.mistingType()) ? new Vec3(205 / 255f, 43 / 255f, 0)
+                                                                                                             : new Vec3(0.1f, 0.1f, 0.1f));
+//            iconShader.setUniformFloat("metalLevel", (float) burner.get(outerMetal) / MetalStorage.MAX_STORAGE);
+//            iconShader.setUniformFloat("impurityLevel", (float) burner.getImpurity(outerMetal) / MetalStorage.MAX_STORAGE);
+            iconShader.setUniformFloat("metalLevel", 0);
+            iconShader.setUniformFloat("impurityLevel", 0);
 
             // The textures in the array are aligned in pairs of two
-            Minecraft.getMinecraft().getTextureManager().bindTexture(METAL_TEXTURES[i * 2 + 1]);
+            Minecraft.getMinecraft().getTextureManager().bindTexture(METAL_TEXTURES.get(outerMetal));
             // Draw the outer icon 75 units away from the circle's centre
             Rendering.drawRectangle(centreX + (int) (cos(angle) * 75) - 8,
                                     centreY - (int) (sin(angle) * 75) - 8, 0, 0, 1, 1, 16, 16);
@@ -227,35 +245,30 @@ public class MetalSelectionHUD
     @SubscribeEvent
     public void onClientTick(TickEvent.RenderTickEvent event)
     {
-        Entity entity = Minecraft.getMinecraft().getRenderViewEntity();
         // Only operate at the beginning of the tick, otherwise the player's head might move
         if (event.phase == TickEvent.Phase.START)
         {
-            if (KeyBindings.SHOW_DIAL.isKeyDown() && !display)
+            Minecraft mc = Minecraft.getMinecraft();
+            if (KeyBindings.SHOW_DIAL.isKeyDown() && !display && mc.inGameHasFocus && mc.currentScreen == null)
             {
-                // Store the player's rotation to keep them looking forward
-                previousRotation = new Vec3(entity.rotationYaw, entity.getRotationYawHead(), entity.rotationPitch);
                 display = true;
+                mc.inGameHasFocus = false;
+                mc.mouseHelper.ungrabMouseCursor();
             }
             else if (!KeyBindings.SHOW_DIAL.isKeyDown() && display)
             {
                 display = false;
+                if(mc.currentScreen == null)
+                {
+                    mc.inGameHasFocus = true;
+                    mc.mouseHelper.grabMouseCursor();
+                }
             }
 
-            // Reset the player's rotation
-            if (KeyBindings.SHOW_DIAL.isKeyDown())
+            if(display && mc.currentScreen != null)
             {
-                // Prevent Vanilla from reading meaningful values
-                Mouse.getDX();
-                Mouse.getDY();
-                Minecraft.getMinecraft().mouseHelper.deltaX = Minecraft.getMinecraft().mouseHelper.deltaY = 0;
-
-                // Reset all rotational values to their initial state
-                entity.rotationYaw = entity.prevRotationYaw = (float) previousRotation.xCoord;
-                entity.setRotationYawHead((float) previousRotation.xCoord);
-                if (entity instanceof EntityLivingBase)
-                    ((EntityLivingBase) entity).prevRotationYawHead = (float) previousRotation.xCoord;
-                entity.rotationPitch = entity.prevRotationPitch = (float) previousRotation.zCoord;
+                KeyBinding.setKeyBindState(KeyBindings.SHOW_DIAL.getKeyCode(), false);
+                display = false;
             }
         }
     }
@@ -270,31 +283,6 @@ public class MetalSelectionHUD
     {
         if (!display)
             return;
-
-        // Artificially slow down the mouse
-        mouseX -= event.dx / 400d;
-        mouseY += event.dy / 400d;
-
-        // Basic vector maths to determine distance from centre
-        double mag = sqrt(mouseX * mouseX + mouseY * mouseY);
-        if (mag > 1)
-        {
-            mouseX /= mag;
-            mouseY /= mag;
-        }
-
-        mag = sqrt(mouseX * mouseX + mouseY * mouseY);
-        double angle = (450 + toDegrees(atan2(mouseX, mouseY))) % 360;
-
-        // Rest the hovered metal and check each metal individually
-        hoveredMetal = Optional.empty();
-        for (int i = 0; i < METALS.length / 2; i++)
-        {
-            if (angle > i * 45 && angle <= (i + 1) * 45 && mag > 0.4 && mag <= 0.77)
-                hoveredMetal = Metals.get(METALS[i * 2]);
-            if (angle > i * 45 && angle <= (i + 1) * 45 && mag > 0.77 && mag <= 1)
-                hoveredMetal = Metals.get(METALS[i * 2 + 1]);
-        }
 
         // The hovered metal was clicked,
         if (event.button == 0 && event.buttonstate && hoveredMetal.isPresent())
