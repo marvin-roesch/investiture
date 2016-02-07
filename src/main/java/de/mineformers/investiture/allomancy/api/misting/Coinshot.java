@@ -12,11 +12,13 @@ import static de.mineformers.investiture.allomancy.api.power.Scope.EXTERNAL;
  * ${JDOC}
  */
 @AllomanticPower(category = PHYSICAL, scope = EXTERNAL, effect = PUSH)
-public interface Coinshot extends Misting
+public interface Coinshot extends MetalManipulator
 {
     @Override
     default Metal baseMetal()
     {
         return Metals.STEEL;
     }
+
+
 }

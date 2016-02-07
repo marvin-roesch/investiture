@@ -6,6 +6,11 @@ import net.minecraft.util.ITickable;
 /**
  * ${JDOC}
  */
-public class SmokerImpl implements Smoker
+public class SmokerImpl extends AbstractMisting implements Smoker
 {
+    @Override
+    public void startBurning()
+    {
+        System.out.println("TEST");
+    }
 }

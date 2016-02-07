@@ -86,7 +86,6 @@ public final class Allomancy implements Manifestation
         CapabilityHandler.init();
 
         MinecraftForge.EVENT_BUS.register(new EntityHandler());
-        MinecraftForge.EVENT_BUS.register(new CapabilityHandler());
         CommonNetworking.init();
 
         proxy.preInit(event);
@@ -217,28 +216,28 @@ public final class Allomancy implements Manifestation
             Investiture.net().registerMessage(EntityMetalBurnerUpdate.class);
             Investiture.net().registerMessage(ToggleBurningMetal.class);
             Investiture.net().registerMessage(MetalExtractorUpdate.class);
-            Investiture.net().registerMessage(EntityAllomancerUpdate.class);
+            Investiture.net().registerMessage(AllomancerUpdate.class);
+            Investiture.net().registerMessage(MistingUpdate.class);
 
             // Add handler for toggling the burning of a metal
             Investiture.net().addHandler(ToggleBurningMetal.class, Side.SERVER, (msg, ctx) -> {
-                ctx.schedule(() -> {
-                    MetalBurner burner = MetalBurner.from(ctx.player());
+                ctx.schedule(() -> AllomancyAPIImpl.INSTANCE.toAllomancer(ctx.player()).ifPresent(a -> {
                     Optional<Metal> optional = Metals.get(msg.metal);
 
                     // Safety measures, in case the client sends bad data
-                    if (optional.isPresent() && burner != null)
+                    if (optional.isPresent())
                     {
                         Metal metal = optional.get();
-                        if (burner.isBurning(metal))
+                        if (a.activePowers().contains(metal.mistingType()))
                         {
-                            burner.stopBurning(metal);
+                            a.deactivate(metal.mistingType());
                         }
                         else
                         {
-                            burner.startBurning(metal);
+                            a.activate(metal.mistingType());
                         }
                     }
-                });
+                }));
                 return null;
             });
         }

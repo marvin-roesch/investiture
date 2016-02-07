@@ -5,17 +5,17 @@ import de.mineformers.investiture.network.Message;
 /**
  * ${JDOC}
  */
-public class EntityAllomancerUpdate extends Message
+public class MistingUpdate extends Message
 {
     public int entityId;
     public String type;
     public byte[] data;
 
-    public EntityAllomancerUpdate()
+    public MistingUpdate()
     {
     }
 
-    public EntityAllomancerUpdate(int entityId, String type, byte[] data)
+    public MistingUpdate(int entityId, String type, byte[] data)
     {
         this.entityId = entityId;
         this.type = type;

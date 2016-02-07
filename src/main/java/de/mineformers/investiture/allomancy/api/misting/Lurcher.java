@@ -12,7 +12,7 @@ import static de.mineformers.investiture.allomancy.api.power.Scope.EXTERNAL;
  * ${JDOC}
  */
 @AllomanticPower(category = PHYSICAL, scope = EXTERNAL, effect = PULL)
-public interface Lurcher extends Misting
+public interface Lurcher extends MetalManipulator
 {
     @Override
     default Metal baseMetal()

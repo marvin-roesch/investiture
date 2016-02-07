@@ -6,14 +6,12 @@ import com.google.common.collect.ImmutableMap;
 import de.mineformers.investiture.allomancy.api.Allomancer;
 import de.mineformers.investiture.allomancy.api.AllomancyAPI;
 import de.mineformers.investiture.allomancy.api.MistingFactory;
+import de.mineformers.investiture.allomancy.api.misting.Coinshot;
 import de.mineformers.investiture.allomancy.api.misting.Inject;
 import de.mineformers.investiture.allomancy.api.misting.Misting;
-import de.mineformers.investiture.allomancy.api.misting.Smoker;
-import de.mineformers.investiture.allomancy.impl.misting.SmokerImpl;
+import de.mineformers.investiture.allomancy.impl.misting.CoinshotImpl;
 import de.mineformers.investiture.serialisation.Serialisation;
-import de.mineformers.investiture.serialisation.Serialise;
 import net.minecraft.entity.Entity;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ITickable;
 import org.apache.commons.lang3.ClassUtils;
@@ -35,7 +33,7 @@ public class AllomancyAPIImpl implements AllomancyAPI
     public static final AllomancyAPIImpl INSTANCE = new AllomancyAPIImpl();
     private static final List<Class<?>> INJECTABLE_TYPES = ImmutableList.of(Allomancer.class, Entity.class);
 
-    private Map<Class<? extends Misting>, MistingData> factories = new HashMap<>();
+    Map<Class<? extends Misting>, MistingData> factories = new HashMap<>();
     private Map<Class<?>, BiPredicate<?, ?>> equalities = new HashMap<>();
 
     private AllomancyAPIImpl()
@@ -46,7 +44,7 @@ public class AllomancyAPIImpl implements AllomancyAPI
     {
         registerEquality(ItemStack.class, ItemStack::areItemStacksEqual);
 
-        registerMisting(Smoker.class, SmokerImpl::new);
+        registerMisting(Coinshot.class, CoinshotImpl::new);
     }
 
     @Nonnull
@@ -85,9 +83,10 @@ public class AllomancyAPIImpl implements AllomancyAPI
         for (Class<? extends Misting> type : allomancer.powers())
         {
             allomancer.as(type).ifPresent(m -> {
-                if(m instanceof ITickable)
+                if (allomancer.activePowers().contains(type) && m instanceof ITickable)
                     ((ITickable) m).update();
-                factories.get(type).companion.write(m, entity);
+                if (!entity.worldObj.isRemote)
+                    factories.get(type).companion.write(m, entity);
             });
         }
     }
@@ -103,7 +102,7 @@ public class AllomancyAPIImpl implements AllomancyAPI
         return (a == b) || ((BiPredicate<T, T>) Optional.ofNullable(equalities.get(a.getClass())).orElse(Objects::equals)).test(a, b);
     }
 
-    private static class MistingData
+    static class MistingData
     {
         public final Class<? extends Misting> type;
         public final MistingFactory<?> factory;

@@ -1,6 +1,7 @@
 package de.mineformers.investiture.allomancy.block;
 
 import de.mineformers.investiture.Investiture;
+import de.mineformers.investiture.allomancy.api.AllomancyAPI;
 import de.mineformers.investiture.allomancy.api.misting.Smoker;
 import de.mineformers.investiture.allomancy.extractor.ExtractorPart;
 import de.mineformers.investiture.allomancy.impl.AllomancyAPIImpl;
@@ -52,9 +53,9 @@ public class MetalExtractorController extends Block implements ExtractorPart
     public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer playerIn,
                                     EnumFacing side, float hitX, float hitY, float hitZ)
     {
-        if (world.isRemote)
+        if (!world.isRemote)
         {
-//            AllomancyAPIImpl.INSTANCE.toAllomancer(playerIn).get().grantPower(Smoker.class).setCategory(pos.toString() + ": " + hitY);
+            AllomancyAPIImpl.INSTANCE.toAllomancer(playerIn).get().grantPower(Smoker.class);
             playerIn.addChatComponentMessage(
                 new ChatComponentText(AllomancyAPIImpl.INSTANCE.toAllomancer(playerIn).get().grantPower(Smoker.class).category()));
         }

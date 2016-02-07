@@ -15,6 +15,10 @@ public interface Misting
 {
     Metal baseMetal();
 
+    void startBurning();
+
+    void stopBurning();
+
     default String category()
     {
         Class<?> clazz = this.getClass();

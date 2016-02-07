@@ -85,12 +85,14 @@ public class EntityHandler
     @SubscribeEvent
     public void onPlayerTick(TickEvent.PlayerTickEvent event)
     {
-        // Only do things on the server
-        if (event.player.worldObj.isRemote || event.phase == TickEvent.Phase.END)
+        if(event.phase == TickEvent.Phase.END)
             return;
+        AllomancyAPIImpl.INSTANCE.toAllomancer(event.player).ifPresent(a -> AllomancyAPIImpl.INSTANCE.update(a, event.player));
 
+        // Only do things on the server
+        if (event.player.worldObj.isRemote)
+            return;
         MetalBurner metals = MetalBurner.from(event.player);
         metals.burningMetals().forEach(m -> metals.updateBurnTimer(event.player, m));
-        AllomancyAPIImpl.INSTANCE.toAllomancer(event.player).ifPresent(a -> AllomancyAPIImpl.INSTANCE.update(a, event.player));
     }
 }

@@ -41,12 +41,16 @@ public interface Allomancer
     @Nonnull
     default Optional<Misting> asMetalUser(Metal metal)
     {
-        return powers().stream().map(this::grantPower).filter(m -> m.baseMetal().equals(metal)).findFirst();
+        return (Optional<Misting>) powers().stream().map(this::grantPower).filter(m -> m.baseMetal().equals(metal)).findFirst();
     }
 
     <T extends Misting> T grantPower(Class<T> type);
 
     boolean takePower(Class<? extends Misting> type);
+
+    void activate(Class<? extends Misting> type);
+
+    void deactivate(Class<? extends Misting> type);
 
     void increaseStrength();
 
@@ -61,4 +65,7 @@ public interface Allomancer
      */
     @Nonnull
     Collection<Class<? extends Misting>> powers();
+
+    @Nonnull
+    Collection<Class<? extends Misting>> activePowers();
 }
