@@ -1,4 +1,6 @@
-package de.mineformers.investiture.allomancy.metal;
+package de.mineformers.investiture.allomancy.api.metal;
+
+import de.mineformers.investiture.allomancy.api.misting.Misting;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
@@ -14,9 +16,9 @@ public interface MetalAlloy extends Metal
     {
         private final Map<Metal, Float> components = new HashMap<>();
 
-        public AbstractAlloy(@Nonnull String id, Object... components)
+        public AbstractAlloy(@Nonnull String id, Class<? extends Misting> mistingType, Object... components)
         {
-            super(id);
+            super(id, mistingType);
 
             if (components.length % 2 != 0)
             {

@@ -1,7 +1,8 @@
 package de.mineformers.investiture.allomancy.core;
 
 import de.mineformers.investiture.allomancy.Allomancy;
-import de.mineformers.investiture.allomancy.metal.MetalBurner;
+import de.mineformers.investiture.allomancy.api.metal.MetalBurner;
+import de.mineformers.investiture.allomancy.impl.AllomancyAPIImpl;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
@@ -84,10 +85,13 @@ public class EntityHandler
     @SubscribeEvent
     public void onPlayerTick(TickEvent.PlayerTickEvent event)
     {
-        // Only do things on the server
-        if (event.player.worldObj.isRemote || event.phase == TickEvent.Phase.END)
+        if(event.phase == TickEvent.Phase.END)
             return;
+        AllomancyAPIImpl.INSTANCE.toAllomancer(event.player).ifPresent(a -> AllomancyAPIImpl.INSTANCE.update(a, event.player));
 
+        // Only do things on the server
+        if (event.player.worldObj.isRemote)
+            return;
         MetalBurner metals = MetalBurner.from(event.player);
         metals.burningMetals().forEach(m -> metals.updateBurnTimer(event.player, m));
     }

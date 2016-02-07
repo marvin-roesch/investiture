@@ -94,10 +94,6 @@ public class ModuleStateMap extends StateMapperBase
             return this;
         }
 
-        /**
-         * Add properties that will not be used to compute all possible states of a block, used for block rendering
-         * to ignore some property that does not alter block's appearance
-         */
         public Builder ignore(IProperty<?>... properties)
         {
             Collections.addAll(this.ignored, properties);

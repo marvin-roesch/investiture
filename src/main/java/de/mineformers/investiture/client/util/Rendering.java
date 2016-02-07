@@ -7,11 +7,15 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.WorldRenderer;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.entity.Entity;
+import net.minecraft.util.Vec3;
 import net.minecraftforge.client.model.IFlexibleBakedModel;
 import net.minecraftforge.client.model.pipeline.LightUtil;
 import org.lwjgl.opengl.GL11;
 
 import static java.lang.Math.*;
+import static net.minecraft.client.renderer.GlStateManager.*;
+import static org.lwjgl.opengl.GL11.GL_QUADS;
 import static org.lwjgl.opengl.GL11.GL_TRIANGLE_STRIP;
 
 /**
@@ -100,15 +104,15 @@ public class Rendering
         Tessellator tessellator = Tessellator.getInstance();
         WorldRenderer worldrenderer = tessellator.getWorldRenderer();
 
-        GlStateManager.pushAttrib();
+        pushAttrib();
         RenderHelper.disableStandardItemLighting();
         if (Minecraft.isAmbientOcclusionEnabled())
         {
-            GlStateManager.shadeModel(GL11.GL_SMOOTH);
+            shadeModel(GL11.GL_SMOOTH);
         }
         else
         {
-            GlStateManager.shadeModel(GL11.GL_FLAT);
+            shadeModel(GL11.GL_FLAT);
         }
         worldrenderer.begin(GL11.GL_QUADS, model.getFormat());
         for (BakedQuad bakedquad : model.getGeneralQuads())
@@ -117,6 +121,29 @@ public class Rendering
         }
         tessellator.draw();
         RenderHelper.enableStandardItemLighting();
-        GlStateManager.popAttrib();
+        popAttrib();
+    }
+
+    public static Vec3 interpolatedPosition(Entity entity, float partialTicks)
+    {
+        double x = entity.lastTickPosX + (entity.posX - entity.lastTickPosX) * partialTicks;
+        double y = entity.lastTickPosY + (entity.posY - entity.lastTickPosY) * partialTicks;
+        double z = entity.lastTickPosZ + (entity.posZ - entity.lastTickPosZ) * partialTicks;
+        return new Vec3(x, y, z);
+    }
+
+    public static void drawFacingQuad(float scale)
+    {
+        pushMatrix();
+        rotate(-Minecraft.getMinecraft().getRenderManager().playerViewY, 0.0F, 1.0F, 0.0F);
+        rotate(Minecraft.getMinecraft().getRenderManager().playerViewX, 1.0F, 0.0F, 0.0F);
+        Tessellator tessellator = Tessellator.getInstance();
+        tessellator.getWorldRenderer().begin(GL_QUADS, DefaultVertexFormats.POSITION_TEX_NORMAL);
+        tessellator.getWorldRenderer().pos(-scale, -scale, 0).tex(0, 0).normal(0.0F, 1.0F, 0.0F).endVertex();
+        tessellator.getWorldRenderer().pos(-scale, scale, 0).tex(0, 1).normal(0.0F, 1.0F, 0.0F).endVertex();
+        tessellator.getWorldRenderer().pos(scale, scale, 0).tex(1, 1).normal(0.0F, 1.0F, 0.0F).endVertex();
+        tessellator.getWorldRenderer().pos(scale, -scale, 0).tex(1, 0).normal(0.0F, 1.0F, 0.0F).endVertex();
+        tessellator.draw();
+        popMatrix();
     }
 }
