@@ -18,9 +18,9 @@ group= "de.mineformers.investiture" // http://maven.apache.org/guides/mini/guide
 archivesBaseName = "investiture"
 
 minecraft {
-    version = "1.8.9-11.15.0.1715"
+    version = "1.8.9-11.15.1.1734"
     runDir = "run"
-    mappings = "snapshot_20160123"
+    mappings = "snapshot_20160207"
 }
 
 configurations {

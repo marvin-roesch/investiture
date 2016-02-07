@@ -16,6 +16,7 @@ public class ClientProxy implements Proxy
         Textures.init();
     }
 
+    @Override
     public EntityPlayer localPlayer()
     {
         return Minecraft.getMinecraft().thePlayer;
