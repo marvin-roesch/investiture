@@ -12,6 +12,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.*;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Vec3;
 import net.minecraftforge.fml.common.network.ByteBufUtils;
 import org.apache.commons.lang3.ClassUtils;
 
@@ -403,6 +404,40 @@ public class Serialisation
             public BlockPos deserialiseImpl(NBTTagLong tag)
             {
                 return BlockPos.fromLong(tag.getLong());
+            }
+        });
+
+        // Vec3 translator
+        registerTranslator(Vec3.class, new Translator<Vec3, NBTTagCompound>()
+        {
+            @Override
+            public void serialiseImpl(Vec3 value, ByteBuf buffer)
+            {
+                buffer.writeDouble(value.xCoord);
+                buffer.writeDouble(value.yCoord);
+                buffer.writeDouble(value.zCoord);
+            }
+
+            @Override
+            public Vec3 deserialiseImpl(ByteBuf buffer)
+            {
+                return new Vec3(buffer.readDouble(), buffer.readDouble(), buffer.readDouble());
+            }
+
+            @Override
+            public NBTTagCompound serialiseImpl(Vec3 value)
+            {
+                NBTTagCompound result = new NBTTagCompound();
+                result.setDouble("X", value.xCoord);
+                result.setDouble("Y", value.yCoord);
+                result.setDouble("Z", value.zCoord);
+                return result;
+            }
+
+            @Override
+            public Vec3 deserialiseImpl(NBTTagCompound tag)
+            {
+                return new Vec3(tag.getDouble("X"), tag.getDouble("Y"), tag.getDouble("Z"));
             }
         });
 

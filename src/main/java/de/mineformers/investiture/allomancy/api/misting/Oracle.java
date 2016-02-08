@@ -3,6 +3,8 @@ package de.mineformers.investiture.allomancy.api.misting;
 import de.mineformers.investiture.allomancy.api.metal.Metal;
 import de.mineformers.investiture.allomancy.api.metal.Metals;
 import de.mineformers.investiture.allomancy.api.power.AllomanticPower;
+import net.minecraft.util.BlockPos;
+import net.minecraft.util.Vec3;
 
 import static de.mineformers.investiture.allomancy.api.power.Category.TEMPORAL;
 import static de.mineformers.investiture.allomancy.api.power.Effect.PUSH;
@@ -19,4 +21,6 @@ public interface Oracle extends Misting
     {
         return Metals.ELECTRUM;
     }
+
+    BlockPos spawnPoint();
 }
