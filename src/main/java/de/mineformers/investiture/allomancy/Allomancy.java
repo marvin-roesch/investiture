@@ -49,7 +49,7 @@ public final class Allomancy implements Manifestation
     public static final String DOMAIN = "allomancy";
     @SidedProxy(modId = Investiture.MOD_ID,
         clientSide = "de.mineformers.investiture.allomancy.core.ClientProxy",
-        serverSide = "de.mineformers.investiture.allomancy.core.ServerSide")
+        serverSide = "de.mineformers.investiture.allomancy.core.ServerProxy")
     public static Proxy proxy;
 
     /**

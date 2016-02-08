@@ -74,12 +74,18 @@ public class Message implements IMessage
         {
             if (!(netHandler instanceof NetHandlerPlayServer))
             {
-                return Minecraft.getMinecraft().thePlayer;
+                return clientPlayer();
             }
             else
             {
                 return serverHandler().playerEntity;
             }
+        }
+
+        @SideOnly(Side.CLIENT)
+        private EntityPlayer clientPlayer()
+        {
+            return Minecraft.getMinecraft().thePlayer;
         }
 
         /**
@@ -93,12 +99,18 @@ public class Message implements IMessage
         {
             if (!(netHandler instanceof NetHandlerPlayServer))
             {
-                Minecraft.getMinecraft().addScheduledTask(f);
+                scheduleClient(f);
             }
             else
             {
                 ((WorldServer) serverHandler().playerEntity.worldObj).addScheduledTask(f);
             }
+        }
+
+        @SideOnly(Side.CLIENT)
+        private void scheduleClient(Runnable f)
+        {
+            Minecraft.getMinecraft().addScheduledTask(f);
         }
 
         /**

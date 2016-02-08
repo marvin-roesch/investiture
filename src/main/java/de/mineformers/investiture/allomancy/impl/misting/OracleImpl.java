@@ -16,6 +16,8 @@ import net.minecraft.util.ITickable;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
 import java.util.ArrayDeque;
 import java.util.Queue;
@@ -61,10 +63,16 @@ public class OracleImpl extends AbstractMisting implements Oracle, ITickable
         else
             return;
         BlockPos step = path.poll();
-        FootStep particle1 = new FootStep(entity.worldObj, new Vec3(step).addVector(0.3, 0.0001, 0.3), 1, 0f, 0f);
-        FootStep particle2 = new FootStep(entity.worldObj, new Vec3(step).addVector(0.6, 0.0001, 0.6), 1, 0f, 0f);
-        Minecraft.getMinecraft().effectRenderer.addEffect(particle1);
-        Minecraft.getMinecraft().effectRenderer.addEffect(particle2);
+        spawnParticles(step);
+    }
+
+    @SideOnly(Side.CLIENT)
+    private void spawnParticles(BlockPos step)
+    {
+        Minecraft.getMinecraft().effectRenderer
+            .addEffect(new FootStep(entity.worldObj, new Vec3(step).addVector(0.3, 0.0001, 0.3), 0.28627452f, 0.7254902f, 0.87058824f));
+        Minecraft.getMinecraft().effectRenderer
+            .addEffect(new FootStep(entity.worldObj, new Vec3(step).addVector(0.6, 0.0001, 0.6), 0.28627452f, 0.7254902f, 0.87058824f));
     }
 
     @Override
