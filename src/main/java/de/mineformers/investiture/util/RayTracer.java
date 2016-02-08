@@ -7,6 +7,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.util.*;
 import net.minecraft.world.World;
 
+import java.util.List;
 import java.util.function.Predicate;
 
 /**
@@ -14,6 +15,70 @@ import java.util.function.Predicate;
  */
 public class RayTracer
 {
+    public static MovingObjectPosition rayTraceEntities(Entity entity, double reach, Predicate<Entity> predicate)
+    {
+        Vec3 start = entity.getPositionEyes(1);
+        Vec3 direction = entity.getLook(1);
+        Vec3 end = start.addVector(direction.xCoord * reach, direction.yCoord * reach, direction.zCoord * reach);
+        Entity result = null;
+        Vec3 hitVec = null;
+        List<Entity> list = entity.worldObj.getEntitiesInAABBexcluding(entity, entity.getEntityBoundingBox()
+                                                                                     .addCoord(direction.xCoord * reach,
+                                                                                               direction.yCoord * reach,
+                                                                                               direction.zCoord * reach)
+                                                                                     .expand(1, 1, 1), EntitySelectors.NOT_SPECTATING);
+        double minDistance = reach;
+
+        for (Entity checkedEntity : list)
+        {
+            float borderSize = checkedEntity.getCollisionBorderSize();
+            AxisAlignedBB axisalignedbb = checkedEntity.getEntityBoundingBox().expand(borderSize, borderSize, borderSize);
+            MovingObjectPosition mop = axisalignedbb.calculateIntercept(start, end);
+
+            if (axisalignedbb.isVecInside(start))
+            {
+                System.out.println(checkedEntity);
+                if (predicate.test(checkedEntity) && minDistance >= 0.0D)
+                {
+                    result = checkedEntity;
+                    hitVec = mop == null ? start : mop.hitVec;
+                    minDistance = 0.0D;
+                }
+            }
+            else if (mop != null)
+            {
+                double distance = start.distanceTo(mop.hitVec);
+
+                if (distance < minDistance || minDistance == 0.0D)
+                {
+                    if (checkedEntity == entity.ridingEntity && !entity.canRiderInteract())
+                    {
+                        System.out.println(checkedEntity);
+                        if (predicate.test(checkedEntity) && minDistance == 0.0D)
+                        {
+                            result = checkedEntity;
+                            hitVec = mop.hitVec;
+                        }
+                    }
+                    else
+                    {
+                        System.out.println(checkedEntity);
+                        if (predicate.test(checkedEntity))
+                        {
+                            result = checkedEntity;
+                            hitVec = mop.hitVec;
+                            minDistance = distance;
+                        }
+                    }
+                }
+            }
+        }
+        if (result != null)
+            return new MovingObjectPosition(result, hitVec);
+        else
+            return null;
+    }
+
     public static MovingObjectPosition rayTraceBlocks(Entity entity, double reach,
                                                       Predicate<BlockWorldState> predicate,
                                                       boolean stopOnLiquid,

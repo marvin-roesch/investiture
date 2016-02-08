@@ -1,7 +1,9 @@
 package de.mineformers.investiture.client.util;
 
+import com.google.common.base.Throwables;
+import de.mineformers.investiture.util.Reflection;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.EntityRenderer;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.WorldRenderer;
@@ -13,6 +15,8 @@ import net.minecraftforge.client.model.IFlexibleBakedModel;
 import net.minecraftforge.client.model.pipeline.LightUtil;
 import org.lwjgl.opengl.GL11;
 
+import java.lang.invoke.MethodHandle;
+
 import static java.lang.Math.*;
 import static net.minecraft.client.renderer.GlStateManager.*;
 import static org.lwjgl.opengl.GL11.GL_QUADS;
@@ -23,6 +27,30 @@ import static org.lwjgl.opengl.GL11.GL_TRIANGLE_STRIP;
  */
 public class Rendering
 {
+    private static final MethodHandle VANILLA_CAMERA_TRANSFORMS;
+
+    static
+    {
+        VANILLA_CAMERA_TRANSFORMS = Reflection.methodHandle(EntityRenderer.class)
+                                              .mcpName("setupCameraTransform")
+                                              .srgName("func_78479_a")
+                                              .type(float.class)
+                                              .type(int.class)
+                                              .build();
+    }
+
+    public static void setupCameraTransforms(float partialTicks, int pass)
+    {
+        try
+        {
+            VANILLA_CAMERA_TRANSFORMS.bindTo(Minecraft.getMinecraft().entityRenderer).invokeExact(partialTicks, pass);
+        }
+        catch (Throwable throwable)
+        {
+            Throwables.propagate(throwable);
+        }
+    }
+
     /**
      * Draws a rectangle to the screen.
      *

@@ -1,13 +1,20 @@
 package de.mineformers.investiture.allomancy.api;
 
 import de.mineformers.investiture.allomancy.api.misting.Misting;
+import net.minecraft.block.state.BlockWorldState;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
+import net.minecraft.item.ItemStack;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.BlockPos;
+import net.minecraft.world.World;
 
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.Collection;
 import java.util.Optional;
-import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
+import java.util.function.Predicate;
 
 /**
  * Provides access to {@link Allomancer} instances of entities.
@@ -40,4 +47,52 @@ public interface AllomancyAPI
     <T extends Misting> void registerMisting(Class<T> type, MistingFactory<? extends T> factory);
 
     <T> void registerEquality(Class<T> type, BiPredicate<T, T> predicate);
+
+    void registerMetallicItem(Predicate<ItemStack> predicate);
+
+    void registerMetallicBlock(Predicate<BlockWorldState> predicate);
+
+    void registerMetallicEntity(Predicate<Entity> predicate);
+
+    default boolean isMetallic(ItemStack stack)
+    {
+        return metallicItems().stream().anyMatch(p -> p.test(stack));
+    }
+
+    default boolean isMetallic(World world, BlockPos pos)
+    {
+        BlockWorldState state = new BlockWorldState(world, pos, true);
+        return metallicBlocks().stream().anyMatch(p -> p.test(state));
+    }
+
+    default boolean isMetallic(IBlockState state)
+    {
+        return metallicBlocks().stream().anyMatch(p -> p.test(new BlockWorldState(null, new BlockPos(0, 0, 0), true) {
+            @Override
+            public TileEntity getTileEntity()
+            {
+                return null;
+            }
+
+            @Override
+            public IBlockState getBlockState()
+            {
+                return state;
+            }
+        }));
+    }
+
+    default boolean isMetallic(Entity entity)
+    {
+        return metallicEntities().stream().anyMatch(p -> p.test(entity));
+    }
+
+    @Nonnull
+    Collection<Predicate<ItemStack>> metallicItems();
+
+    @Nonnull
+    Collection<Predicate<BlockWorldState>> metallicBlocks();
+
+    @Nonnull
+    Collection<Predicate<Entity>> metallicEntities();
 }
