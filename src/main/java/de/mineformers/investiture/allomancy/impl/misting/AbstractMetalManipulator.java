@@ -312,7 +312,7 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
             Vec3 direction = pos.center().subtract(start);
             Vec3 end = start.addVector(direction.xCoord * progress, direction.yCoord * progress, direction.zCoord * progress);
             end = end.subtract(start);
-            renderer.pos(0, 0, 0).color(0.28627452f, 0.7254902f, 0.87058824f, progress * 0.5f).endVertex();
+            renderer.pos(0, Minecraft.getMinecraft().thePlayer.height * (2f / 3f), 0).color(0.28627452f, 0.7254902f, 0.87058824f, progress * 0.5f).endVertex();
             renderer.pos(end.xCoord, end.yCoord, end.zCoord).color(0.28627452f, 0.7254902f, 0.87058824f, progress * 0.5f).endVertex();
         }
 

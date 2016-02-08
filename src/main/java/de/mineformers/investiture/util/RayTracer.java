@@ -37,7 +37,6 @@ public class RayTracer
 
             if (axisalignedbb.isVecInside(start))
             {
-                System.out.println(checkedEntity);
                 if (predicate.test(checkedEntity) && minDistance >= 0.0D)
                 {
                     result = checkedEntity;
@@ -53,7 +52,6 @@ public class RayTracer
                 {
                     if (checkedEntity == entity.ridingEntity && !entity.canRiderInteract())
                     {
-                        System.out.println(checkedEntity);
                         if (predicate.test(checkedEntity) && minDistance == 0.0D)
                         {
                             result = checkedEntity;
@@ -62,7 +60,6 @@ public class RayTracer
                     }
                     else
                     {
-                        System.out.println(checkedEntity);
                         if (predicate.test(checkedEntity))
                         {
                             result = checkedEntity;
