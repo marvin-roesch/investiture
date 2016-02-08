@@ -665,6 +665,24 @@ public class Serialisation
             {
                 e.printStackTrace();
             }
+            catch (IllegalArgumentException e)
+            {
+                Class<?> type = field.getType();
+                if (type.equals(byte.class))
+                    set(instance, (byte) 0);
+                else if (type.equals(short.class))
+                    set(instance, (short) 0);
+                else if (type.equals(int.class))
+                    set(instance, 0);
+                else if (type.equals(long.class))
+                    set(instance, 0L);
+                else if (type.equals(float.class))
+                    set(instance, 0f);
+                else if (type.equals(double.class))
+                    set(instance, 0d);
+                else if (type.equals(boolean.class))
+                    set(instance, false);
+            }
         }
 
         public Object get(Object instance)

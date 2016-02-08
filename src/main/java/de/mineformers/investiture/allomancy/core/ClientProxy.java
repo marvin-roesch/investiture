@@ -64,7 +64,6 @@ public class ClientProxy implements Proxy
         MinecraftForge.EVENT_BUS.register(new MetalSelectionHUD());
 
         MinecraftForge.EVENT_BUS.register(new AbstractMetalManipulator.EventHandler());
-        MinecraftForge.EVENT_BUS.register(new OracleImpl.EventHandler());
 
 //        // Handle changes in a storage of allomantic metals
 //        Investiture.net().addHandler(EntityMetalStorageUpdate.class, Side.CLIENT, (msg, ctx) -> {

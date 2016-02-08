@@ -134,8 +134,8 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
         @SubscribeEvent
         public void onRenderLast(RenderWorldLastEvent event)
         {
-//            if (active)
-//                renderLines(event.partialTicks);
+            if (active)
+                renderLines(event.partialTicks);
         }
 
         @SubscribeEvent
