@@ -1,11 +1,13 @@
 package de.mineformers.investiture.allomancy.impl.misting;
 
+import de.mineformers.investiture.Investiture;
 import de.mineformers.investiture.allomancy.Allomancy;
 import de.mineformers.investiture.allomancy.api.misting.Coinshot;
 import de.mineformers.investiture.allomancy.api.misting.Inject;
 import de.mineformers.investiture.allomancy.api.misting.Lurcher;
 import de.mineformers.investiture.allomancy.api.misting.MetalManipulator;
 import de.mineformers.investiture.allomancy.impl.AllomancyAPIImpl;
+import de.mineformers.investiture.allomancy.network.MetalManipulatorEffect;
 import de.mineformers.investiture.client.util.Rendering;
 import de.mineformers.investiture.util.RayTracer;
 import gnu.trove.map.TObjectIntMap;
@@ -103,9 +105,16 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
                            .addVector(0, Minecraft.getMinecraft().thePlayer.getEyeHeight(), 0);
         double distance = 1 / start.distanceTo(end) * 0.1;
         Vec3 direction = start.subtract(end);
-        target.addVelocity(direction.xCoord * distance * distanceFactor().xCoord * factor,
-                           direction.yCoord * distance * distanceFactor().yCoord * factor,
-                           direction.zCoord * distance * distanceFactor().zCoord * factor);
+        Vec3 velocity = new Vec3(direction.xCoord * distance * distanceFactor().xCoord * factor,
+                                 direction.yCoord * distance * distanceFactor().yCoord * factor,
+                                 direction.zCoord * distance * distanceFactor().zCoord * factor);
+        if (target.worldObj.isRemote)
+        {
+            Investiture.net().sendToServer(new MetalManipulatorEffect(target.getEntityId(), velocity));
+        }
+
+        target.addVelocity(velocity.xCoord, velocity.yCoord, velocity.zCoord);
+        entity.fallDistance = 0;
     }
 
     public abstract Vec3 distanceFactor();

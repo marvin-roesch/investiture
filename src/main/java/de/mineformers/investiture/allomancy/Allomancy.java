@@ -24,6 +24,7 @@ import de.mineformers.investiture.core.Proxy;
 import de.mineformers.investiture.network.Message;
 import de.mineformers.investiture.serialisation.Serialisation;
 import de.mineformers.investiture.serialisation.Translator;
+import net.minecraft.entity.Entity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
@@ -221,6 +222,8 @@ public final class Allomancy implements Manifestation
             Investiture.net().registerMessage(AllomancerUpdate.class);
             Investiture.net().registerMessage(MistingUpdate.class);
 
+            Investiture.net().registerMessage(MetalManipulatorEffect.class);
+
             // Add handler for toggling the burning of a metal
             Investiture.net().addHandler(ToggleBurningMetal.class, Side.SERVER, (msg, ctx) -> {
                 ctx.schedule(() -> AllomancyAPIImpl.INSTANCE.toAllomancer(ctx.player()).ifPresent(a -> {
@@ -240,6 +243,18 @@ public final class Allomancy implements Manifestation
                         }
                     }
                 }));
+                return null;
+            });
+
+            Investiture.net().addHandler(MetalManipulatorEffect.class, Side.SERVER, (msg, ctx) -> {
+                ctx.schedule(() -> {
+                    Entity entity = ctx.player().worldObj.getEntityByID(msg.affectedEntity);
+                    if(entity != null)
+                    {
+                        entity.addVelocity(msg.velocity.xCoord, msg.velocity.yCoord, msg.velocity.zCoord);
+                        entity.fallDistance = 0;
+                    }
+                });
                 return null;
             });
         }
