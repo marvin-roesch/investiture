@@ -45,7 +45,7 @@ public final class Investiture
     @Mod.Instance(MOD_ID)
     public static Investiture instance;
     @SidedProxy(modId = MOD_ID, clientSide = "de.mineformers.investiture.core.ClientProxy",
-        serverSide = "de.mineformers.investiture.core.ServerSide")
+        serverSide = "de.mineformers.investiture.core.ServerProxy")
     public static Proxy proxy;
 
     /**

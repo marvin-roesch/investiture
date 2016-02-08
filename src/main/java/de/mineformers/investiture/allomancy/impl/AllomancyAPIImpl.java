@@ -3,15 +3,23 @@ package de.mineformers.investiture.allomancy.impl;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import de.mineformers.investiture.allomancy.api.Allomancer;
 import de.mineformers.investiture.allomancy.api.AllomancyAPI;
 import de.mineformers.investiture.allomancy.api.MistingFactory;
 import de.mineformers.investiture.allomancy.api.misting.*;
 import de.mineformers.investiture.allomancy.impl.misting.AugurImpl;
 import de.mineformers.investiture.allomancy.impl.misting.CoinshotImpl;
+import de.mineformers.investiture.allomancy.impl.misting.LurcherImpl;
 import de.mineformers.investiture.allomancy.impl.misting.OracleImpl;
 import de.mineformers.investiture.serialisation.Serialisation;
+import net.minecraft.block.Block;
+import net.minecraft.block.material.Material;
+import net.minecraft.block.state.BlockWorldState;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.item.EntityItem;
+import net.minecraft.init.Items;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ITickable;
 import org.apache.commons.lang3.ClassUtils;
@@ -21,6 +29,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.function.BiPredicate;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -35,6 +44,9 @@ public class AllomancyAPIImpl implements AllomancyAPI
 
     Map<Class<? extends Misting>, MistingData> factories = new HashMap<>();
     private Map<Class<?>, BiPredicate<?, ?>> equalities = new HashMap<>();
+    private Set<Predicate<ItemStack>> metallicItems = new HashSet<>();
+    private Set<Predicate<BlockWorldState>> metallicBlocks = new HashSet<>();
+    private Set<Predicate<Entity>> metallicEntities = new HashSet<>();
 
     private AllomancyAPIImpl()
     {
@@ -45,8 +57,21 @@ public class AllomancyAPIImpl implements AllomancyAPI
         registerEquality(ItemStack.class, ItemStack::areItemStacksEqual);
 
         registerMisting(Coinshot.class, CoinshotImpl::new);
+        registerMisting(Lurcher.class, LurcherImpl::new);
         registerMisting(Augur.class, AugurImpl::new);
         registerMisting(Oracle.class, OracleImpl::new);
+
+        Set<Item> metallicItems = ImmutableSet.of(Items.iron_ingot, Items.gold_ingot, Items.gold_nugget);
+        registerMetallicItem(stack -> {
+            Item item = stack.getItem();
+            Block block = Block.getBlockFromItem(item);
+            return block != null && isMetallic(block.getDefaultState()) || metallicItems.contains(item);
+        });
+
+        registerMetallicBlock(s -> s.getBlockState().getBlock().getMaterial() == Material.iron ||
+            s.getBlockState().getBlock().getMaterial() == Material.anvil);
+
+        registerMetallicEntity(e -> e instanceof EntityItem && isMetallic(((EntityItem) e).getEntityItem()));
     }
 
     @Nonnull
@@ -66,6 +91,45 @@ public class AllomancyAPIImpl implements AllomancyAPI
     public <T> void registerEquality(Class<T> type, BiPredicate<T, T> predicate)
     {
         equalities.put(type, predicate);
+    }
+
+    @Override
+    public void registerMetallicItem(Predicate<ItemStack> predicate)
+    {
+        metallicItems.add(predicate);
+    }
+
+    @Override
+    public void registerMetallicBlock(Predicate<BlockWorldState> predicate)
+    {
+        metallicBlocks.add(predicate);
+    }
+
+    @Override
+    public void registerMetallicEntity(Predicate<Entity> predicate)
+    {
+        metallicEntities.add(predicate);
+    }
+
+    @Nonnull
+    @Override
+    public Collection<Predicate<ItemStack>> metallicItems()
+    {
+        return Collections.unmodifiableSet(metallicItems);
+    }
+
+    @Nonnull
+    @Override
+    public Collection<Predicate<BlockWorldState>> metallicBlocks()
+    {
+        return Collections.unmodifiableSet(metallicBlocks);
+    }
+
+    @Nonnull
+    @Override
+    public Collection<Predicate<Entity>> metallicEntities()
+    {
+        return Collections.unmodifiableSet(metallicEntities);
     }
 
     @SuppressWarnings("unchecked")

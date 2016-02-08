@@ -19,6 +19,4 @@ public interface Coinshot extends MetalManipulator
     {
         return Metals.STEEL;
     }
-
-
 }

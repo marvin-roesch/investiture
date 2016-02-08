@@ -13,6 +13,8 @@ import net.minecraft.util.ITickable;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
 import java.util.ArrayDeque;
 import java.util.Optional;
@@ -39,7 +41,7 @@ public class AugurImpl extends AbstractMisting implements Augur, ITickable
         validPath = false;
         timer = 0;
         path.clear();
-        if(position == null)
+        if (position == null)
             return;
         if (entity.dimension == deathDimension)
         {
@@ -51,16 +53,16 @@ public class AugurImpl extends AbstractMisting implements Augur, ITickable
     @Override
     public void update()
     {
-        if(!entity.worldObj.isRemote || position == null)
+        if (!entity.worldObj.isRemote || position == null)
             return;
-        if(!validPath && entity.dimension == deathDimension)
+        if (!validPath && entity.dimension == deathDimension)
         {
             path.clear();
             path.addAll(PathFinding.bresenham(entity, new BlockPos(position)));
             timer = 0;
             validPath = true;
         }
-        if(!validPath || path.isEmpty())
+        if (!validPath || path.isEmpty())
             return;
         timer++;
         if (timer > 5)
@@ -68,10 +70,16 @@ public class AugurImpl extends AbstractMisting implements Augur, ITickable
         else
             return;
         BlockPos step = path.poll();
-        FootStep particle1 = new FootStep(entity.worldObj, new Vec3(step).addVector(0.3, 0.0001, 0.3), 0.28627452f, 0.7254902f, 0.87058824f);
-        FootStep particle2 = new FootStep(entity.worldObj, new Vec3(step).addVector(0.6, 0.0001, 0.6), 0.28627452f, 0.7254902f, 0.87058824f);
-        Minecraft.getMinecraft().effectRenderer.addEffect(particle1);
-        Minecraft.getMinecraft().effectRenderer.addEffect(particle2);
+        spawnParticles(step);
+    }
+
+    @SideOnly(Side.CLIENT)
+    private void spawnParticles(BlockPos step)
+    {
+        Minecraft.getMinecraft().effectRenderer
+            .addEffect(new FootStep(entity.worldObj, new Vec3(step).addVector(0.3, 0.0001, 0.3), 1f, 0, 0));
+        Minecraft.getMinecraft().effectRenderer
+            .addEffect(new FootStep(entity.worldObj, new Vec3(step).addVector(0.6, 0.0001, 0.6), 1f, 0, 0));
     }
 
     @Override
