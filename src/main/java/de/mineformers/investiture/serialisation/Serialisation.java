@@ -12,6 +12,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.*;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.Vec3;
 import net.minecraftforge.fml.common.network.ByteBufUtils;
 import org.apache.commons.lang3.ClassUtils;
 
@@ -406,6 +407,40 @@ public class Serialisation
             }
         });
 
+        // Vec3 translator
+        registerTranslator(Vec3.class, new Translator<Vec3, NBTTagCompound>()
+        {
+            @Override
+            public void serialiseImpl(Vec3 value, ByteBuf buffer)
+            {
+                buffer.writeDouble(value.xCoord);
+                buffer.writeDouble(value.yCoord);
+                buffer.writeDouble(value.zCoord);
+            }
+
+            @Override
+            public Vec3 deserialiseImpl(ByteBuf buffer)
+            {
+                return new Vec3(buffer.readDouble(), buffer.readDouble(), buffer.readDouble());
+            }
+
+            @Override
+            public NBTTagCompound serialiseImpl(Vec3 value)
+            {
+                NBTTagCompound result = new NBTTagCompound();
+                result.setDouble("X", value.xCoord);
+                result.setDouble("Y", value.yCoord);
+                result.setDouble("Z", value.zCoord);
+                return result;
+            }
+
+            @Override
+            public Vec3 deserialiseImpl(NBTTagCompound tag)
+            {
+                return new Vec3(tag.getDouble("X"), tag.getDouble("Y"), tag.getDouble("Z"));
+            }
+        });
+
         registerTranslator(byte[].class, new Translator<byte[], NBTTagByteArray>()
         {
             @Override
@@ -629,6 +664,24 @@ public class Serialisation
             catch (IllegalAccessException e)
             {
                 e.printStackTrace();
+            }
+            catch (IllegalArgumentException e)
+            {
+                Class<?> type = field.getType();
+                if (type.equals(byte.class))
+                    set(instance, (byte) 0);
+                else if (type.equals(short.class))
+                    set(instance, (short) 0);
+                else if (type.equals(int.class))
+                    set(instance, 0);
+                else if (type.equals(long.class))
+                    set(instance, 0L);
+                else if (type.equals(float.class))
+                    set(instance, 0f);
+                else if (type.equals(double.class))
+                    set(instance, 0d);
+                else if (type.equals(boolean.class))
+                    set(instance, false);
             }
         }
 

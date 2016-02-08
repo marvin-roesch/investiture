@@ -6,10 +6,10 @@ import com.google.common.collect.ImmutableMap;
 import de.mineformers.investiture.allomancy.api.Allomancer;
 import de.mineformers.investiture.allomancy.api.AllomancyAPI;
 import de.mineformers.investiture.allomancy.api.MistingFactory;
-import de.mineformers.investiture.allomancy.api.misting.Coinshot;
-import de.mineformers.investiture.allomancy.api.misting.Inject;
-import de.mineformers.investiture.allomancy.api.misting.Misting;
+import de.mineformers.investiture.allomancy.api.misting.*;
+import de.mineformers.investiture.allomancy.impl.misting.AugurImpl;
 import de.mineformers.investiture.allomancy.impl.misting.CoinshotImpl;
+import de.mineformers.investiture.allomancy.impl.misting.OracleImpl;
 import de.mineformers.investiture.serialisation.Serialisation;
 import net.minecraft.entity.Entity;
 import net.minecraft.item.ItemStack;
@@ -45,6 +45,8 @@ public class AllomancyAPIImpl implements AllomancyAPI
         registerEquality(ItemStack.class, ItemStack::areItemStacksEqual);
 
         registerMisting(Coinshot.class, CoinshotImpl::new);
+        registerMisting(Augur.class, AugurImpl::new);
+        registerMisting(Oracle.class, OracleImpl::new);
     }
 
     @Nonnull

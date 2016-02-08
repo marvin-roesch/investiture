@@ -12,6 +12,7 @@ import de.mineformers.investiture.allomancy.impl.AllomancyAPIImpl;
 import de.mineformers.investiture.allomancy.impl.EntityAllomancer;
 import de.mineformers.investiture.allomancy.impl.misting.AbstractMetalManipulator;
 import de.mineformers.investiture.allomancy.impl.misting.CoinshotImpl;
+import de.mineformers.investiture.allomancy.impl.misting.OracleImpl;
 import de.mineformers.investiture.allomancy.item.MetalItem;
 import de.mineformers.investiture.allomancy.network.AllomancerUpdate;
 import de.mineformers.investiture.allomancy.network.MetalExtractorUpdate;
