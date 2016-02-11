@@ -51,7 +51,8 @@ public interface Proxy
     {
     }
 
-    default EntityPlayer localPlayer() {
+    default EntityPlayer localPlayer()
+    {
         return null;
     }
 

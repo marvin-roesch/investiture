@@ -1,10 +1,7 @@
 package de.mineformers.investiture.allomancy.block;
 
 import de.mineformers.investiture.Investiture;
-import de.mineformers.investiture.allomancy.api.AllomancyAPI;
-import de.mineformers.investiture.allomancy.api.misting.Smoker;
 import de.mineformers.investiture.allomancy.extractor.ExtractorPart;
-import de.mineformers.investiture.allomancy.impl.AllomancyAPIImpl;
 import de.mineformers.investiture.allomancy.tileentity.TileMetalExtractorMaster;
 import de.mineformers.investiture.allomancy.tileentity.TileMetalExtractorOutput;
 import de.mineformers.investiture.allomancy.tileentity.TileMetalExtractorSlave;

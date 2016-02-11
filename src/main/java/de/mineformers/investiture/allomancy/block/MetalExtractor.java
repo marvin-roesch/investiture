@@ -79,7 +79,7 @@ public class MetalExtractor extends Block implements ExtractorPart
     public float getBlockHardness(World world, BlockPos pos)
     {
         IBlockState state = world.getBlockState(pos);
-        if(state.getBlock() == this)
+        if (state.getBlock() == this)
         {
             switch (state.getValue(PART))
             {
@@ -96,7 +96,7 @@ public class MetalExtractor extends Block implements ExtractorPart
     public float getExplosionResistance(World world, BlockPos pos, Entity exploder, Explosion explosion)
     {
         IBlockState state = world.getBlockState(pos);
-        if(state.getBlock() == this)
+        if (state.getBlock() == this)
         {
             switch (state.getValue(PART))
             {

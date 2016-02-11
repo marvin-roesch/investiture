@@ -67,7 +67,8 @@ public interface AllomancyAPI
 
     default boolean isMetallic(IBlockState state)
     {
-        return metallicBlocks().stream().anyMatch(p -> p.test(new BlockWorldState(null, new BlockPos(0, 0, 0), true) {
+        return metallicBlocks().stream().anyMatch(p -> p.test(new BlockWorldState(null, new BlockPos(0, 0, 0), true)
+        {
             @Override
             public TileEntity getTileEntity()
             {

@@ -1,7 +1,6 @@
-package de.mineformers.investiture.allomancy.impl.misting;
+package de.mineformers.investiture.allomancy.impl.misting.physical;
 
-import de.mineformers.investiture.allomancy.api.misting.Coinshot;
-import net.minecraft.util.BlockPos;
+import de.mineformers.investiture.allomancy.api.misting.physical.Coinshot;
 import net.minecraft.util.Vec3;
 
 /**

@@ -15,7 +15,7 @@ import de.mineformers.investiture.allomancy.core.EntityHandler;
 import de.mineformers.investiture.allomancy.extractor.ExtractorRecipes;
 import de.mineformers.investiture.allomancy.impl.AllomancyAPIImpl;
 import de.mineformers.investiture.allomancy.impl.CapabilityHandler;
-import de.mineformers.investiture.allomancy.impl.misting.AugurImpl;
+import de.mineformers.investiture.allomancy.impl.misting.temporal.AugurImpl;
 import de.mineformers.investiture.allomancy.item.MetalItem;
 import de.mineformers.investiture.allomancy.network.*;
 import de.mineformers.investiture.allomancy.tileentity.TileMetalExtractorMaster;

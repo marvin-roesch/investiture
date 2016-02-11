@@ -78,7 +78,10 @@ public class TargetHandler
                 });
             }
             if (leftTarget != null || rightTarget != null)
+            {
+                player.swingItem();
                 event.setCanceled(true);
+            }
         }
     }
 

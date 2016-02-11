@@ -75,7 +75,7 @@ public class EntityAllomancer implements Allomancer, INBTSerializable<NBTTagComp
     @Override
     public void activate(Class<? extends Misting> type)
     {
-        if(activePowers.contains(type))
+        if (activePowers.contains(type))
             return;
         as(type).ifPresent(m -> {
             activePowers.add(type);
@@ -87,7 +87,7 @@ public class EntityAllomancer implements Allomancer, INBTSerializable<NBTTagComp
     @Override
     public void deactivate(Class<? extends Misting> type)
     {
-        if(!activePowers.contains(type))
+        if (!activePowers.contains(type))
             return;
         as(type).ifPresent(m -> {
             activePowers.remove(type);

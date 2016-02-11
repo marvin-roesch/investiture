@@ -1,11 +1,10 @@
-package de.mineformers.investiture.allomancy.api.misting;
+package de.mineformers.investiture.allomancy.api.misting.physical;
 
+import de.mineformers.investiture.allomancy.api.misting.Misting;
+import de.mineformers.investiture.allomancy.api.misting.Targeting;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.BlockPos;
-import net.minecraft.util.MovingObjectPosition;
-import net.minecraft.util.Vec3;
 
-import java.lang.annotation.Target;
 import java.util.Collection;
 
 /**

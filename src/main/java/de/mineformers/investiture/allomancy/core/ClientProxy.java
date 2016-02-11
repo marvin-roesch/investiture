@@ -11,9 +11,7 @@ import de.mineformers.investiture.allomancy.client.renderer.tileentity.MetalExtr
 import de.mineformers.investiture.allomancy.impl.AllomancyAPIImpl;
 import de.mineformers.investiture.allomancy.impl.EntityAllomancer;
 import de.mineformers.investiture.allomancy.impl.TargetHandler;
-import de.mineformers.investiture.allomancy.impl.misting.AbstractMetalManipulator;
-import de.mineformers.investiture.allomancy.impl.misting.CoinshotImpl;
-import de.mineformers.investiture.allomancy.impl.misting.OracleImpl;
+import de.mineformers.investiture.allomancy.impl.misting.physical.AbstractMetalManipulator;
 import de.mineformers.investiture.allomancy.item.MetalItem;
 import de.mineformers.investiture.allomancy.network.AllomancerUpdate;
 import de.mineformers.investiture.allomancy.network.MetalExtractorUpdate;
@@ -103,7 +101,7 @@ public class ClientProxy implements Proxy
             ctx.schedule(() -> {
                 Entity entity = ctx.player().worldObj.getEntityByID(msg.entityId);
                 AllomancyAPIImpl.INSTANCE.toAllomancer(entity).ifPresent(a -> {
-                    if(a instanceof EntityAllomancer)
+                    if (a instanceof EntityAllomancer)
                         ((EntityAllomancer) a).setActivePowers(msg.activePowers);
                 });
             });

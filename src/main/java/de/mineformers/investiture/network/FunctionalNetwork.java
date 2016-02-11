@@ -248,9 +248,9 @@ public class FunctionalNetwork
         if (entity.worldObj instanceof WorldServer)
         {
             EntityTracker tracker = ((WorldServer) entity.worldObj).getEntityTracker();
-            for(EntityPlayer p : tracker.getTrackingPlayers(entity))
+            for (EntityPlayer p : tracker.getTrackingPlayers(entity))
                 sendTo((EntityPlayerMP) p, message);
-            if(entity instanceof EntityPlayerMP)
+            if (entity instanceof EntityPlayerMP)
                 sendTo((EntityPlayerMP) entity, message);
         }
     }

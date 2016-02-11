@@ -1,12 +1,13 @@
-package de.mineformers.investiture.allomancy.impl.misting;
+package de.mineformers.investiture.allomancy.impl.misting.physical;
 
-import de.mineformers.investiture.Investiture;
 import de.mineformers.investiture.allomancy.Allomancy;
-import de.mineformers.investiture.allomancy.api.misting.*;
+import de.mineformers.investiture.allomancy.api.misting.Inject;
+import de.mineformers.investiture.allomancy.api.misting.physical.Coinshot;
+import de.mineformers.investiture.allomancy.api.misting.physical.Lurcher;
+import de.mineformers.investiture.allomancy.api.misting.physical.MetalManipulator;
 import de.mineformers.investiture.allomancy.impl.AllomancyAPIImpl;
-import de.mineformers.investiture.allomancy.network.TargetEffect;
+import de.mineformers.investiture.allomancy.impl.misting.AbstractMisting;
 import de.mineformers.investiture.client.util.Rendering;
-import de.mineformers.investiture.util.RayTracer;
 import gnu.trove.map.TObjectIntMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
 import net.minecraft.client.Minecraft;
@@ -16,7 +17,6 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.*;
-import net.minecraftforge.client.event.MouseEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -75,7 +75,8 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
     @Override
     public boolean isValid(MovingObjectPosition target)
     {
-        switch(target.typeOfHit) {
+        switch (target.typeOfHit)
+        {
             case BLOCK:
                 return affectedBlocks().contains(target.getBlockPos());
             case ENTITY:
@@ -273,7 +274,8 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
             Vec3 direction = pos.center().subtract(start);
             Vec3 end = start.addVector(direction.xCoord * progress, direction.yCoord * progress, direction.zCoord * progress);
             end = end.subtract(start);
-            renderer.pos(0, Minecraft.getMinecraft().thePlayer.height * (2f / 3f), 0).color(0.28627452f, 0.7254902f, 0.87058824f, progress * 0.5f).endVertex();
+            renderer.pos(0, Minecraft.getMinecraft().thePlayer.height * (2f / 3f), 0).color(0.28627452f, 0.7254902f, 0.87058824f, progress * 0.5f)
+                    .endVertex();
             renderer.pos(end.xCoord, end.yCoord, end.zCoord).color(0.28627452f, 0.7254902f, 0.87058824f, progress * 0.5f).endVertex();
         }
 
