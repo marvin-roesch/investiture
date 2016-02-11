@@ -2,12 +2,9 @@ package de.mineformers.investiture.allomancy.impl.misting;
 
 import de.mineformers.investiture.Investiture;
 import de.mineformers.investiture.allomancy.Allomancy;
-import de.mineformers.investiture.allomancy.api.misting.Coinshot;
-import de.mineformers.investiture.allomancy.api.misting.Inject;
-import de.mineformers.investiture.allomancy.api.misting.Lurcher;
-import de.mineformers.investiture.allomancy.api.misting.MetalManipulator;
+import de.mineformers.investiture.allomancy.api.misting.*;
 import de.mineformers.investiture.allomancy.impl.AllomancyAPIImpl;
-import de.mineformers.investiture.allomancy.network.MetalManipulatorEffect;
+import de.mineformers.investiture.allomancy.network.TargetEffect;
 import de.mineformers.investiture.client.util.Rendering;
 import de.mineformers.investiture.util.RayTracer;
 import gnu.trove.map.TObjectIntMap;
@@ -23,7 +20,6 @@ import net.minecraftforge.client.event.MouseEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
-import org.lwjgl.input.Mouse;
 
 import javax.annotation.Nonnull;
 import java.util.*;
@@ -77,7 +73,19 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
     }
 
     @Override
-    public void applyEffect(MovingObjectPosition pos)
+    public boolean isValid(MovingObjectPosition target)
+    {
+        switch(target.typeOfHit) {
+            case BLOCK:
+                return affectedBlocks().contains(target.getBlockPos());
+            case ENTITY:
+                return affectedEntities().contains(target.entityHit);
+        }
+        return false;
+    }
+
+    @Override
+    public void apply(MovingObjectPosition pos)
     {
         if (pos.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK)
             applyBlockEffect(pos);
@@ -102,19 +110,21 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
     private void applyEffect(Entity target, Vec3 end, double factor)
     {
         Vec3 start = entity.getPositionVector()
-                           .addVector(0, Minecraft.getMinecraft().thePlayer.getEyeHeight(), 0);
+                           .addVector(0, entity.getEyeHeight(), 0);
         double distance = 1 / start.distanceTo(end) * 0.1;
         Vec3 direction = start.subtract(end);
         Vec3 velocity = new Vec3(direction.xCoord * distance * distanceFactor().xCoord * factor,
                                  direction.yCoord * distance * distanceFactor().yCoord * factor,
                                  direction.zCoord * distance * distanceFactor().zCoord * factor);
-        if (target.worldObj.isRemote)
-        {
-            Investiture.net().sendToServer(new MetalManipulatorEffect(target.getEntityId(), velocity));
-        }
 
         target.addVelocity(velocity.xCoord, velocity.yCoord, velocity.zCoord);
         entity.fallDistance = 0;
+    }
+
+    @Override
+    public boolean repeatEvent()
+    {
+        return true;
     }
 
     public abstract Vec3 distanceFactor();
@@ -128,7 +138,6 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
         private TObjectIntMap<PositionWrapper> fadeInTimer = new TObjectIntHashMap<>();
         private TObjectIntMap<PositionWrapper> fadeOutTimer = new TObjectIntHashMap<>();
         private boolean active;
-        private MovingObjectPosition coinshotHit, lurcherHit;
 
         @SubscribeEvent
         public void onClientTick(TickEvent.ClientTickEvent event)
@@ -203,23 +212,6 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
                         fadeInTimer.put(wrapper, 0);
                     }
                 }
-
-                if (player.getHeldItem() == null)
-                {
-                    if (Mouse.isButtonDown(0) && coinshotHit != null && coinshotHit.hitVec.squareDistanceTo(player.getPositionVector()) <= 400)
-                        a.as(Coinshot.class).ifPresent(c -> c.applyEffect(coinshotHit));
-                    else
-                        coinshotHit = null;
-                    if (Mouse.isButtonDown(1) && lurcherHit != null && lurcherHit.hitVec.squareDistanceTo(player.getPositionVector()) <= 400)
-                        a.as(Lurcher.class).ifPresent(c -> c.applyEffect(lurcherHit));
-                    else
-                        lurcherHit = null;
-                }
-                else
-                {
-                    lurcherHit = null;
-                    coinshotHit = null;
-                }
             });
         }
 
@@ -228,37 +220,6 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
         {
             if (active)
                 renderLines(event.partialTicks);
-        }
-
-        @SubscribeEvent
-        public void onMouseClick(MouseEvent event)
-        {
-            if (!active || !Minecraft.getMinecraft().inGameHasFocus)
-                return;
-            if (Minecraft.getMinecraft().thePlayer.getHeldItem() == null && event.buttonstate && (event.button == 0 || event.button == 1))
-            {
-                MovingObjectPosition blockHit = RayTracer.rayTraceBlocks(Minecraft.getMinecraft().thePlayer, 20,
-                                                                         s -> allPositions.contains(s.getPos()), false, false, false);
-                MovingObjectPosition entityHit = RayTracer.rayTraceEntities(Minecraft.getMinecraft().thePlayer, 20,
-                                                                            e -> allEntities.contains(e));
-                if (blockHit != null || entityHit != null)
-                {
-                    MovingObjectPosition hit = blockHit;
-                    if (hit == null)
-                        hit = entityHit;
-                    else if (entityHit != null)
-                    {
-                        double blockDistance = blockHit.hitVec.distanceTo(Minecraft.getMinecraft().thePlayer.getPositionVector());
-                        double entityDistance = entityHit.hitVec.distanceTo(Minecraft.getMinecraft().thePlayer.getPositionVector());
-                        hit = blockDistance < entityDistance ? blockHit : entityHit;
-                    }
-                    if (event.button == 0)
-                        coinshotHit = hit;
-                    else
-                        lurcherHit = hit;
-                    event.setCanceled(true);
-                }
-            }
         }
 
         private void renderLines(float partialTicks)
