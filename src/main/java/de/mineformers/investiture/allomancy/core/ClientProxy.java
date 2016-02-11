@@ -10,6 +10,7 @@ import de.mineformers.investiture.allomancy.client.gui.MetalSelectionHUD;
 import de.mineformers.investiture.allomancy.client.renderer.tileentity.MetalExtractorRenderer;
 import de.mineformers.investiture.allomancy.impl.AllomancyAPIImpl;
 import de.mineformers.investiture.allomancy.impl.EntityAllomancer;
+import de.mineformers.investiture.allomancy.impl.TargetHandler;
 import de.mineformers.investiture.allomancy.impl.misting.AbstractMetalManipulator;
 import de.mineformers.investiture.allomancy.impl.misting.CoinshotImpl;
 import de.mineformers.investiture.allomancy.impl.misting.OracleImpl;
@@ -64,6 +65,7 @@ public class ClientProxy implements Proxy
         MinecraftForge.EVENT_BUS.register(new MetalSelectionHUD());
 
         MinecraftForge.EVENT_BUS.register(new AbstractMetalManipulator.EventHandler());
+        MinecraftForge.EVENT_BUS.register(new TargetHandler());
 
 //        // Handle changes in a storage of allomantic metals
 //        Investiture.net().addHandler(EntityMetalStorageUpdate.class, Side.CLIENT, (msg, ctx) -> {

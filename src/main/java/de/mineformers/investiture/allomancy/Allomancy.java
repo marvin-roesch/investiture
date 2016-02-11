@@ -1,10 +1,13 @@
 package de.mineformers.investiture.allomancy;
 
+import com.google.common.base.Throwables;
 import de.mineformers.investiture.Investiture;
 import de.mineformers.investiture.allomancy.api.metal.Metal;
 import de.mineformers.investiture.allomancy.api.metal.MetalBurner;
 import de.mineformers.investiture.allomancy.api.metal.MetalStorage;
 import de.mineformers.investiture.allomancy.api.metal.Metals;
+import de.mineformers.investiture.allomancy.api.misting.Misting;
+import de.mineformers.investiture.allomancy.api.misting.Targeting;
 import de.mineformers.investiture.allomancy.block.MetalExtractor;
 import de.mineformers.investiture.allomancy.block.MetalExtractorController;
 import de.mineformers.investiture.allomancy.block.MetalOre;
@@ -210,6 +213,7 @@ public final class Allomancy implements Manifestation
          * {@link Translator Translators}, {@link Message Messages}
          * or {@link de.mineformers.investiture.network.Message.Handler handlers}.
          */
+        @SuppressWarnings("unchecked")
         public static void init()
         {
             Serialisation.INSTANCE.registerTranslator(MetalStorage.class, new MetalStorage.Translator());
@@ -222,7 +226,7 @@ public final class Allomancy implements Manifestation
             Investiture.net().registerMessage(AllomancerUpdate.class);
             Investiture.net().registerMessage(MistingUpdate.class);
 
-            Investiture.net().registerMessage(MetalManipulatorEffect.class);
+            Investiture.net().registerMessage(TargetEffect.class);
 
             // Add handler for toggling the burning of a metal
             Investiture.net().addHandler(ToggleBurningMetal.class, Side.SERVER, (msg, ctx) -> {
@@ -246,13 +250,25 @@ public final class Allomancy implements Manifestation
                 return null;
             });
 
-            Investiture.net().addHandler(MetalManipulatorEffect.class, Side.SERVER, (msg, ctx) -> {
+            Investiture.net().addHandler(TargetEffect.class, Side.SERVER, (msg, ctx) -> {
                 ctx.schedule(() -> {
-                    Entity entity = ctx.player().worldObj.getEntityByID(msg.affectedEntity);
-                    if(entity != null)
+                    Entity entity = ctx.player().worldObj.getEntityByID(msg.entityId);
+                    if (entity != null)
                     {
-                        entity.addVelocity(msg.velocity.xCoord, msg.velocity.yCoord, msg.velocity.zCoord);
-                        entity.fallDistance = 0;
+                        AllomancyAPIImpl.INSTANCE.toAllomancer(entity)
+                                                 .flatMap(a -> {
+                                                     try
+                                                     {
+                                                         return a.as((Class<? extends Misting>) Class.forName(msg.type));
+                                                     }
+                                                     catch (ClassNotFoundException e)
+                                                     {
+                                                         Throwables.propagate(e);
+                                                     }
+                                                     return Optional.empty();
+                                                 })
+                                                 .filter(m -> m instanceof Targeting && ((Targeting) m).isValid(msg.target))
+                                                 .ifPresent(t -> ((Targeting) t).apply(msg.target));
                     }
                 });
                 return null;

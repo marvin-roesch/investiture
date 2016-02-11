@@ -8,11 +8,15 @@ import com.google.common.collect.Table;
 import de.mineformers.investiture.network.ManualTranslation;
 import de.mineformers.investiture.network.Message;
 import io.netty.buffer.ByteBuf;
+import net.minecraft.entity.Entity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.*;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
+import net.minecraft.world.World;
+import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.fml.common.network.ByteBufUtils;
 import org.apache.commons.lang3.ClassUtils;
 
@@ -468,6 +472,99 @@ public class Serialisation
             public byte[] deserialiseImpl(NBTTagByteArray tag)
             {
                 return tag.getByteArray();
+            }
+        });
+
+        registerTranslator(MovingObjectPosition.class, new Translator<MovingObjectPosition, NBTTagCompound>()
+        {
+            @Override
+            public void serialiseImpl(MovingObjectPosition value, ByteBuf buffer)
+            {
+                buffer.writeInt(value.typeOfHit.ordinal());
+                buffer.writeDouble(value.hitVec.xCoord);
+                buffer.writeDouble(value.hitVec.yCoord);
+                buffer.writeDouble(value.hitVec.zCoord);
+                switch (value.typeOfHit)
+                {
+                    case ENTITY:
+                        buffer.writeInt(value.entityHit.dimension);
+                        buffer.writeInt(value.entityHit.getEntityId());
+                        break;
+                    case BLOCK:
+                        buffer.writeInt(value.sideHit.getIndex());
+                        buffer.writeInt(value.getBlockPos().getX());
+                        buffer.writeInt(value.getBlockPos().getY());
+                        buffer.writeInt(value.getBlockPos().getZ());
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            @Override
+            public MovingObjectPosition deserialiseImpl(ByteBuf buffer)
+            {
+                MovingObjectPosition.MovingObjectType type = MovingObjectPosition.MovingObjectType.values()[buffer.readInt()];
+                Vec3 hitVec = new Vec3(buffer.readDouble(), buffer.readDouble(), buffer.readDouble());
+                switch (type)
+                {
+                    case ENTITY:
+                        World world = DimensionManager.getWorld(buffer.readInt());
+                        Entity entity = world.getEntityByID(buffer.readInt());
+                        return new MovingObjectPosition(entity, hitVec);
+                    case BLOCK:
+                        EnumFacing facing = EnumFacing.getFront(buffer.readInt());
+                        BlockPos pos = new BlockPos(buffer.readInt(), buffer.readInt(), buffer.readInt());
+                        return new MovingObjectPosition(hitVec, facing, pos);
+                    default:
+                        return new MovingObjectPosition(MovingObjectPosition.MovingObjectType.MISS, hitVec, null, BlockPos.ORIGIN);
+                }
+            }
+
+            @Override
+            public NBTTagCompound serialiseImpl(MovingObjectPosition value)
+            {
+                NBTTagCompound result = new NBTTagCompound();
+                result.setInteger("TypeOfHit", value.typeOfHit.ordinal());
+                result.setDouble("HitX", value.hitVec.xCoord);
+                result.setDouble("HitY", value.hitVec.yCoord);
+                result.setDouble("HitZ", value.hitVec.zCoord);
+                switch (value.typeOfHit)
+                {
+                    case ENTITY:
+                        result.setInteger("EntityDimension", value.entityHit.dimension);
+                        result.setInteger("Entity", value.entityHit.getEntityId());
+                        break;
+                    case BLOCK:
+                        result.setInteger("SideHit", value.sideHit.getIndex());
+                        result.setInteger("BlockX", value.getBlockPos().getX());
+                        result.setInteger("BlockY", value.getBlockPos().getY());
+                        result.setInteger("BlockZ", value.getBlockPos().getZ());
+                        break;
+                    default:
+                        break;
+                }
+                return result;
+            }
+
+            @Override
+            public MovingObjectPosition deserialiseImpl(NBTTagCompound tag)
+            {
+                MovingObjectPosition.MovingObjectType type = MovingObjectPosition.MovingObjectType.values()[tag.getInteger("TypeOfHit")];
+                Vec3 hitVec = new Vec3(tag.getDouble("HitX"), tag.getDouble("HitY"), tag.getDouble("HitZ"));
+                switch (type)
+                {
+                    case ENTITY:
+                        World world = DimensionManager.getWorld(tag.getInteger("EntityDimension"));
+                        Entity entity = world.getEntityByID(tag.getInteger("Entity"));
+                        return new MovingObjectPosition(entity, hitVec);
+                    case BLOCK:
+                        EnumFacing facing = EnumFacing.getFront(tag.getInteger("SideHit"));
+                        BlockPos pos = new BlockPos(tag.getInteger("BlockX"), tag.getInteger("BlockY"), tag.getInteger("BlockZ"));
+                        return new MovingObjectPosition(hitVec, facing, pos);
+                    default:
+                        return new MovingObjectPosition(MovingObjectPosition.MovingObjectType.MISS, hitVec, null, BlockPos.ORIGIN);
+                }
             }
         });
     }
