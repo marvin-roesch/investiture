@@ -1,9 +1,10 @@
-package de.mineformers.investiture.allomancy.impl.misting;
+package de.mineformers.investiture.allomancy.impl.misting.temporal;
 
-import de.mineformers.investiture.allomancy.api.misting.Augur;
 import de.mineformers.investiture.allomancy.api.misting.Inject;
+import de.mineformers.investiture.allomancy.api.misting.temporal.Augur;
 import de.mineformers.investiture.allomancy.client.particle.FootStep;
 import de.mineformers.investiture.allomancy.impl.AllomancyAPIImpl;
+import de.mineformers.investiture.allomancy.impl.misting.AbstractMisting;
 import de.mineformers.investiture.serialisation.Serialise;
 import de.mineformers.investiture.util.PathFinding;
 import net.minecraft.client.Minecraft;

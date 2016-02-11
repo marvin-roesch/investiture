@@ -1,5 +1,7 @@
 package de.mineformers.investiture.allomancy.api.power;
 
+import de.mineformers.investiture.allomancy.api.misting.mental.Seeker;
+
 /**
  * Holds constants for easy access to the various power categories.
  * The category is the most important piece of information for determining the effect of a metal.
@@ -13,7 +15,7 @@ public class Category
     public static final String PHYSICAL = "physical";
     /**
      * Mental Allomancy affects people's minds.
-     * Examples are copper clouds hiding you from {@link de.mineformers.investiture.allomancy.api.misting.Seeker Seekers} or brass soothing the
+     * Examples are copper clouds hiding you from {@link Seeker Seekers} or brass soothing the
      * emotions of a target.
      */
     public static final String MENTAL = "mental";

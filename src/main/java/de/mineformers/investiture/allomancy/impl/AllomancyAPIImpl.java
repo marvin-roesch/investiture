@@ -7,11 +7,20 @@ import com.google.common.collect.ImmutableSet;
 import de.mineformers.investiture.allomancy.api.Allomancer;
 import de.mineformers.investiture.allomancy.api.AllomancyAPI;
 import de.mineformers.investiture.allomancy.api.MistingFactory;
-import de.mineformers.investiture.allomancy.api.misting.*;
-import de.mineformers.investiture.allomancy.impl.misting.AugurImpl;
-import de.mineformers.investiture.allomancy.impl.misting.CoinshotImpl;
-import de.mineformers.investiture.allomancy.impl.misting.LurcherImpl;
-import de.mineformers.investiture.allomancy.impl.misting.OracleImpl;
+import de.mineformers.investiture.allomancy.api.misting.Inject;
+import de.mineformers.investiture.allomancy.api.misting.Misting;
+import de.mineformers.investiture.allomancy.api.misting.mental.Rioter;
+import de.mineformers.investiture.allomancy.api.misting.mental.Soother;
+import de.mineformers.investiture.allomancy.api.misting.physical.Coinshot;
+import de.mineformers.investiture.allomancy.api.misting.physical.Lurcher;
+import de.mineformers.investiture.allomancy.api.misting.temporal.Augur;
+import de.mineformers.investiture.allomancy.api.misting.temporal.Oracle;
+import de.mineformers.investiture.allomancy.impl.misting.mental.RioterImpl;
+import de.mineformers.investiture.allomancy.impl.misting.mental.SootherImpl;
+import de.mineformers.investiture.allomancy.impl.misting.physical.CoinshotImpl;
+import de.mineformers.investiture.allomancy.impl.misting.physical.LurcherImpl;
+import de.mineformers.investiture.allomancy.impl.misting.temporal.AugurImpl;
+import de.mineformers.investiture.allomancy.impl.misting.temporal.OracleImpl;
 import de.mineformers.investiture.serialisation.Serialisation;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
@@ -58,6 +67,10 @@ public class AllomancyAPIImpl implements AllomancyAPI
 
         registerMisting(Coinshot.class, CoinshotImpl::new);
         registerMisting(Lurcher.class, LurcherImpl::new);
+
+        registerMisting(Soother.class, SootherImpl::new);
+        registerMisting(Rioter.class, RioterImpl::new);
+
         registerMisting(Augur.class, AugurImpl::new);
         registerMisting(Oracle.class, OracleImpl::new);
 

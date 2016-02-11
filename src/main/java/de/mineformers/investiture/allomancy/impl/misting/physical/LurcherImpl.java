@@ -1,6 +1,6 @@
-package de.mineformers.investiture.allomancy.impl.misting;
+package de.mineformers.investiture.allomancy.impl.misting.physical;
 
-import de.mineformers.investiture.allomancy.api.misting.Lurcher;
+import de.mineformers.investiture.allomancy.api.misting.physical.Lurcher;
 import net.minecraft.util.Vec3;
 
 /**

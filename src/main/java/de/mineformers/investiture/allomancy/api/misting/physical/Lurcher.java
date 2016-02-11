@@ -1,4 +1,4 @@
-package de.mineformers.investiture.allomancy.api.misting;
+package de.mineformers.investiture.allomancy.api.misting.physical;
 
 import de.mineformers.investiture.allomancy.api.metal.Metal;
 import de.mineformers.investiture.allomancy.api.metal.Metals;

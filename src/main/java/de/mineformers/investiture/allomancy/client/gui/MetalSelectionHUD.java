@@ -20,15 +20,12 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.WorldRenderer;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.settings.KeyBinding;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.client.event.MouseEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
-import org.lwjgl.input.Mouse;
 
 import java.util.Map;
 import java.util.Optional;
@@ -258,14 +255,14 @@ public class MetalSelectionHUD
             else if (!KeyBindings.SHOW_DIAL.isKeyDown() && display)
             {
                 display = false;
-                if(mc.currentScreen == null)
+                if (mc.currentScreen == null)
                 {
                     mc.inGameHasFocus = true;
                     mc.mouseHelper.grabMouseCursor();
                 }
             }
 
-            if(display && mc.currentScreen != null)
+            if (display && mc.currentScreen != null)
             {
                 KeyBinding.setKeyBindState(KeyBindings.SHOW_DIAL.getKeyCode(), false);
                 display = false;

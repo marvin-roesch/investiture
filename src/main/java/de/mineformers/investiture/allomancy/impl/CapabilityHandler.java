@@ -90,14 +90,14 @@ public class CapabilityHandler
     @SubscribeEvent
     public void onKill(LivingDeathEvent event)
     {
-        if(!(event.entity instanceof EntityIronGolem))
+        if (!(event.entity instanceof EntityIronGolem))
             return;
-        if(!event.entity.worldObj.isRemote)
+        if (!event.entity.worldObj.isRemote)
         {
-            if(event.source instanceof EntityDamageSource)
+            if (event.source instanceof EntityDamageSource)
             {
                 Entity killer = event.source.getEntity();
-                if(killer instanceof EntityPlayer)
+                if (killer instanceof EntityPlayer)
                 {
                     AllomancyAPIImpl.INSTANCE.toAllomancer(killer).ifPresent(a -> {
                         Metals.BASE_METALS.forEach(m -> a.grantPower(m.mistingType()));
