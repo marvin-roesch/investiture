@@ -111,7 +111,7 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
     private void applyEffect(Entity target, Vec3 end, double factor)
     {
         Vec3 start = entity.getPositionVector()
-                           .addVector(0, entity.getEyeHeight(), 0);
+                           .addVector(0, entity.height / 2, 0);
         double distance = 1 / start.distanceTo(end) * 0.1;
         Vec3 direction = start.subtract(end);
         Vec3 velocity = new Vec3(direction.xCoord * distance * distanceFactor().xCoord * factor,

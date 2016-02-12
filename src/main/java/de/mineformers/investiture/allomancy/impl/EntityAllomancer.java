@@ -1,6 +1,5 @@
 package de.mineformers.investiture.allomancy.impl;
 
-import com.google.common.base.Throwables;
 import de.mineformers.investiture.Investiture;
 import de.mineformers.investiture.allomancy.api.Allomancer;
 import de.mineformers.investiture.allomancy.api.misting.Misting;
@@ -141,6 +140,7 @@ public class EntityAllomancer implements Allomancer, INBTSerializable<NBTTagComp
         this.activePowers.clear();
         this.activePowers.addAll(activePowers);
         activePowers.stream().filter(c -> !old.contains(c)).forEach(p -> as(p).ifPresent(Misting::startBurning));
+        old.stream().filter(c -> !activePowers.contains(c)).forEach(p -> as(p).ifPresent(Misting::stopBurning));
     }
 
     public void sync()
@@ -197,7 +197,7 @@ public class EntityAllomancer implements Allomancer, INBTSerializable<NBTTagComp
             }
             catch (Exception e)
             {
-                Throwables.propagate(e);
+                Investiture.log().error("Could not load misting with class '" + mistingData.getString("Allomancy$MistingClass") + "', skipping.", e);
             }
         }
         NBTTagList activePowers = nbt.getTagList("ActivePowers", Constants.NBT.TAG_STRING);
@@ -212,7 +212,7 @@ public class EntityAllomancer implements Allomancer, INBTSerializable<NBTTagComp
             }
             catch (Exception e)
             {
-                Throwables.propagate(e);
+                Investiture.log().error("Could not load misting with class '" + activePowers.getStringTagAt(i) + "', skipping.", e);
             }
         }
     }

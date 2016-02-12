@@ -13,12 +13,16 @@ import de.mineformers.investiture.allomancy.api.misting.mental.Rioter;
 import de.mineformers.investiture.allomancy.api.misting.mental.Soother;
 import de.mineformers.investiture.allomancy.api.misting.physical.Coinshot;
 import de.mineformers.investiture.allomancy.api.misting.physical.Lurcher;
+import de.mineformers.investiture.allomancy.api.misting.physical.Thug;
+import de.mineformers.investiture.allomancy.api.misting.physical.Tineye;
 import de.mineformers.investiture.allomancy.api.misting.temporal.Augur;
 import de.mineformers.investiture.allomancy.api.misting.temporal.Oracle;
 import de.mineformers.investiture.allomancy.impl.misting.mental.RioterImpl;
 import de.mineformers.investiture.allomancy.impl.misting.mental.SootherImpl;
 import de.mineformers.investiture.allomancy.impl.misting.physical.CoinshotImpl;
 import de.mineformers.investiture.allomancy.impl.misting.physical.LurcherImpl;
+import de.mineformers.investiture.allomancy.impl.misting.physical.ThugImpl;
+import de.mineformers.investiture.allomancy.impl.misting.physical.TineyeImpl;
 import de.mineformers.investiture.allomancy.impl.misting.temporal.AugurImpl;
 import de.mineformers.investiture.allomancy.impl.misting.temporal.OracleImpl;
 import de.mineformers.investiture.serialisation.Serialisation;
@@ -67,12 +71,16 @@ public class AllomancyAPIImpl implements AllomancyAPI
 
         registerMisting(Coinshot.class, CoinshotImpl::new);
         registerMisting(Lurcher.class, LurcherImpl::new);
+        registerMisting(Tineye.class, TineyeImpl::new);
+        registerMisting(Thug.class, ThugImpl::new);
 
         registerMisting(Soother.class, SootherImpl::new);
         registerMisting(Rioter.class, RioterImpl::new);
 
         registerMisting(Augur.class, AugurImpl::new);
         registerMisting(Oracle.class, OracleImpl::new);
+
+        TineyeImpl.init();
 
         Set<Item> metallicItems = ImmutableSet.of(Items.iron_ingot, Items.gold_ingot, Items.gold_nugget);
         registerMetallicItem(stack -> {

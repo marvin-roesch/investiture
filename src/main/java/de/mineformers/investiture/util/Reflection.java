@@ -7,6 +7,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,6 +16,13 @@ import java.util.List;
  */
 public class Reflection
 {
+    private static final MethodHandle MODIFIERS_SETTER;
+
+    static
+    {
+        MODIFIERS_SETTER = setterHandle(Field.class).mcpName("modifiers").build();
+    }
+
     public static FieldHandleBuilder getterHandle(Class<?> clazz)
     {
         return new FieldHandleBuilder(clazz, false);
@@ -28,6 +36,21 @@ public class Reflection
     public static MethodHandleBuilder<?> methodHandle(Class<?> clazz)
     {
         return new MethodHandleBuilder<>(clazz);
+    }
+
+    public static void setFinalField(Class<?> clazz, Object instance, String mcpName, String srgName, Object value)
+    {
+        try
+        {
+            Field field = ReflectionHelper.findField(clazz, srgName, mcpName);
+            field.setAccessible(true);
+            MODIFIERS_SETTER.bindTo(field).invokeExact(field.getModifiers() & ~Modifier.FINAL);
+            field.set(instance, value);
+        }
+        catch (Throwable t)
+        {
+            Throwables.propagate(t);
+        }
     }
 
     public static class FieldHandleBuilder

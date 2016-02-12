@@ -5,6 +5,7 @@ import de.mineformers.investiture.allomancy.Allomancy;
 import de.mineformers.investiture.core.Manifestation;
 import de.mineformers.investiture.core.Proxy;
 import de.mineformers.investiture.network.FunctionalNetwork;
+import de.mineformers.investiture.util.Attributes;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
 import net.minecraftforge.fml.common.Mod;
@@ -78,6 +79,7 @@ public final class Investiture
     {
         network = FunctionalNetwork.create(MOD_ID);
         log = LogManager.getLogger(MOD_ID);
+        Attributes.init();
         // Delegate event to modules
         modules.forEach(m -> {
             log().info("Running pre-initialisation for module '" + m.id() + "'");

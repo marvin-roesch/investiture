@@ -12,6 +12,7 @@ import de.mineformers.investiture.allomancy.impl.AllomancyAPIImpl;
 import de.mineformers.investiture.allomancy.impl.EntityAllomancer;
 import de.mineformers.investiture.allomancy.impl.TargetHandler;
 import de.mineformers.investiture.allomancy.impl.misting.physical.AbstractMetalManipulator;
+import de.mineformers.investiture.allomancy.impl.misting.physical.TineyeImpl;
 import de.mineformers.investiture.allomancy.item.MetalItem;
 import de.mineformers.investiture.allomancy.network.AllomancerUpdate;
 import de.mineformers.investiture.allomancy.network.MetalExtractorUpdate;
@@ -19,12 +20,9 @@ import de.mineformers.investiture.allomancy.network.MistingUpdate;
 import de.mineformers.investiture.allomancy.tileentity.TileMetalExtractorMaster;
 import de.mineformers.investiture.client.KeyBindings;
 import de.mineformers.investiture.client.renderer.block.ModuleStateMap;
-import de.mineformers.investiture.core.Proxy;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.model.ModelBakery;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.client.model.obj.OBJLoader;
 import net.minecraftforge.common.MinecraftForge;
@@ -39,7 +37,7 @@ import java.util.List;
 /**
  * Handles all Allomancy-level operations specific to the dedicated client.
  */
-public class ClientProxy implements Proxy
+public class ClientProxy extends de.mineformers.investiture.core.ClientProxy
 {
     @Override
     @SuppressWarnings("unchecked")
@@ -63,6 +61,7 @@ public class ClientProxy implements Proxy
         MinecraftForge.EVENT_BUS.register(new MetalSelectionHUD());
 
         MinecraftForge.EVENT_BUS.register(new AbstractMetalManipulator.EventHandler());
+        MinecraftForge.EVENT_BUS.register(new TineyeImpl.EventHandler());
         MinecraftForge.EVENT_BUS.register(new TargetHandler());
 
 //        // Handle changes in a storage of allomantic metals
@@ -128,12 +127,6 @@ public class ClientProxy implements Proxy
     public void init(FMLInitializationEvent event)
     {
         ClientRegistry.bindTileEntitySpecialRenderer(TileMetalExtractorMaster.class, new MetalExtractorRenderer());
-    }
-
-    @Override
-    public EntityPlayer localPlayer()
-    {
-        return Minecraft.getMinecraft().thePlayer;
     }
 
     private void registerMetalResources(MetalItem item)
