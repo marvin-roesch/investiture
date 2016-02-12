@@ -128,7 +128,7 @@ public class TineyeImpl extends AbstractMisting implements Tineye, ITickable
 
     @Nonnull
     @SuppressWarnings("unchecked")
-    private static BitSet availablilityMap()
+    private static BitSet availabilityMap()
     {
         try
         {
@@ -148,7 +148,7 @@ public class TineyeImpl extends AbstractMisting implements Tineye, ITickable
         identityMap().remove(oldNightVision);
         objectList().remove(oldNightVision);
         objectList().add(16, null);
-        availablilityMap().clear(16);
+        availabilityMap().clear(16);
         class NightVisionWrapper extends Potion
         {
             public NightVisionWrapper()
