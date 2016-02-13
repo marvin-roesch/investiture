@@ -54,6 +54,7 @@ public final class Allomancy implements Manifestation
         clientSide = "de.mineformers.investiture.allomancy.core.ClientProxy",
         serverSide = "de.mineformers.investiture.allomancy.core.ServerProxy")
     public static Proxy proxy;
+    public static AllomancyConfig config;
 
     /**
      * @param path the path of the resource
@@ -73,6 +74,7 @@ public final class Allomancy implements Manifestation
     @Override
     public void preInit(FMLPreInitializationEvent event)
     {
+        config = new AllomancyConfig(loadConfig(event));
         Blocks.register();
         Items.register();
         ExtractorRecipes.register(Metals.IRON);

@@ -56,6 +56,19 @@ public interface Proxy
         return null;
     }
 
+    default void animateFOV(float desiredFOV, int animationDuration)
+    {
+    }
+
+    default void setFOV(EntityPlayer player, float value)
+    {
+    }
+
+    default float getFOV(EntityPlayer player)
+    {
+        return 0;
+    }
+
     /**
      * Automatically registers all resources associated with a block.
      *
