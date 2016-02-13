@@ -2,6 +2,7 @@ package de.mineformers.investiture.allomancy.impl.misting.physical;
 
 import com.google.common.base.Throwables;
 import de.mineformers.investiture.Investiture;
+import de.mineformers.investiture.allomancy.Allomancy;
 import de.mineformers.investiture.allomancy.api.misting.Inject;
 import de.mineformers.investiture.allomancy.api.misting.physical.Tineye;
 import de.mineformers.investiture.allomancy.impl.AllomancyAPIImpl;
@@ -234,10 +235,10 @@ public class TineyeImpl extends AbstractMisting implements Tineye, ITickable
             EntityLivingBase living = (EntityLivingBase) entity;
             living.addPotionEffect(new PotionEffect(Potion.nightVision.id, Short.MAX_VALUE, 0, false, false));
         }
-        if (entity instanceof EntityPlayer && entity == Investiture.proxy.localPlayer())
+        if (Allomancy.config.mistings.tineye.fovEnabled && entity instanceof EntityPlayer && entity == Investiture.proxy.localPlayer())
         {
             prevFOV = Investiture.proxy.getFOV((EntityPlayer) entity);
-            Investiture.proxy.animateFOV(prevFOV + 40, 10);
+            Investiture.proxy.animateFOV(prevFOV + Allomancy.config.mistings.tineye.fovIncrease, 10);
         }
     }
 
@@ -262,7 +263,7 @@ public class TineyeImpl extends AbstractMisting implements Tineye, ITickable
             EntityLivingBase living = (EntityLivingBase) entity;
             living.removePotionEffect(Potion.nightVision.id);
         }
-        if (entity instanceof EntityPlayer && entity == Investiture.proxy.localPlayer())
+        if (Allomancy.config.mistings.tineye.fovEnabled && entity instanceof EntityPlayer && entity == Investiture.proxy.localPlayer())
         {
             Investiture.proxy.animateFOV(prevFOV, 10);
         }
@@ -282,7 +283,7 @@ public class TineyeImpl extends AbstractMisting implements Tineye, ITickable
                 if (event.dwheel > 0 && (Minecraft.getMinecraft().gameSettings.fovSetting == normalFOV || normalFOV == -1))
                 {
                     normalFOV = Minecraft.getMinecraft().gameSettings.fovSetting;
-                    Investiture.proxy.animateFOV(10, 10);
+                    Investiture.proxy.animateFOV(Allomancy.config.mistings.tineye.fovZoom, 10);
                     event.setCanceled(true);
                 }
                 else if (event.dwheel < 0 && normalFOV != -1)

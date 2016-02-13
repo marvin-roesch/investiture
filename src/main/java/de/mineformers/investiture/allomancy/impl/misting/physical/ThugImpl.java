@@ -1,5 +1,6 @@
 package de.mineformers.investiture.allomancy.impl.misting.physical;
 
+import de.mineformers.investiture.allomancy.Allomancy;
 import de.mineformers.investiture.allomancy.api.misting.Inject;
 import de.mineformers.investiture.allomancy.api.misting.physical.Thug;
 import de.mineformers.investiture.allomancy.impl.misting.AbstractMisting;
@@ -29,8 +30,10 @@ public class ThugImpl extends AbstractMisting implements Thug
         if (entity instanceof EntityLivingBase)
         {
             EntityLivingBase living = (EntityLivingBase) entity;
-            AttributeModifier attackModifier = new AttributeModifier(ATTACK_MODIFIER_ID, "Thug modifier", 6, OP_ADD);
-            AttributeModifier damageModifier = new AttributeModifier(RESISTANCE_MODIFIER_ID, "Thug modifier", 2.5, OP_ADD);
+            AttributeModifier attackModifier = new AttributeModifier(ATTACK_MODIFIER_ID, "Thug modifier",
+                                                                     Allomancy.config.mistings.thug.attackBoost, OP_ADD);
+            AttributeModifier damageModifier = new AttributeModifier(RESISTANCE_MODIFIER_ID, "Thug modifier",
+                                                                     Allomancy.config.mistings.thug.damageResistance, OP_ADD);
             IAttributeInstance attribute = living.getAttributeMap().getAttributeInstance(SharedMonsterAttributes.attackDamage);
             attribute.removeModifier(attackModifier);
             attribute.applyModifier(attackModifier);
@@ -44,8 +47,10 @@ public class ThugImpl extends AbstractMisting implements Thug
         if (entity instanceof EntityLivingBase)
         {
             EntityLivingBase living = (EntityLivingBase) entity;
-            AttributeModifier attackModifier = new AttributeModifier(ATTACK_MODIFIER_ID, "Thug modifier", 6, OP_ADD);
-            AttributeModifier damageModifier = new AttributeModifier(RESISTANCE_MODIFIER_ID, "Thug modifier", 2.5, OP_ADD);
+            AttributeModifier attackModifier = new AttributeModifier(ATTACK_MODIFIER_ID, "Thug modifier",
+                                                                     Allomancy.config.mistings.thug.attackBoost, OP_ADD);
+            AttributeModifier damageModifier = new AttributeModifier(RESISTANCE_MODIFIER_ID, "Thug modifier",
+                                                                     Allomancy.config.mistings.thug.damageResistance, OP_ADD);
             IAttributeInstance attribute = living.getAttributeMap().getAttributeInstance(SharedMonsterAttributes.attackDamage);
             attribute.removeModifier(attackModifier);
             removeDamageResistanceModifier(living, damageModifier);

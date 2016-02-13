@@ -54,7 +54,10 @@ public class ClientProxy implements Proxy
     {
         if (Minecraft.getMinecraft().thePlayer == player)
         {
-            return Minecraft.getMinecraft().gameSettings.fovSetting;
+            if (eventHandler.animating)
+                return eventHandler.initialFOV;
+            else
+                return Minecraft.getMinecraft().gameSettings.fovSetting;
         }
         return 0;
     }
