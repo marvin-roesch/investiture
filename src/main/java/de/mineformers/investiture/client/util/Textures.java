@@ -18,7 +18,8 @@ public class Textures
     {
         BLOCK("blocks"),
         ITEM("items"),
-        GUI("gui");
+        GUI("gui"),
+        MISC("misc");
 
         public final String name;
 

@@ -1,6 +1,7 @@
 package de.mineformers.investiture.allomancy.api;
 
 import de.mineformers.investiture.allomancy.api.misting.Misting;
+import de.mineformers.investiture.allomancy.impl.misting.temporal.SpeedBubble;
 import net.minecraft.block.state.BlockWorldState;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
@@ -96,4 +97,6 @@ public interface AllomancyAPI
 
     @Nonnull
     Collection<Predicate<Entity>> metallicEntities();
+
+    Iterable<SpeedBubble> speedBubbles(World world);
 }

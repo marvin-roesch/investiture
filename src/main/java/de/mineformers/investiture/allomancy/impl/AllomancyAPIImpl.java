@@ -17,14 +17,15 @@ import de.mineformers.investiture.allomancy.api.misting.physical.Thug;
 import de.mineformers.investiture.allomancy.api.misting.physical.Tineye;
 import de.mineformers.investiture.allomancy.api.misting.temporal.Augur;
 import de.mineformers.investiture.allomancy.api.misting.temporal.Oracle;
+import de.mineformers.investiture.allomancy.api.misting.temporal.Pulser;
+import de.mineformers.investiture.allomancy.api.misting.temporal.Slider;
 import de.mineformers.investiture.allomancy.impl.misting.mental.RioterImpl;
 import de.mineformers.investiture.allomancy.impl.misting.mental.SootherImpl;
 import de.mineformers.investiture.allomancy.impl.misting.physical.CoinshotImpl;
 import de.mineformers.investiture.allomancy.impl.misting.physical.LurcherImpl;
 import de.mineformers.investiture.allomancy.impl.misting.physical.ThugImpl;
 import de.mineformers.investiture.allomancy.impl.misting.physical.TineyeImpl;
-import de.mineformers.investiture.allomancy.impl.misting.temporal.AugurImpl;
-import de.mineformers.investiture.allomancy.impl.misting.temporal.OracleImpl;
+import de.mineformers.investiture.allomancy.impl.misting.temporal.*;
 import de.mineformers.investiture.serialisation.Serialisation;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
@@ -35,6 +36,7 @@ import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ITickable;
+import net.minecraft.world.World;
 import org.apache.commons.lang3.ClassUtils;
 
 import javax.annotation.Nonnull;
@@ -79,6 +81,8 @@ public class AllomancyAPIImpl implements AllomancyAPI
 
         registerMisting(Augur.class, AugurImpl::new);
         registerMisting(Oracle.class, OracleImpl::new);
+        registerMisting(Pulser.class, PulserImpl::new);
+        registerMisting(Slider.class, SliderImpl::new);
 
         TineyeImpl.init();
 
@@ -151,6 +155,12 @@ public class AllomancyAPIImpl implements AllomancyAPI
     public Collection<Predicate<Entity>> metallicEntities()
     {
         return Collections.unmodifiableSet(metallicEntities);
+    }
+
+    @Override
+    public Iterable<SpeedBubble> speedBubbles(World world)
+    {
+        return SpeedBubbles.from(world);
     }
 
     @SuppressWarnings("unchecked")

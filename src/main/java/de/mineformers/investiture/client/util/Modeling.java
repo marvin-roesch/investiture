@@ -7,11 +7,21 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import de.mineformers.investiture.Investiture;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.client.renderer.vertex.VertexFormat;
+import net.minecraft.client.renderer.vertex.VertexFormatElement;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.Vec3;
 import net.minecraftforge.client.model.*;
 import net.minecraftforge.client.model.obj.OBJModel;
+import net.minecraftforge.client.model.pipeline.IVertexConsumer;
+import net.minecraftforge.client.model.pipeline.UnpackedBakedQuad;
+import net.minecraftforge.client.model.pipeline.VertexTransformer;
 
+import javax.vecmath.Matrix4f;
+import javax.vecmath.Vector4f;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -21,8 +31,9 @@ import java.util.Map;
  */
 public class Modeling
 {
-    private static final Function<ResourceLocation, TextureAtlasSprite> TEXTURE_GETTER = res -> Minecraft.getMinecraft().getTextureMapBlocks()
-                                                                                                         .getAtlasSprite(res.toString());
+    private static final Function<ResourceLocation, TextureAtlasSprite> TEXTURE_GETTER =
+        res -> res != null ? Minecraft.getMinecraft().getTextureMapBlocks().getAtlasSprite(res.toString())
+                           : Minecraft.getMinecraft().getTextureMapBlocks().getAtlasSprite("missingno");
 
     /**
      * Tries to load and bake an OBJ model using Forge's facilities, substituting it for the "missing" model if any errors occur.
@@ -115,5 +126,33 @@ public class Modeling
             Investiture.log().error("Failed loading OBJ model '%s'", resource.toString(), e);
         }
         return ModelLoaderRegistry.getMissingModel().bake(part -> Optional.absent(), Attributes.DEFAULT_BAKED_FORMAT, TEXTURE_GETTER);
+    }
+
+    public static BakedQuad scale(VertexFormat format, BakedQuad quad, Vec3 scale)
+    {
+        UnpackedBakedQuad.Builder builder = new UnpackedBakedQuad.Builder(format);
+        IVertexConsumer cons = new VertexTransformer(builder)
+        {
+            @Override
+            public void put(int element, float... data)
+            {
+                VertexFormatElement el = format.getElement(element);
+                switch (el.getUsage())
+                {
+                    case POSITION:
+                        float[] newData = new float[4];
+                        Vector4f vec = new Vector4f(data);
+                        vec.set((float) scale.xCoord * vec.x, (float) scale.yCoord * vec.y, (float) scale.zCoord * vec.z, vec.w);
+                        vec.get(newData);
+                        parent.put(element, newData);
+                        break;
+                    default:
+                        parent.put(element, data);
+                        break;
+                }
+            }
+        };
+        quad.pipe(cons);
+        return builder.build();
     }
 }
