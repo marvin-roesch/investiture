@@ -120,7 +120,8 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
                                  direction.zCoord * distance * distanceFactor().zCoord * factor);
 
         target.addVelocity(velocity.xCoord, velocity.yCoord, velocity.zCoord);
-        entity.fallDistance = (float) Math.max(0, entity.fallDistance - velocity.lengthVector() / factor);
+        if (target == entity)
+            entity.fallDistance = (float) Math.max(0, entity.fallDistance - velocity.yCoord / factor);
     }
 
     @Override
