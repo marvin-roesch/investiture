@@ -11,6 +11,7 @@ import de.mineformers.investiture.allomancy.api.misting.Targeting;
 import de.mineformers.investiture.allomancy.block.MetalExtractor;
 import de.mineformers.investiture.allomancy.block.MetalExtractorController;
 import de.mineformers.investiture.allomancy.block.MetalOre;
+import de.mineformers.investiture.allomancy.core.AllomancyCommand;
 import de.mineformers.investiture.allomancy.core.EntityHandler;
 import de.mineformers.investiture.allomancy.extractor.ExtractorRecipes;
 import de.mineformers.investiture.allomancy.impl.AllomancyAPIImpl;
@@ -35,6 +36,7 @@ import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.oredict.OreDictionary;
@@ -69,6 +71,12 @@ public final class Allomancy implements Manifestation
     public String id()
     {
         return DOMAIN;
+    }
+
+    @Override
+    public void serverStart(FMLServerStartingEvent event)
+    {
+        event.registerServerCommand(new AllomancyCommand());
     }
 
     @Override

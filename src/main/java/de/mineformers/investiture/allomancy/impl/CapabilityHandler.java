@@ -2,15 +2,10 @@ package de.mineformers.investiture.allomancy.impl;
 
 import de.mineformers.investiture.allomancy.Allomancy;
 import de.mineformers.investiture.allomancy.api.Allomancer;
-import de.mineformers.investiture.allomancy.api.metal.Metals;
 import de.mineformers.investiture.allomancy.api.misting.Misting;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.monster.EntityIronGolem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.EntityDamageSource;
 import net.minecraft.util.EnumFacing;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
@@ -20,7 +15,6 @@ import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -85,27 +79,6 @@ public class CapabilityHandler
                 ((EntityAllomancer) a).sync(event.entityPlayer);
             }
         });
-    }
-
-    @SubscribeEvent
-    public void onKill(LivingDeathEvent event)
-    {
-        if (!(event.entity instanceof EntityIronGolem))
-            return;
-        if (!event.entity.worldObj.isRemote)
-        {
-            if (event.source instanceof EntityDamageSource)
-            {
-                Entity killer = event.source.getEntity();
-                if (killer instanceof EntityPlayer)
-                {
-                    AllomancyAPIImpl.INSTANCE.toAllomancer(killer).ifPresent(a -> {
-                        Metals.BASE_METALS.forEach(m -> a.grantPower(m.mistingType()));
-                    });
-                    ((EntityPlayer) killer).addChatComponentMessage(new ChatComponentText("You have become a Mistborn!"));
-                }
-            }
-        }
     }
 
     @SubscribeEvent
