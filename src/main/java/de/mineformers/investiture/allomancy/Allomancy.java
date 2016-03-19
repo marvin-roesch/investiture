@@ -237,6 +237,7 @@ public final class Allomancy implements Manifestation
             Investiture.net().registerMessage(MistingUpdate.class);
 
             Investiture.net().registerMessage(TargetEffect.class);
+            Investiture.net().registerMessage(SpeedBubbleUpdate.class);
 
             // Add handler for toggling the burning of a metal
             Investiture.net().addHandler(ToggleBurningMetal.class, Side.SERVER, (msg, ctx) -> {

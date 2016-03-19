@@ -21,6 +21,7 @@ import net.minecraftforge.fml.common.network.ByteBufUtils;
 import org.apache.commons.lang3.ClassUtils;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -627,6 +628,7 @@ public class Serialisation
             .stream(ClassUtils.hierarchy(type, ClassUtils.Interfaces.INCLUDE).spliterator(), false)
             .map(Class::getDeclaredFields)
             .flatMap(Arrays::stream)
+            .filter(f -> (f.getModifiers() & Modifier.STATIC) == 0)
             .sorted((f1, f2) -> f1.getName().compareTo(f2.getName()))
             .forEach(f -> {
                 if (f.getAnnotationsByType(ManualTranslation.class).length != 0)

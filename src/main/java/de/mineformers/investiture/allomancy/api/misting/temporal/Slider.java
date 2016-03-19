@@ -13,7 +13,7 @@ import static de.mineformers.investiture.allomancy.api.power.Scope.EXTERNAL;
  * ${JDOC}
  */
 @AllomanticPower(category = TEMPORAL, scope = EXTERNAL, effect = PUSH)
-public interface Slider extends Misting
+public interface Slider extends TimeManipulator
 {
     @Override
     default Metal baseMetal()

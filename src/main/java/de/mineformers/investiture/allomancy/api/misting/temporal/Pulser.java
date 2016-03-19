@@ -13,7 +13,7 @@ import static de.mineformers.investiture.allomancy.api.power.Scope.EXTERNAL;
  * ${JDOC}
  */
 @AllomanticPower(category = TEMPORAL, scope = EXTERNAL, effect = PULL)
-public interface Pulser extends Misting
+public interface Pulser extends TimeManipulator
 {
     @Override
     default Metal baseMetal()

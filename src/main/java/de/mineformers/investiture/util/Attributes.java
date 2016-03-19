@@ -6,6 +6,7 @@ import net.minecraft.entity.ai.attributes.IAttribute;
 import net.minecraft.entity.ai.attributes.IAttributeInstance;
 import net.minecraft.entity.ai.attributes.RangedAttribute;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -57,6 +58,13 @@ public class Attributes
 
     private static class EventHandler
     {
+        @SubscribeEvent
+        public void onConstruct(EntityEvent.EntityConstructing event)
+        {
+            if(event.entity instanceof EntityLivingBase)
+                ((EntityLivingBase) event.entity).getAttributeMap().registerAttribute(DAMAGE_RESISTANCE);
+        }
+
         @SubscribeEvent
         public void onDamage(LivingHurtEvent event)
         {

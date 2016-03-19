@@ -1,6 +1,5 @@
 package de.mineformers.investiture.allomancy.impl.misting.physical;
 
-import de.mineformers.investiture.allomancy.Allomancy;
 import de.mineformers.investiture.allomancy.api.misting.Inject;
 import de.mineformers.investiture.allomancy.api.misting.physical.Coinshot;
 import de.mineformers.investiture.allomancy.api.misting.physical.Lurcher;
@@ -10,6 +9,7 @@ import de.mineformers.investiture.allomancy.impl.misting.AbstractMisting;
 import de.mineformers.investiture.client.util.Rendering;
 import gnu.trove.map.TObjectIntMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
+import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.WorldRenderer;
@@ -17,6 +17,7 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.*;
+import net.minecraft.world.IBlockAccess;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -119,7 +120,8 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
                                  direction.zCoord * distance * distanceFactor().zCoord * factor);
 
         target.addVelocity(velocity.xCoord, velocity.yCoord, velocity.zCoord);
-        entity.fallDistance = 0;
+        if (target == entity)
+            entity.fallDistance = (float) Math.max(0, entity.fallDistance - velocity.yCoord / factor);
     }
 
     @Override
@@ -132,7 +134,6 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
 
     public static class EventHandler
     {
-        private static final ResourceLocation WISP_TEXTURE = Allomancy.resource("textures/misc/wisp.png");
         private Set<BlockPos> allPositions = new HashSet<>();
         private Set<Entity> allEntities = new HashSet<>();
         private List<PositionWrapper> positions = new ArrayList<>();
@@ -148,15 +149,16 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
                 return;
             AllomancyAPIImpl.INSTANCE.toAllomancer(player).ifPresent(a -> {
                 active = a.activePowers().contains(Coinshot.class) || a.activePowers().contains(Lurcher.class);
-                if (!active)
-                    return;
                 allEntities.clear();
-                allEntities.addAll(a.as(Coinshot.class).map(MetalManipulator::affectedEntities).orElse(new HashSet<>()));
-                allEntities.addAll(a.as(Lurcher.class).map(MetalManipulator::affectedEntities).orElse(new HashSet<>()));
-
                 allPositions.clear();
-                allPositions.addAll(a.as(Coinshot.class).map(MetalManipulator::affectedBlocks).orElse(new HashSet<>()));
-                allPositions.addAll(a.as(Lurcher.class).map(MetalManipulator::affectedBlocks).orElse(new HashSet<>()));
+                if (active)
+                {
+                    allEntities.addAll(a.as(Coinshot.class).map(MetalManipulator::affectedEntities).orElse(new HashSet<>()));
+                    allEntities.addAll(a.as(Lurcher.class).map(MetalManipulator::affectedEntities).orElse(new HashSet<>()));
+                    allPositions.addAll(a.as(Coinshot.class).map(MetalManipulator::affectedBlocks).orElse(new HashSet<>()));
+                    allPositions.addAll(a.as(Lurcher.class).map(MetalManipulator::affectedBlocks).orElse(new HashSet<>()));
+                }
+
                 Set<PositionWrapper> toRemove = new HashSet<>();
                 for (PositionWrapper p : fadeOutTimer.keySet())
                 {
@@ -199,7 +201,7 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
 
                 for (BlockPos p : allPositions)
                 {
-                    PositionWrapper wrapper = PositionWrapper.from(p);
+                    PositionWrapper wrapper = PositionWrapper.from(player.worldObj, p);
                     if (!positions.contains(wrapper) && !fadeInTimer.containsKey(wrapper))
                     {
                         fadeInTimer.put(wrapper, 0);
@@ -219,7 +221,7 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
         @SubscribeEvent
         public void onRenderLast(RenderWorldLastEvent event)
         {
-            if (active)
+            if (active || !fadeInTimer.isEmpty() || !fadeOutTimer.isEmpty())
                 renderLines(event.partialTicks);
         }
 
@@ -227,7 +229,6 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
         {
             pushMatrix();
             pushAttrib();
-            Minecraft.getMinecraft().getTextureManager().bindTexture(WISP_TEXTURE);
             disableLighting();
             disableDepth();
             depthMask(false);
@@ -246,15 +247,15 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
             renderer.begin(GL_LINES, DefaultVertexFormats.POSITION_COLOR);
             for (PositionWrapper pos : fadeInTimer.keySet())
             {
-                drawPos(playerPos, pos, (fadeInTimer.get(pos) + partialTicks) / 21f);
+                drawPos(playerPos, pos, partialTicks, (fadeInTimer.get(pos) + partialTicks) / 21f);
             }
             for (PositionWrapper pos : fadeOutTimer.keySet())
             {
-                drawPos(playerPos, pos, (21 - fadeOutTimer.get(pos) - partialTicks) / 21f);
+                drawPos(playerPos, pos, partialTicks, (21 - fadeOutTimer.get(pos) - partialTicks) / 21f);
             }
             for (PositionWrapper pos : positions)
             {
-                drawPos(playerPos, pos, 1);
+                drawPos(playerPos, pos, partialTicks, 1);
             }
             tessellator.draw();
 
@@ -267,16 +268,45 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
             popMatrix();
         }
 
-        private void drawPos(Vec3 start, PositionWrapper pos, float progress)
+        private void drawPos(Vec3 start, PositionWrapper pos, float partialTicks, float progress)
         {
             Tessellator tessellator = Tessellator.getInstance();
             WorldRenderer renderer = tessellator.getWorldRenderer();
-            Vec3 direction = pos.center().subtract(start);
-            Vec3 end = start.addVector(direction.xCoord * progress, direction.yCoord * progress, direction.zCoord * progress);
-            end = end.subtract(start);
-            renderer.pos(0, Minecraft.getMinecraft().thePlayer.height * (2f / 3f), 0).color(0.28627452f, 0.7254902f, 0.87058824f, progress * 0.5f)
+            Vec3 element = pos.center();
+            Vec3 direction = element.subtract(start);
+            Vec3 end = new Vec3(direction.xCoord * progress, direction.yCoord * progress, direction.zCoord * progress);
+
+            EntityPlayer player = Minecraft.getMinecraft().thePlayer;
+            Vec3 off = new Vec3(0, -0.09D, 0);
+            off = off.rotatePitch(-(player.prevRotationPitch + (player.rotationPitch - player.prevRotationPitch) * partialTicks) *
+                                      (float) Math.PI / 180.0F);
+            off = off.rotateYaw(-(player.prevRotationYaw + (player.rotationYaw - player.prevRotationYaw) * partialTicks) *
+                                    (float) Math.PI / 180.0F);
+
+            double pX = player.prevPosX + (player.posX - player.prevPosX) * partialTicks + off.xCoord;
+            double pY = player.prevPosY + (player.posY - player.prevPosY) * partialTicks + off.yCoord;
+            double pZ = player.prevPosZ + (player.posZ - player.prevPosZ) * partialTicks + off.zCoord;
+            double pEye = player.getEyeHeight();
+
+            if (Minecraft.getMinecraft().gameSettings.thirdPersonView > 0)
+            {
+                pX = player.prevPosX + (player.posX - player.prevPosX) * partialTicks;
+                pY = player.prevPosY + pEye + (player.posY - player.prevPosY) * partialTicks;
+                pZ = player.prevPosZ + (player.posZ - player.prevPosZ) * partialTicks;
+                pEye = player.isSneaking() ? -0.1875 : 0;
+                pEye -= 0.5;
+            }
+
+            double x = pX - element.xCoord;
+            double y = pY - element.yCoord + pEye;
+            double z = pZ - element.zCoord;
+
+            renderer.pos(element.xCoord - start.xCoord + x, element.yCoord - start.yCoord + y, element.zCoord - start.zCoord + z)
+                    .color(0.28627452f, 0.7254902f, 0.87058824f, progress * 0.5f)
                     .endVertex();
-            renderer.pos(end.xCoord, end.yCoord, end.zCoord).color(0.28627452f, 0.7254902f, 0.87058824f, progress * 0.5f).endVertex();
+            renderer.pos(end.xCoord, end.yCoord, end.zCoord)
+                    .color(0.28627452f, 0.7254902f, 0.87058824f, progress * 0.5f)
+                    .endVertex();
         }
 
         private abstract static class PositionWrapper
@@ -296,14 +326,19 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
                 };
             }
 
-            static PositionWrapper from(BlockPos pos)
+            static PositionWrapper from(IBlockAccess access, BlockPos pos)
             {
                 return new PositionWrapper(pos)
                 {
                     @Override
                     public Vec3 center()
                     {
-                        return new Vec3(pos).addVector(0.5, 0.5, 0.5);
+                        Block block = access.getBlockState(pos).getBlock();
+                        block.setBlockBoundsBasedOnState(access, pos);
+                        Vec3 offset = new Vec3(block.getBlockBoundsMinX() + (block.getBlockBoundsMaxX() - block.getBlockBoundsMinX()) / 2,
+                                               block.getBlockBoundsMinY() + (block.getBlockBoundsMaxY() - block.getBlockBoundsMinY()) / 2,
+                                               block.getBlockBoundsMinZ() + (block.getBlockBoundsMaxZ() - block.getBlockBoundsMinZ()) / 2);
+                        return new Vec3(pos).add(offset);
                     }
                 };
             }

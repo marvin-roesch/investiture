@@ -7,16 +7,20 @@ import de.mineformers.investiture.allomancy.Allomancy;
 import de.mineformers.investiture.allomancy.api.misting.Misting;
 import de.mineformers.investiture.allomancy.block.MetalExtractorController;
 import de.mineformers.investiture.allomancy.client.gui.MetalSelectionHUD;
+import de.mineformers.investiture.allomancy.client.renderer.misting.SpeedBubbleRenderer;
 import de.mineformers.investiture.allomancy.client.renderer.tileentity.MetalExtractorRenderer;
 import de.mineformers.investiture.allomancy.impl.AllomancyAPIImpl;
 import de.mineformers.investiture.allomancy.impl.EntityAllomancer;
 import de.mineformers.investiture.allomancy.impl.TargetHandler;
 import de.mineformers.investiture.allomancy.impl.misting.physical.AbstractMetalManipulator;
 import de.mineformers.investiture.allomancy.impl.misting.physical.TineyeImpl;
+import de.mineformers.investiture.allomancy.impl.misting.temporal.SpeedBubble;
+import de.mineformers.investiture.allomancy.impl.misting.temporal.SpeedBubbles;
 import de.mineformers.investiture.allomancy.item.MetalItem;
 import de.mineformers.investiture.allomancy.network.AllomancerUpdate;
 import de.mineformers.investiture.allomancy.network.MetalExtractorUpdate;
 import de.mineformers.investiture.allomancy.network.MistingUpdate;
+import de.mineformers.investiture.allomancy.network.SpeedBubbleUpdate;
 import de.mineformers.investiture.allomancy.tileentity.TileMetalExtractorMaster;
 import de.mineformers.investiture.client.KeyBindings;
 import de.mineformers.investiture.client.renderer.block.ModuleStateMap;
@@ -121,11 +125,25 @@ public class ClientProxy extends de.mineformers.investiture.core.ClientProxy
             });
             return null;
         });
+
+        Investiture.net().addHandler(SpeedBubbleUpdate.class, Side.CLIENT, (msg, ctx) -> {
+            ctx.schedule(() -> {
+                if(ctx.player().dimension != msg.dimension)
+                    return;
+                SpeedBubble bubble = new SpeedBubble(msg.dimension, msg.position, msg.radius);
+                if (msg.action == SpeedBubbleUpdate.ACTION_ADD)
+                    SpeedBubbles.from(ctx.player().worldObj).add(bubble);
+                else if (msg.action == SpeedBubbleUpdate.ACTION_REMOVE)
+                    SpeedBubbles.from(ctx.player().worldObj).remove(bubble);
+            });
+            return null;
+        });
     }
 
     @Override
     public void init(FMLInitializationEvent event)
     {
+        MinecraftForge.EVENT_BUS.register(new SpeedBubbleRenderer());
         ClientRegistry.bindTileEntitySpecialRenderer(TileMetalExtractorMaster.class, new MetalExtractorRenderer());
     }
 
