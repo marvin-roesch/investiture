@@ -95,6 +95,18 @@ public class AllomancyAPIImpl implements AllomancyAPI
         registerMetallicEntity(e -> e instanceof EntityItem && isMetallic(((EntityItem) e).getEntityItem()));
     }
 
+    public Optional<Class<? extends Misting>> getMistingType(String identifier)
+    {
+        return factories.keySet().stream().filter(c -> c.getSimpleName().equalsIgnoreCase(identifier)).findFirst();
+    }
+
+    public Collection<String> getMistingNames()
+    {
+        List<String> result = factories.keySet().stream().map(c -> c.getSimpleName().toLowerCase()).collect(Collectors.toList());
+        result.sort(String::compareToIgnoreCase);
+        return result;
+    }
+
     @Nonnull
     @Override
     public Optional<Allomancer> toAllomancer(Entity entity)

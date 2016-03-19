@@ -13,6 +13,7 @@ import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.apache.logging.log4j.LogManager;
@@ -68,6 +69,15 @@ public final class Investiture
     private FunctionalNetwork network;
     private Logger log;
     private static final List<Manifestation> modules = ImmutableList.of(new Allomancy());
+
+    @Mod.EventHandler
+    public void serverStart(FMLServerStartingEvent event)
+    {
+        modules.forEach(m -> {
+            log().info("Running server start for module '" + m.id() + "'");
+            m.serverStart(event);
+        });
+    }
 
     /**
      * Fired during the pre-initialisation phase. Should be used for registering blocks, items etc.
