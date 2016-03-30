@@ -44,6 +44,12 @@ public interface Translator<T, N extends NBTBase>
         }
     }
 
+    /**
+     * Serialise a given object and turn it into an NBT value.
+     *
+     * @param value the object to serialise
+     * @return an empty optional if the value was null, a present optional with the serialised NBT value otherwise
+     */
     @SuppressWarnings("unchecked")
     default Optional<N> serialise(Object value)
     {
@@ -52,9 +58,16 @@ public interface Translator<T, N extends NBTBase>
         return Optional.of(serialiseImpl((T) value));
     }
 
+    /**
+     * Deserialises the data from an NBT value and turn it into an object.
+     *
+     * @param tag the optional NBT tag to read the data from, empty if the serialised value was null
+     * @return an object with the tag's data
+     */
     @SuppressWarnings("unchecked")
     default T deserialise(Optional<NBTBase> tag)
     {
+        // See the serialise method
         if (!tag.isPresent())
             return null;
         else
@@ -62,7 +75,7 @@ public interface Translator<T, N extends NBTBase>
     }
 
     /**
-     * Implementation of the serialisation process.
+     * Implementation of the network serialisation process.
      * WARNING: This should not be called by anyone as it is an internal implementation detail.
      * Calling this method with a null value will most likely result in a crash.
      *
@@ -72,7 +85,7 @@ public interface Translator<T, N extends NBTBase>
     void serialiseImpl(T value, ByteBuf buffer);
 
     /**
-     * Implementation of the deserialisation process.
+     * Implementation of the network deserialisation process.
      * WARNING: This should not be called by anyone as it is an internal implementation detail.
      * Calling this method directly will most likely result in a crash as the 'null' switch is ignored.
      *
@@ -81,7 +94,23 @@ public interface Translator<T, N extends NBTBase>
      */
     T deserialiseImpl(ByteBuf buffer);
 
+    /**
+     * Implementation of the NBT serialisation process.
+     * WARNING: This should not be called by anyone as it is an internal implementation detail.
+     * Calling this method with a null value will most likely result in a crash.
+     *
+     * @param value the object to serialise
+     * @return the NBT representation of the value
+     */
     N serialiseImpl(T value);
 
+    /**
+     * Implementation of the NBT deserialisation process.
+     * WARNING: This should not be called by anyone as it is an internal implementation detail.
+     * Calling this method directly will most likely result in a crash as the 'null' switch is ignored.
+     *
+     * @param tag the NBT tag to read the data from
+     * @return an object with the tag's data
+     */
     T deserialiseImpl(N tag);
 }

@@ -446,6 +446,7 @@ public class Serialisation
             }
         });
 
+        // Byte array translator
         registerTranslator(byte[].class, new Translator<byte[], NBTTagByteArray>()
         {
             @Override
@@ -476,6 +477,7 @@ public class Serialisation
             }
         });
 
+        // Ray trace result translator
         registerTranslator(RayTraceResult.class, new Translator<RayTraceResult, NBTTagCompound>()
         {
             @Override
@@ -609,6 +611,13 @@ public class Serialisation
         }
     }
 
+    /**
+     * Collects a list of fields which are supposed to be synchronised over the network.
+     *
+     * @param type          the type to get the fields from
+     * @param onlyAnnotated specifies whether all fields should be synchronised or only those with the {@link Serialise} annotation.
+     * @return a set of fields to synchronise
+     */
     public Set<FieldData> getNetFields(Class<?> type, boolean onlyAnnotated)
     {
         if (!fields.containsKey(type.getName()))
@@ -651,6 +660,12 @@ public class Serialisation
             });
     }
 
+    /**
+     * Serialises an object to a given NBT tag compound, giving each field its own entry.
+     *
+     * @param object   the object to serialise
+     * @param compound the compound to serialise to
+     */
     public void serialise(Object object, NBTTagCompound compound)
     {
         String className = object.getClass().getName();
@@ -664,6 +679,12 @@ public class Serialisation
         }
     }
 
+    /**
+     * Deserialises an object from a given NBT tag compound.
+     *
+     * @param compound the compound to deserialise from
+     * @param object   the object to deserialise to
+     */
     public void deserialise(NBTTagCompound compound, Object object)
     {
         String className = object.getClass().getName();
@@ -713,6 +734,13 @@ public class Serialisation
         }
     }
 
+    /**
+     * Serialises all specified fields of a message to a byte buffer, utilising translators that fit each field's type best.
+     *
+     * @param object the message to serialise
+     * @param fields the fields to serialise
+     * @param buffer the buffer to serialise the message into
+     */
     public void serialiseFieldsFrom(Object object, Collection<FieldData> fields, ByteBuf buffer)
     {
         String className = object.getClass().getName();
@@ -725,6 +753,12 @@ public class Serialisation
         }
     }
 
+    /**
+     * Deserialises the contents of a byte buffer into a message, writing each field utilising translators.
+     *
+     * @param buffer the buffer to deserialise from
+     * @param object the message to deserialise into
+     */
     public void deserialiseFieldsTo(ByteBuf buffer, Object object)
     {
         String className = object.getClass().getName();
@@ -738,6 +772,9 @@ public class Serialisation
         }
     }
 
+    /**
+     * Represents any serialisable field.
+     */
     public static class FieldData
     {
         public final Field field;
@@ -753,6 +790,12 @@ public class Serialisation
             this.net = net;
         }
 
+        /**
+         * Sets the field to a given value.
+         *
+         * @param instance the instance the value is to be set in, may be null for static fields
+         * @param value    the value to set the field to
+         */
         public void set(Object instance, Object value)
         {
             field.setAccessible(true);
@@ -784,6 +827,10 @@ public class Serialisation
             }
         }
 
+        /**
+         * @param instance the instance to get the value from, may be null for static fields
+         * @return the value of the field in the given instance
+         */
         public Object get(Object instance)
         {
             field.setAccessible(true);
