@@ -3,7 +3,7 @@ package de.mineformers.investiture.inventory;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.IChatComponent;
+import net.minecraft.util.text.ITextComponent;
 
 import javax.annotation.Nonnull;
 
@@ -118,7 +118,7 @@ public interface DelegatingInventory extends IInventory
     }
 
     @Override
-    default IChatComponent getDisplayName()
+    default ITextComponent getDisplayName()
     {
         return getDelegate().getDisplayName();
     }

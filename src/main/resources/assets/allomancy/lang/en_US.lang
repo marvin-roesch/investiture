@@ -129,4 +129,4 @@ tile.metal_extractor.controller.name=Extractor Controller
 allomancy.commands.manage.usage=/allomancy <grant|take> <power> [player] OR /allomancy mistborn <power>
 allomancy.commands.manage.no_allomancer=The provided player does not qualify as Allomancer
 allomancy.commands.manage.invalid_power=The provided power does not exist
-allomancy.commands.manage.granted_all=Made %s a Mistborn! They may use all Allomantic abilities now.
+allomancy.commands.manage.granted_all=Made %s %s a Mistborn! They may use all Allomantic abilities now.

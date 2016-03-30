@@ -3,8 +3,8 @@ package de.mineformers.investiture.allomancy.api.metal;
 import de.mineformers.investiture.allomancy.api.misting.Misting;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.init.MobEffects;
 import net.minecraft.item.ItemStack;
-import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 
 import javax.annotation.Nonnull;
@@ -33,12 +33,7 @@ public interface Metal
 
     default boolean matches(@Nonnull ItemStack stack)
     {
-        if (stack.getItem() instanceof MetalHolder)
-        {
-            return this.equals(((MetalHolder) stack.getItem()).getMetal(stack));
-        }
-
-        return false;
+        return stack.getItem() instanceof MetalHolder && this.equals(((MetalHolder<ItemStack>) stack.getItem()).getMetal(stack));
     }
 
     /**
@@ -50,7 +45,7 @@ public interface Metal
     {
         if (entity instanceof EntityLivingBase)
         {
-            ((EntityLivingBase) entity).addPotionEffect(new PotionEffect(Potion.moveSlowdown.id, 30, 3));
+            ((EntityLivingBase) entity).addPotionEffect(new PotionEffect(MobEffects.moveSlowdown, 30, 3));
         }
     }
 

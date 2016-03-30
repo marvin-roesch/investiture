@@ -1,15 +1,15 @@
 package de.mineformers.investiture.allomancy.api.misting;
 
-import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.util.math.RayTraceResult;
 
 /**
  * ${JDOC}
  */
 public interface Targeting extends Misting
 {
-    boolean isValid(MovingObjectPosition target);
+    boolean isValid(RayTraceResult target);
 
-    void apply(MovingObjectPosition target);
+    void apply(RayTraceResult target);
 
     boolean repeatEvent();
 }

@@ -76,7 +76,7 @@ public class ClientProxy implements Proxy
         public void onRenderLast(RenderWorldLastEvent event)
         {
             if (fov != -1 && prevFOV != -1)
-                Minecraft.getMinecraft().gameSettings.fovSetting = prevFOV + (fov - prevFOV) * event.partialTicks;
+                Minecraft.getMinecraft().gameSettings.fovSetting = prevFOV + (fov - prevFOV) * event.getPartialTicks();
         }
 
         @SubscribeEvent

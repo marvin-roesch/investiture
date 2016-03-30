@@ -6,8 +6,8 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.MathHelper;
-import net.minecraft.util.StatCollector;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.text.translation.I18n;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -80,7 +80,7 @@ public class AllomanticMetalIngot extends Item
     {
         // Put purity in the tooltip
         int purity = getPurity(stack);
-        tooltip.add(StatCollector.translateToLocalFormatted("allomancy.message.purity", purity));
+        tooltip.add(I18n.translateToLocalFormatted("allomancy.message.purity", purity));
     }
 
     @Override

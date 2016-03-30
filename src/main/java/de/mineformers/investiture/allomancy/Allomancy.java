@@ -3,8 +3,6 @@ package de.mineformers.investiture.allomancy;
 import com.google.common.base.Throwables;
 import de.mineformers.investiture.Investiture;
 import de.mineformers.investiture.allomancy.api.metal.Metal;
-import de.mineformers.investiture.allomancy.api.metal.MetalBurner;
-import de.mineformers.investiture.allomancy.api.metal.MetalStorage;
 import de.mineformers.investiture.allomancy.api.metal.Metals;
 import de.mineformers.investiture.allomancy.api.misting.Misting;
 import de.mineformers.investiture.allomancy.api.misting.Targeting;
@@ -12,7 +10,6 @@ import de.mineformers.investiture.allomancy.block.MetalExtractor;
 import de.mineformers.investiture.allomancy.block.MetalExtractorController;
 import de.mineformers.investiture.allomancy.block.MetalOre;
 import de.mineformers.investiture.allomancy.core.AllomancyCommand;
-import de.mineformers.investiture.allomancy.core.EntityHandler;
 import de.mineformers.investiture.allomancy.extractor.ExtractorRecipes;
 import de.mineformers.investiture.allomancy.impl.AllomancyAPIImpl;
 import de.mineformers.investiture.allomancy.impl.CapabilityHandler;
@@ -26,7 +23,6 @@ import de.mineformers.investiture.allomancy.world.MetalGenerator;
 import de.mineformers.investiture.core.Manifestation;
 import de.mineformers.investiture.core.Proxy;
 import de.mineformers.investiture.network.Message;
-import de.mineformers.investiture.serialisation.Serialisation;
 import de.mineformers.investiture.serialisation.Translator;
 import net.minecraft.entity.Entity;
 import net.minecraft.item.ItemStack;
@@ -101,7 +97,6 @@ public final class Allomancy implements Manifestation
         CapabilityHandler.init();
 
         MinecraftForge.EVENT_BUS.register(new AugurImpl.EventHandler());
-        MinecraftForge.EVENT_BUS.register(new EntityHandler());
         CommonNetworking.init();
 
         proxy.preInit(event);
@@ -194,26 +189,6 @@ public final class Allomancy implements Manifestation
     }
 
     /**
-     * Container class for all NBT related constants in the Allomancy module.
-     */
-    public static class NBT
-    {
-        /**
-         * The ID of both the {@link net.minecraftforge.common.IExtendedEntityProperties IEEP} used for storage of a {@link MetalStorage} in an
-         * entity as well as the corresponding NBT compound tag.
-         *
-         * @see de.mineformers.investiture.allomancy.api.metal.MetalStorage.EntityMetalStorage
-         */
-        public static final String STORAGE_ID = "allomancy_metal_storage";
-
-        /**
-         * The ID of both the {@link net.minecraftforge.common.IExtendedEntityProperties IEEP} used for storage of a {@link MetalBurner} in an
-         * entity as well as the corresponding NBT compound tag.
-         */
-        public static final String BURNER_ID = "allomancy_metal_burner";
-    }
-
-    /**
      * Container class for all networking related objects in the Allomancy module.
      */
     public static class CommonNetworking
@@ -226,11 +201,6 @@ public final class Allomancy implements Manifestation
         @SuppressWarnings("unchecked")
         public static void init()
         {
-            Serialisation.INSTANCE.registerTranslator(MetalStorage.class, new MetalStorage.Translator());
-            Serialisation.INSTANCE.registerTranslator(MetalBurner.class, new MetalBurner.Translator());
-
-            Investiture.net().registerMessage(EntityMetalStorageUpdate.class);
-            Investiture.net().registerMessage(EntityMetalBurnerUpdate.class);
             Investiture.net().registerMessage(ToggleBurningMetal.class);
             Investiture.net().registerMessage(MetalExtractorUpdate.class);
             Investiture.net().registerMessage(AllomancerUpdate.class);

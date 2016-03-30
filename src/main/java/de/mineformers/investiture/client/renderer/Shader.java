@@ -3,7 +3,7 @@ package de.mineformers.investiture.client.renderer;
 import gnu.trove.map.TObjectIntMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.Vec3;
+import net.minecraft.util.math.Vec3d;
 import scala.io.Source;
 
 import static org.lwjgl.opengl.GL11.GL_TRUE;
@@ -206,7 +206,7 @@ public class Shader
      * @param name   the name of the uniform
      * @param vector the value of the vector
      */
-    public void setUniform(String name, Vec3 vector)
+    public void setUniform(String name, Vec3d vector)
     {
         setUniformFloat(name, (float) vector.xCoord, (float) vector.yCoord, (float) vector.zCoord);
     }

@@ -31,7 +31,12 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagLong;
 import net.minecraft.network.Packet;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.*;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.ITickable;
+import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
 
@@ -369,8 +374,8 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
 
     private double calculateFlow()
     {
-        Vec3 horizontal = Fluids.getFlowVector(worldObj, pos, horizontalFluidPositions);
-        Vec3 vertical = Fluids.getFlowVector(worldObj, pos, verticalFluidPositions);
+        Vec3d horizontal = Fluids.getFlowVector(worldObj, pos, horizontalFluidPositions);
+        Vec3d vertical = Fluids.getFlowVector(worldObj, pos, verticalFluidPositions);
         return Math.abs(orientation.getFrontOffsetX()) * horizontal.xCoord +
             Math.abs(orientation.getFrontOffsetZ()) * horizontal.zCoord + vertical.yCoord;
     }
@@ -572,7 +577,7 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
     }
 
     @Override
-    public IChatComponent getDisplayName()
+    public ITextComponent getDisplayName()
     {
         return null;
     }

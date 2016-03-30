@@ -2,7 +2,7 @@ package de.mineformers.investiture.allomancy.network;
 
 import de.mineformers.investiture.allomancy.impl.misting.temporal.SpeedBubble;
 import de.mineformers.investiture.network.Message;
-import net.minecraft.util.BlockPos;
+import net.minecraft.util.math.BlockPos;
 
 /**
  * Updates a metal extractor tile entity

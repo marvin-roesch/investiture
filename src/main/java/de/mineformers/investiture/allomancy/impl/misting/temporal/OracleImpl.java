@@ -9,9 +9,9 @@ import de.mineformers.investiture.util.PathFinding;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.BlockPos;
 import net.minecraft.util.ITickable;
-import net.minecraft.util.Vec3;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -64,9 +64,9 @@ public class OracleImpl extends AbstractMisting implements Oracle, ITickable
     private void spawnParticles(BlockPos step)
     {
         Minecraft.getMinecraft().effectRenderer
-            .addEffect(new FootStep(entity.worldObj, new Vec3(step).addVector(0.3, 0.0001, 0.3), 0.28627452f, 0.7254902f, 0.87058824f));
+            .addEffect(new FootStep(entity.worldObj, new Vec3d(step).addVector(0.3, 0.0001, 0.3), 0.28627452f, 0.7254902f, 0.87058824f));
         Minecraft.getMinecraft().effectRenderer
-            .addEffect(new FootStep(entity.worldObj, new Vec3(step).addVector(0.6, 0.0001, 0.6), 0.28627452f, 0.7254902f, 0.87058824f));
+            .addEffect(new FootStep(entity.worldObj, new Vec3d(step).addVector(0.6, 0.0001, 0.6), 0.28627452f, 0.7254902f, 0.87058824f));
     }
 
     @Override

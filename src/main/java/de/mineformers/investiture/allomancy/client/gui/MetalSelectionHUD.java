@@ -17,11 +17,11 @@ import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.WorldRenderer;
+import net.minecraft.client.renderer.VertexBuffer;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.Vec3;
+import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.client.event.MouseEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -44,7 +44,7 @@ public class MetalSelectionHUD
         BRONZE, BRASS, COPPER, ZINC, TIN, IRON, PEWTER, STEEL,
         DURALUMIN, NICROSIL, ALUMINIUM, CHROMIUM, GOLD, CADMIUM, ELECTRUM, BENDALLOY
     };
-    public static final Map<Metal, ResourceLocation> METAL_TEXTURES =
+    private static final Map<Metal, ResourceLocation> METAL_TEXTURES =
         Metals.BASE_METALS.stream()
                           .collect(Collectors.toMap(m -> m, m -> new ResourceLocation(Allomancy.DOMAIN, "textures/metals/" + m.id() + ".png")));
     public static final ResourceLocation WHEEL_BG_TEXTURE = new ResourceLocation(Allomancy.DOMAIN, "textures/gui/wheel_background.png");
@@ -58,13 +58,14 @@ public class MetalSelectionHUD
     @SubscribeEvent
     public void onRenderOverlay(RenderGameOverlayEvent.Pre event)
     {
-        if (!display || event.type != RenderGameOverlayEvent.ElementType.CROSSHAIRS)
+        if (!display || event.getType() != RenderGameOverlayEvent.ElementType.CROSSHAIRS)
             return;
         event.setCanceled(true);
-        int centreX = event.resolution.getScaledWidth() / 2;
-        int centreY = event.resolution.getScaledHeight() / 2;
-        int mouseX = Guis.getMouseX(event.resolution);
-        int mouseY = Guis.getMouseY(event.resolution);
+        ScaledResolution resolution = event.getResolution();
+        int centreX = resolution.getScaledWidth() / 2;
+        int centreY = resolution.getScaledHeight() / 2;
+        int mouseX = Guis.getMouseX(resolution);
+        int mouseY = Guis.getMouseY(resolution);
 
         hoveredMetal = Optional.empty();
         for (int i = 0; i < METALS.length / 2; i++)
@@ -141,7 +142,7 @@ public class MetalSelectionHUD
     {
         ScaledResolution sr = new ScaledResolution(Minecraft.getMinecraft());
         Tessellator tess = Tessellator.getInstance();
-        WorldRenderer wr = tess.getWorldRenderer();
+        VertexBuffer wr = tess.getBuffer();
 
         // We don't need textures for drawing the mist
         GlStateManager.disableTexture2D();
@@ -193,17 +194,17 @@ public class MetalSelectionHUD
         iconShader.activate();
         iconShader.setUniformInt("tex", 0);
         iconShader.setUniformFloat("deltaBrightness", 0.1f);
-        iconShader.setUniform("hoveredColour", new Vec3(171 / 255f, 137 / 255f, 19 / 255f));
-        iconShader.setUniform("metalColour", new Vec3(171 / 255f, 137 / 255f, 19 / 255f));
-        iconShader.setUniform("impurityColour", new Vec3(141 / 255f, 19 / 255f, 171 / 255f));
+        iconShader.setUniform("hoveredColour", new Vec3d(171 / 255f, 137 / 255f, 19 / 255f));
+        iconShader.setUniform("metalColour", new Vec3d(171 / 255f, 137 / 255f, 19 / 255f));
+        iconShader.setUniform("impurityColour", new Vec3d(141 / 255f, 19 / 255f, 171 / 255f));
         for (int i = 0; i < METALS.length / 2; i++)
         {
             double angle = PI / 4 * (i + 0.5);
             Metal innerMetal = METALS[i * 2];
             iconShader.setUniformBool("hovered", hoveredMetal.orElse(null) == innerMetal);
             // Change the main colour of the icon if the metal is burning
-            iconShader.setUniform("backColour", allomancer.activePowers().contains(innerMetal.mistingType()) ? new Vec3(205 / 255f, 43 / 255f, 0)
-                                                                                                             : new Vec3(0.1f, 0.1f, 0.1f));
+            iconShader.setUniform("backColour", allomancer.activePowers().contains(innerMetal.mistingType()) ? new Vec3d(205 / 255f, 43 / 255f, 0)
+                                                                                                             : new Vec3d(0.1f, 0.1f, 0.1f));
 //            iconShader.setUniformFloat("metalLevel", (float) burner.get(innerMetal) / MetalStorage.MAX_STORAGE);
 //            iconShader.setUniformFloat("impurityLevel", (float) burner.getImpurity(innerMetal) / MetalStorage.MAX_STORAGE);
             iconShader.setUniformFloat("metalLevel", 0);
@@ -218,8 +219,8 @@ public class MetalSelectionHUD
             Metal outerMetal = METALS[i * 2 + 1];
             iconShader.setUniformBool("hovered", hoveredMetal.orElse(null) == outerMetal);
             // Change the main colour of the icon if the metal is burning
-            iconShader.setUniform("backColour", allomancer.activePowers().contains(outerMetal.mistingType()) ? new Vec3(205 / 255f, 43 / 255f, 0)
-                                                                                                             : new Vec3(0.1f, 0.1f, 0.1f));
+            iconShader.setUniform("backColour", allomancer.activePowers().contains(outerMetal.mistingType()) ? new Vec3d(205 / 255f, 43 / 255f, 0)
+                                                                                                             : new Vec3d(0.1f, 0.1f, 0.1f));
 //            iconShader.setUniformFloat("metalLevel", (float) burner.get(outerMetal) / MetalStorage.MAX_STORAGE);
 //            iconShader.setUniformFloat("impurityLevel", (float) burner.getImpurity(outerMetal) / MetalStorage.MAX_STORAGE);
             iconShader.setUniformFloat("metalLevel", 0);
@@ -282,7 +283,7 @@ public class MetalSelectionHUD
             return;
 
         // The hovered metal was clicked,
-        if (event.button == 0 && event.buttonstate && hoveredMetal.isPresent())
+        if (event.getButton() == 0 && event.isButtonstate() && hoveredMetal.isPresent())
             Investiture.net().sendToServer(new ToggleBurningMetal(hoveredMetal.get().id()));
 
         // We don't want anybody else interfering with our handling.

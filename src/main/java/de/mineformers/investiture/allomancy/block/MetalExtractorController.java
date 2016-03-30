@@ -9,7 +9,7 @@ import de.mineformers.investiture.inventory.Inventories;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.PropertyBool;
-import net.minecraft.block.state.BlockState;
+import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.EffectRenderer;
@@ -20,7 +20,13 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.*;
+import net.minecraft.util.BlockRenderLayer;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
+import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
@@ -52,7 +58,7 @@ public class MetalExtractorController extends Block implements ExtractorPart
     }
 
     @Override
-    public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer playerIn,
+    public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, ItemStack heldItem,
                                     EnumFacing side, float hitX, float hitY, float hitZ)
     {
         if (!world.isRemote && !state.getValue(BUILT))
@@ -66,13 +72,11 @@ public class MetalExtractorController extends Block implements ExtractorPart
     }
 
     @Override
-    public void setBlockBoundsBasedOnState(IBlockAccess world, BlockPos pos)
+    public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess source, BlockPos pos)
     {
-        IBlockState state = world.getBlockState(pos);
-        TileEntity tile = world.getTileEntity(pos);
-        setBlockBounds(0, 0, 0, 1, 1, 1);
+        TileEntity tile = source.getTileEntity(pos);
         if (state.getBlock() != this || tile == null)
-            return;
+            return FULL_BLOCK_AABB;
         if (state.getValue(BUILT))
         {
             EnumFacing orientation = EnumFacing.NORTH;
@@ -82,11 +86,12 @@ public class MetalExtractorController extends Block implements ExtractorPart
                 orientation = ((TileMetalExtractorSlave) tile).getMaster().getOrientation();
             float minDepth = 0.4375f;
             float maxDepth = 0.5625f;
-            setBlockBounds(orientation.getAxis() == EnumFacing.Axis.X ? minDepth : 0, 0,
-                           orientation.getAxis() == EnumFacing.Axis.Z ? minDepth : 0,
-                           orientation.getAxis() == EnumFacing.Axis.X ? maxDepth : 1, 1,
-                           orientation.getAxis() == EnumFacing.Axis.Z ? maxDepth : 1);
+            return new AxisAlignedBB(orientation.getAxis() == EnumFacing.Axis.X ? minDepth : 0, 0,
+                                     orientation.getAxis() == EnumFacing.Axis.Z ? minDepth : 0,
+                                     orientation.getAxis() == EnumFacing.Axis.X ? maxDepth : 1, 1,
+                                     orientation.getAxis() == EnumFacing.Axis.Z ? maxDepth : 1);
         }
+        return super.getBoundingBox(state, source, pos);
     }
 
     @Override
@@ -105,55 +110,50 @@ public class MetalExtractorController extends Block implements ExtractorPart
     }
 
     @Override
-    public void addCollisionBoxesToList(World world, BlockPos pos, IBlockState state, AxisAlignedBB mask,
-                                        List<AxisAlignedBB> list, Entity collidingEntity)
+    public void addCollisionBoxToList(IBlockState state, World world, BlockPos pos, AxisAlignedBB mask,
+                                      List<AxisAlignedBB> list, Entity collidingEntity)
     {
         if (state.getValue(BUILT) && state.getValue(MASTER))
         {
             EnumFacing orientation = ((TileMetalExtractorMaster) world.getTileEntity(pos)).getOrientation();
             double minDepth = 0.4375;
             double maxDepth = 0.5625;
-            AxisAlignedBB left = AxisAlignedBB.fromBounds(orientation.getAxis() == EnumFacing.Axis.X ? minDepth : 0, 0,
-                                                          orientation.getAxis() == EnumFacing.Axis.Z ? minDepth : 0,
-                                                          orientation.getAxis() == EnumFacing.Axis.X ? maxDepth : 0.25, 1,
-                                                          orientation.getAxis() == EnumFacing.Axis.Z ? maxDepth : 0.25);
-            AxisAlignedBB middleBottom = AxisAlignedBB.fromBounds(orientation.getAxis() == EnumFacing.Axis.X ? minDepth : 0.25, 0.25,
-                                                                  orientation.getAxis() == EnumFacing.Axis.Z ? minDepth : 0.25,
-                                                                  orientation.getAxis() == EnumFacing.Axis.X ? maxDepth : 0.75, 0.75,
-                                                                  orientation.getAxis() == EnumFacing.Axis.Z ? maxDepth : 0.75);
-            AxisAlignedBB middleTop = AxisAlignedBB.fromBounds(orientation.getAxis() == EnumFacing.Axis.X ? minDepth : 0.25, 0.75,
-                                                               orientation.getAxis() == EnumFacing.Axis.Z ? minDepth : 0.25,
-                                                               orientation.getAxis() == EnumFacing.Axis.X ? maxDepth : 0.75, 1,
-                                                               orientation.getAxis() == EnumFacing.Axis.Z ? maxDepth : 0.75);
-            AxisAlignedBB right = AxisAlignedBB.fromBounds(orientation.getAxis() == EnumFacing.Axis.X ? minDepth : 0.75, 0,
-                                                           orientation.getAxis() == EnumFacing.Axis.Z ? minDepth : 0.75,
-                                                           orientation.getAxis() == EnumFacing.Axis.X ? maxDepth : 1, 1,
-                                                           orientation.getAxis() == EnumFacing.Axis.Z ? maxDepth : 1);
-            if (mask.intersectsWith(left))
-                list.add(left);
-            if (mask.intersectsWith(middleBottom))
-                list.add(middleBottom);
-            if (mask.intersectsWith(middleTop))
-                list.add(middleTop);
-            if (mask.intersectsWith(right))
-                list.add(right);
+            AxisAlignedBB left = new AxisAlignedBB(orientation.getAxis() == EnumFacing.Axis.X ? minDepth : 0, 0,
+                                                   orientation.getAxis() == EnumFacing.Axis.Z ? minDepth : 0,
+                                                   orientation.getAxis() == EnumFacing.Axis.X ? maxDepth : 0.25, 1,
+                                                   orientation.getAxis() == EnumFacing.Axis.Z ? maxDepth : 0.25);
+            AxisAlignedBB middleBottom = new AxisAlignedBB(orientation.getAxis() == EnumFacing.Axis.X ? minDepth : 0.25, 0.25,
+                                                           orientation.getAxis() == EnumFacing.Axis.Z ? minDepth : 0.25,
+                                                           orientation.getAxis() == EnumFacing.Axis.X ? maxDepth : 0.75, 0.75,
+                                                           orientation.getAxis() == EnumFacing.Axis.Z ? maxDepth : 0.75);
+            AxisAlignedBB middleTop = new AxisAlignedBB(orientation.getAxis() == EnumFacing.Axis.X ? minDepth : 0.25, 0.75,
+                                                        orientation.getAxis() == EnumFacing.Axis.Z ? minDepth : 0.25,
+                                                        orientation.getAxis() == EnumFacing.Axis.X ? maxDepth : 0.75, 1,
+                                                        orientation.getAxis() == EnumFacing.Axis.Z ? maxDepth : 0.75);
+            AxisAlignedBB right = new AxisAlignedBB(orientation.getAxis() == EnumFacing.Axis.X ? minDepth : 0.75, 0,
+                                                    orientation.getAxis() == EnumFacing.Axis.Z ? minDepth : 0.75,
+                                                    orientation.getAxis() == EnumFacing.Axis.X ? maxDepth : 1, 1,
+                                                    orientation.getAxis() == EnumFacing.Axis.Z ? maxDepth : 1);
+            addCollisionBoxToList(pos, mask, list, left);
+            addCollisionBoxToList(pos, mask, list, middleBottom);
+            addCollisionBoxToList(pos, mask, list, middleTop);
+            addCollisionBoxToList(pos, mask, list, right);
             return;
         }
-        super.addCollisionBoxesToList(world, pos, state, mask, list, collidingEntity);
+        super.addCollisionBoxToList(state, world, pos, mask, list, collidingEntity);
     }
 
     @Override
-    public AxisAlignedBB getCollisionBoundingBox(World world, BlockPos pos, IBlockState state)
+    public AxisAlignedBB getCollisionBoundingBox(IBlockState state, World world, BlockPos pos)
     {
-        setBlockBoundsBasedOnState(world, pos);
-        return super.getCollisionBoundingBox(world, pos, state);
+        return getBoundingBox(state, world, pos);
     }
 
     @SideOnly(Side.CLIENT)
     @Override
-    public EnumWorldBlockLayer getBlockLayer()
+    public BlockRenderLayer getBlockLayer()
     {
-        return EnumWorldBlockLayer.CUTOUT;
+        return BlockRenderLayer.CUTOUT;
     }
 
     @Override
@@ -174,12 +174,13 @@ public class MetalExtractorController extends Block implements ExtractorPart
     }
 
     @Override
-    public boolean isFullBlock()
+    public boolean isFullBlock(IBlockState state)
     {
         return false;
     }
 
-    public boolean isOpaqueCube()
+    @Override
+    public boolean isOpaqueCube(IBlockState state)
     {
         return false;
     }
@@ -197,7 +198,7 @@ public class MetalExtractorController extends Block implements ExtractorPart
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void randomDisplayTick(World world, BlockPos pos, IBlockState state, Random rand)
+    public void randomDisplayTick(IBlockState state, World world, BlockPos pos, Random rand)
     {
         if (world.getTileEntity(pos) instanceof TileMetalExtractorMaster)
         {
@@ -208,9 +209,9 @@ public class MetalExtractorController extends Block implements ExtractorPart
                     ItemBlock ib = (ItemBlock) p.input.getItem();
                     int particleState = Block.getStateId(ib.getBlock().getStateFromMeta(ib.getMetadata(p.input)));
                     double offset = 1.3 + 2 * (p.timer / tile.getProcessingTime());
-                    Vec3 start = new Vec3(pos.getX() + tile.getOrientation().getFrontOffsetX() * offset,
-                                          pos.getY(),
-                                          pos.getZ() + tile.getOrientation().getFrontOffsetZ() * offset);
+                    Vec3d start = new Vec3d(pos.getX() + tile.getOrientation().getFrontOffsetX() * offset,
+                                            pos.getY(),
+                                            pos.getZ() + tile.getOrientation().getFrontOffsetZ() * offset);
                     int count = 8;
 
                     for (int j = 0; j < count; ++j)
@@ -258,8 +259,8 @@ public class MetalExtractorController extends Block implements ExtractorPart
     }
 
     @Override
-    protected BlockState createBlockState()
+    protected BlockStateContainer createBlockState()
     {
-        return new BlockState(this, BUILT, MASTER);
+        return new BlockStateContainer(this, BUILT, MASTER);
     }
 }
