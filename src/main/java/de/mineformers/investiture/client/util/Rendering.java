@@ -34,8 +34,8 @@ public class Rendering
         VANILLA_CAMERA_TRANSFORMS = Reflection.methodHandle(EntityRenderer.class)
                                               .mcpName("setupCameraTransform")
                                               .srgName("func_78479_a")
-                                              .type(float.class)
-                                              .type(int.class)
+                                              .parameterType(float.class)
+                                              .parameterType(int.class)
                                               .build();
     }
 

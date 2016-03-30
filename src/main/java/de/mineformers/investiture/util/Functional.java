@@ -3,10 +3,16 @@ package de.mineformers.investiture.util;
 import java.util.Optional;
 
 /**
- * Provides utility methods for work with various functional idioms.
+ * Provides utilities for work with various functional idioms.
  */
 public class Functional
 {
+    /**
+     * Flattens an optional of another optional, yielding a single optional value.
+     *
+     * @param optional the optional to flatten
+     * @return a flattened optional
+     */
     public static <T> Optional<T> flatten(Optional<Optional<T>> optional)
     {
         if (optional.isPresent())
@@ -15,6 +21,12 @@ public class Functional
             return Optional.empty();
     }
 
+    /**
+     * Flattens an optional of another optional, yielding a single optional value.
+     *
+     * @param optional the optional to flatten
+     * @return a flattened optional
+     */
     public static <T> Optional<T> flatten(com.google.common.base.Optional<Optional<T>> optional)
     {
         if (optional.isPresent())
@@ -23,11 +35,12 @@ public class Functional
             return Optional.empty();
     }
 
-    public static boolean isPresent(com.google.common.base.Optional<?> optional)
-    {
-        return optional.isPresent();
-    }
-
+    /**
+     * Converts from Guava's Optional to Java 8's.
+     *
+     * @param guavaOptional the Guava Optional
+     * @return an equivalent Java 8 Optional
+     */
     public static <T> Optional<T> convert(com.google.common.base.Optional<T> guavaOptional)
     {
         if (guavaOptional.isPresent())

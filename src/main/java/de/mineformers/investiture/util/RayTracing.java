@@ -13,18 +13,27 @@ import java.util.List;
 import java.util.function.Predicate;
 
 /**
- * ${JDOC}
+ * Provides utilities related to ray tracing, i.e. 'searching things under the cursor'.
  */
-public class RayTracer
+public class RayTracing
 {
-    public static RayTraceResult rayTraceEntities(Entity entity, double reach, Predicate<Entity> predicate)
+    /**
+     * Casts a ray searching entities.
+     *
+     * @param camera    the camera to cast the ray from
+     * @param reach     the maximum distance the ray may travel
+     * @param predicate a predicate filtering the set of plausible targets
+     * @return a result indicating the success of the ray trace
+     */
+    public static RayTraceResult rayTraceEntities(Entity camera, double reach, Predicate<Entity> predicate)
     {
-        Vec3d start = entity.getPositionEyes(1);
-        Vec3d direction = entity.getLook(1);
+        // Effectively a copy of EntityRenderer.getMouseOver, see that for details
+        Vec3d start = camera.getPositionEyes(1);
+        Vec3d direction = camera.getLook(1);
         Vec3d end = start.addVector(direction.xCoord * reach, direction.yCoord * reach, direction.zCoord * reach);
         Entity result = null;
         Vec3d hitVec = null;
-        List<Entity> list = entity.worldObj.getEntitiesInAABBexcluding(entity, entity.getEntityBoundingBox()
+        List<Entity> list = camera.worldObj.getEntitiesInAABBexcluding(camera, camera.getEntityBoundingBox()
                                                                                      .addCoord(direction.xCoord * reach,
                                                                                                direction.yCoord * reach,
                                                                                                direction.zCoord * reach)
@@ -34,10 +43,10 @@ public class RayTracer
         for (Entity checkedEntity : list)
         {
             float borderSize = checkedEntity.getCollisionBorderSize();
-            AxisAlignedBB axisalignedbb = checkedEntity.getEntityBoundingBox().expand(borderSize, borderSize, borderSize);
-            RayTraceResult mop = axisalignedbb.calculateIntercept(start, end);
+            AxisAlignedBB bounds = checkedEntity.getEntityBoundingBox().expand(borderSize, borderSize, borderSize);
+            RayTraceResult mop = bounds.calculateIntercept(start, end);
 
-            if (axisalignedbb.isVecInside(start))
+            if (bounds.isVecInside(start))
             {
                 if (predicate.test(checkedEntity) && minDistance >= 0.0D)
                 {
@@ -52,7 +61,7 @@ public class RayTracer
 
                 if (distance < minDistance || minDistance == 0.0D)
                 {
-                    if (checkedEntity == entity.getRidingEntity() && !entity.canRiderInteract())
+                    if (checkedEntity == camera.getRidingEntity() && !camera.canRiderInteract())
                     {
                         if (predicate.test(checkedEntity) && minDistance == 0.0D)
                         {
@@ -78,24 +87,48 @@ public class RayTracer
             return null;
     }
 
-    public static RayTraceResult rayTraceBlocks(Entity entity, double reach,
+    /**
+     * Casts a ray searching blocks.
+     *
+     * @param camera                       the camera to cast the ray from
+     * @param reach                        the maximum distance the ray may travel
+     * @param predicate                    a predicate filtering the set of plausible targets
+     * @param stopOnLiquid                 determines if the ray should go through liquids
+     * @param collideWithBoundingBoxesOnly determines if blocks without bounding box should be ignored
+     * @param returnLastUncollidableBlock  determines if the last uncollided block should be returned if the ray hits the last block without a result
+     * @return a result indicating the success of the ray trace
+     */
+    public static RayTraceResult rayTraceBlocks(Entity camera, double reach,
                                                 Predicate<BlockWorldState> predicate,
                                                 boolean stopOnLiquid,
-                                                boolean ignoreBlockWithoutBoundingBox,
+                                                boolean collideWithBoundingBoxesOnly,
                                                 boolean returnLastUncollidableBlock)
     {
-        Vec3d start = entity.getPositionVector().addVector(0, entity.getEyeHeight(), 0);
-        Vec3d look = entity.getLook(1);
+        Vec3d start = camera.getPositionVector().addVector(0, camera.getEyeHeight(), 0);
+        Vec3d look = camera.getLook(1);
         Vec3d end = start.addVector(look.xCoord * reach, look.yCoord * reach, look.zCoord * reach);
-        return rayTraceBlocks(entity.worldObj, start, end, predicate, stopOnLiquid, ignoreBlockWithoutBoundingBox, returnLastUncollidableBlock);
+        return rayTraceBlocks(camera.worldObj, start, end, predicate, stopOnLiquid, collideWithBoundingBoxesOnly, returnLastUncollidableBlock);
     }
 
+    /**
+     * Casts a ray searching blocks.
+     *
+     * @param world                        the world the ray should be cast in
+     * @param start                        the start of the ray
+     * @param end                          the end of the ray
+     * @param predicate                    a predicate filtering the set of plausible targets
+     * @param stopOnLiquid                 determines if the ray should go through liquids
+     * @param collideWithBoundingBoxesOnly determines if blocks without bounding box should be ignored
+     * @param returnLastUncollidableBlock  determines if the last uncollided block should be returned if the ray hits the last block without a result
+     * @return a result indicating the success of the ray trace
+     */
     public static RayTraceResult rayTraceBlocks(World world, Vec3d start, Vec3d end,
                                                 Predicate<BlockWorldState> predicate,
                                                 boolean stopOnLiquid,
-                                                boolean ignoreBlockWithoutBoundingBox,
+                                                boolean collideWithBoundingBoxesOnly,
                                                 boolean returnLastUncollidableBlock)
     {
+        // See World.rayTraceBlocks, this just adds the predicate
         if (!Double.isNaN(start.xCoord) && !Double.isNaN(start.yCoord) && !Double.isNaN(start.zCoord))
         {
             if (!Double.isNaN(end.xCoord) && !Double.isNaN(end.yCoord) && !Double.isNaN(end.zCoord))
@@ -113,7 +146,7 @@ public class RayTracer
 
 
                     if (predicate.test(new BlockWorldState(world, pos, true)))
-                        if ((!ignoreBlockWithoutBoundingBox || block.getCollisionBoundingBox(state, world, pos) != null) &&
+                        if ((!collideWithBoundingBoxesOnly || block.getCollisionBoundingBox(state, world, pos) != null) &&
                             block.canCollideCheck(state, stopOnLiquid))
                         {
                             RayTraceResult result = block.collisionRayTrace(state, world, pos, start, end);
@@ -254,7 +287,7 @@ public class RayTracer
                         continue;
                     }
 
-                    if (!ignoreBlockWithoutBoundingBox || block.getCollisionBoundingBox(state, world, pos) != null)
+                    if (!collideWithBoundingBoxesOnly || block.getCollisionBoundingBox(state, world, pos) != null)
                     {
                         if (block.canCollideCheck(state, stopOnLiquid))
                         {

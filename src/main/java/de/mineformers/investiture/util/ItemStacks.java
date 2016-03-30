@@ -9,18 +9,27 @@ import net.minecraft.world.World;
 import java.util.Random;
 
 /**
- * Provides utility functions to do with item stacks, e.g. dropping them to the ground.
+ * Provides utilities to do with item stacks, e.g. dropping them to the ground.
  */
 public class ItemStacks
 {
     private static final Random RANDOM = new Random();
 
+    /**
+     * Spawns an item stack at a block's position.
+     *
+     * @param world the block's world
+     * @param pos   the block's position
+     * @param stack the stack to spawn
+     */
     public static void spawn(World world, BlockPos pos, ItemStack stack)
     {
+        // Spawn in the [0.1..0.9] bounds of the block
         float x = RANDOM.nextFloat() * 0.8F + 0.1F;
         float y = RANDOM.nextFloat() * 0.8F + 0.1F;
         float z = RANDOM.nextFloat() * 0.8F + 0.1F;
 
+        // Split the stack iteratively into smaller ones and spawn each individual one, leading to a nicer distribution.
         while (stack.stackSize > 0)
         {
             int droppedCount = RANDOM.nextInt(21) + 10;

@@ -69,9 +69,15 @@ public final class Investiture
     private Logger log;
     private static final List<Manifestation> modules = ImmutableList.of(new Allomancy());
 
+    /**
+     * Fired during the server startup phase. Should be used for registering server side commands.
+     *
+     * @param event the event that triggers this method
+     */
     @Mod.EventHandler
     public void serverStart(FMLServerStartingEvent event)
     {
+        // Delegate event to modules
         modules.forEach(m -> {
             log().info("Running server start for module '" + m.id() + "'");
             m.serverStart(event);

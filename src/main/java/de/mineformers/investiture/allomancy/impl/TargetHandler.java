@@ -6,7 +6,7 @@ import de.mineformers.investiture.allomancy.api.misting.Misting;
 import de.mineformers.investiture.allomancy.api.misting.Targeting;
 import de.mineformers.investiture.allomancy.api.power.Effect;
 import de.mineformers.investiture.allomancy.network.TargetEffect;
-import de.mineformers.investiture.util.RayTracer;
+import de.mineformers.investiture.util.RayTracing;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.EnumHand;
@@ -36,8 +36,8 @@ public class TargetHandler
             return;
         if (player.getHeldItem(EnumHand.MAIN_HAND) == null && event.isButtonstate() && (event.getButton() == 0 || event.getButton() == 1))
         {
-            RayTraceResult blockHit = RayTracer.rayTraceBlocks(Minecraft.getMinecraft().thePlayer, 20, s -> true, false, false, false);
-            RayTraceResult entityHit = RayTracer.rayTraceEntities(Minecraft.getMinecraft().thePlayer, 20, e -> true);
+            RayTraceResult blockHit = RayTracing.rayTraceBlocks(Minecraft.getMinecraft().thePlayer, 20, s -> true, false, false, false);
+            RayTraceResult entityHit = RayTracing.rayTraceEntities(Minecraft.getMinecraft().thePlayer, 20, e -> true);
             if (blockHit != null || entityHit != null)
             {
                 RayTraceResult hit = blockHit;
