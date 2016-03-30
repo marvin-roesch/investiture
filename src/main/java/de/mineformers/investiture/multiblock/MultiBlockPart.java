@@ -1,7 +1,7 @@
 package de.mineformers.investiture.multiblock;
 
 import net.minecraft.block.state.BlockWorldState;
-import net.minecraft.util.BlockPos;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 /**

@@ -2,8 +2,9 @@ package de.mineformers.investiture.allomancy.world;
 
 import com.google.common.collect.ImmutableMap;
 import de.mineformers.investiture.allomancy.Allomancy;
-import net.minecraft.util.BlockPos;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraft.world.chunk.IChunkGenerator;
 import net.minecraft.world.chunk.IChunkProvider;
 import net.minecraft.world.gen.feature.WorldGenMinable;
 import net.minecraftforge.fml.common.IWorldGenerator;
@@ -22,12 +23,12 @@ public class MetalGenerator implements IWorldGenerator
      */
     private static class Ore
     {
-        public final int minY;
-        public final int maxY;
-        public final int veins;
-        public final int veinSize;
+        final int minY;
+        final int maxY;
+        final int veins;
+        final int veinSize;
 
-        public Ore(int minY, int maxY, int veins, int veinSize)
+        Ore(int minY, int maxY, int veins, int veinSize)
         {
             this.minY = minY;
             this.maxY = maxY;
@@ -47,9 +48,9 @@ public class MetalGenerator implements IWorldGenerator
         Collectors.toMap(Map.Entry::getKey, e -> new WorldGenMinable(Allomancy.Blocks.allomantic_ore.fromMetal(e.getKey()), e.getValue().veinSize)));
 
     @Override
-    public void generate(Random random, int chunkX, int chunkZ, World world, IChunkProvider chunkGenerator, IChunkProvider chunkProvider)
+    public void generate(Random random, int chunkX, int chunkZ, World world, IChunkGenerator chunkGenerator, IChunkProvider chunkProvider)
     {
-        if (world.provider.getDimensionId() == 0)
+        if (world.provider.getDimension() == 0)
         {
             int x = chunkX * 16;
             int z = chunkZ * 16;

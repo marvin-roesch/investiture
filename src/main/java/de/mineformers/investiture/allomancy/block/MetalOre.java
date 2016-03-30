@@ -4,14 +4,14 @@ import de.mineformers.investiture.Investiture;
 import de.mineformers.investiture.block.properties.PropertyString;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.state.BlockState;
+import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumWorldBlockLayer;
-import net.minecraft.util.MathHelper;
+import net.minecraft.util.BlockRenderLayer;
+import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -72,10 +72,10 @@ public class MetalOre extends Block
 
     @Override
     @SideOnly(Side.CLIENT)
-    public EnumWorldBlockLayer getBlockLayer()
+    public BlockRenderLayer getBlockLayer()
     {
         // Required because of the layering of textures in the block model
-        return EnumWorldBlockLayer.CUTOUT_MIPPED;
+        return BlockRenderLayer.CUTOUT_MIPPED;
     }
 
     @Override
@@ -97,9 +97,9 @@ public class MetalOre extends Block
     }
 
     @Override
-    protected BlockState createBlockState()
+    protected BlockStateContainer createBlockState()
     {
-        return new BlockState(this, METAL);
+        return new BlockStateContainer(this, METAL);
     }
 
     /**

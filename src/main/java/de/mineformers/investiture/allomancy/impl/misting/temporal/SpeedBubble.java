@@ -1,7 +1,7 @@
 package de.mineformers.investiture.allomancy.impl.misting.temporal;
 
-import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.BlockPos;
+import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -25,8 +25,8 @@ public class SpeedBubble
         this.radius = radius;
         BlockPos boundsMin = position.add(-radius, -radius, -radius);
         BlockPos boundsMax = position.add(radius, radius, radius);
-        this.bounds = AxisAlignedBB.fromBounds(boundsMin.getX(), boundsMin.getY(), boundsMin.getZ(),
-                                               boundsMax.getX(), boundsMax.getY(), boundsMax.getZ());
+        this.bounds = new AxisAlignedBB(boundsMin.getX(), boundsMin.getY(), boundsMin.getZ(),
+                                        boundsMax.getX(), boundsMax.getY(), boundsMax.getZ());
     }
 
     @Override
@@ -38,9 +38,9 @@ public class SpeedBubble
     @Override
     public boolean equals(@Nullable Object obj)
     {
-        if(obj == null)
+        if (obj == null)
             return false;
-        if(!obj.getClass().equals(this.getClass()))
+        if (!obj.getClass().equals(this.getClass()))
             return false;
         SpeedBubble bubble = (SpeedBubble) obj;
         return bubble.dimension == dimension && bubble.position.equals(position) && bubble.radius == radius;

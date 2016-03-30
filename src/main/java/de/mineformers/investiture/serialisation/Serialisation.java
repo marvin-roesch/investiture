@@ -11,10 +11,10 @@ import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.Entity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.*;
-import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.MovingObjectPosition;
-import net.minecraft.util.Vec3;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.RayTraceResult;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.fml.common.network.ByteBufUtils;
@@ -413,10 +413,10 @@ public class Serialisation
         });
 
         // Vec3 translator
-        registerTranslator(Vec3.class, new Translator<Vec3, NBTTagCompound>()
+        registerTranslator(Vec3d.class, new Translator<Vec3d, NBTTagCompound>()
         {
             @Override
-            public void serialiseImpl(Vec3 value, ByteBuf buffer)
+            public void serialiseImpl(Vec3d value, ByteBuf buffer)
             {
                 buffer.writeDouble(value.xCoord);
                 buffer.writeDouble(value.yCoord);
@@ -424,13 +424,13 @@ public class Serialisation
             }
 
             @Override
-            public Vec3 deserialiseImpl(ByteBuf buffer)
+            public Vec3d deserialiseImpl(ByteBuf buffer)
             {
-                return new Vec3(buffer.readDouble(), buffer.readDouble(), buffer.readDouble());
+                return new Vec3d(buffer.readDouble(), buffer.readDouble(), buffer.readDouble());
             }
 
             @Override
-            public NBTTagCompound serialiseImpl(Vec3 value)
+            public NBTTagCompound serialiseImpl(Vec3d value)
             {
                 NBTTagCompound result = new NBTTagCompound();
                 result.setDouble("X", value.xCoord);
@@ -440,9 +440,9 @@ public class Serialisation
             }
 
             @Override
-            public Vec3 deserialiseImpl(NBTTagCompound tag)
+            public Vec3d deserialiseImpl(NBTTagCompound tag)
             {
-                return new Vec3(tag.getDouble("X"), tag.getDouble("Y"), tag.getDouble("Z"));
+                return new Vec3d(tag.getDouble("X"), tag.getDouble("Y"), tag.getDouble("Z"));
             }
         });
 
@@ -476,10 +476,10 @@ public class Serialisation
             }
         });
 
-        registerTranslator(MovingObjectPosition.class, new Translator<MovingObjectPosition, NBTTagCompound>()
+        registerTranslator(RayTraceResult.class, new Translator<RayTraceResult, NBTTagCompound>()
         {
             @Override
-            public void serialiseImpl(MovingObjectPosition value, ByteBuf buffer)
+            public void serialiseImpl(RayTraceResult value, ByteBuf buffer)
             {
                 buffer.writeInt(value.typeOfHit.ordinal());
                 buffer.writeDouble(value.hitVec.xCoord);
@@ -503,27 +503,27 @@ public class Serialisation
             }
 
             @Override
-            public MovingObjectPosition deserialiseImpl(ByteBuf buffer)
+            public RayTraceResult deserialiseImpl(ByteBuf buffer)
             {
-                MovingObjectPosition.MovingObjectType type = MovingObjectPosition.MovingObjectType.values()[buffer.readInt()];
-                Vec3 hitVec = new Vec3(buffer.readDouble(), buffer.readDouble(), buffer.readDouble());
+                RayTraceResult.Type type = RayTraceResult.Type.values()[buffer.readInt()];
+                Vec3d hitVec = new Vec3d(buffer.readDouble(), buffer.readDouble(), buffer.readDouble());
                 switch (type)
                 {
                     case ENTITY:
                         World world = DimensionManager.getWorld(buffer.readInt());
                         Entity entity = world.getEntityByID(buffer.readInt());
-                        return new MovingObjectPosition(entity, hitVec);
+                        return new RayTraceResult(entity, hitVec);
                     case BLOCK:
                         EnumFacing facing = EnumFacing.getFront(buffer.readInt());
                         BlockPos pos = new BlockPos(buffer.readInt(), buffer.readInt(), buffer.readInt());
-                        return new MovingObjectPosition(hitVec, facing, pos);
+                        return new RayTraceResult(hitVec, facing, pos);
                     default:
-                        return new MovingObjectPosition(MovingObjectPosition.MovingObjectType.MISS, hitVec, null, BlockPos.ORIGIN);
+                        return new RayTraceResult(RayTraceResult.Type.MISS, hitVec, null, BlockPos.ORIGIN);
                 }
             }
 
             @Override
-            public NBTTagCompound serialiseImpl(MovingObjectPosition value)
+            public NBTTagCompound serialiseImpl(RayTraceResult value)
             {
                 NBTTagCompound result = new NBTTagCompound();
                 result.setInteger("TypeOfHit", value.typeOfHit.ordinal());
@@ -549,22 +549,22 @@ public class Serialisation
             }
 
             @Override
-            public MovingObjectPosition deserialiseImpl(NBTTagCompound tag)
+            public RayTraceResult deserialiseImpl(NBTTagCompound tag)
             {
-                MovingObjectPosition.MovingObjectType type = MovingObjectPosition.MovingObjectType.values()[tag.getInteger("TypeOfHit")];
-                Vec3 hitVec = new Vec3(tag.getDouble("HitX"), tag.getDouble("HitY"), tag.getDouble("HitZ"));
+                RayTraceResult.Type type = RayTraceResult.Type.values()[tag.getInteger("TypeOfHit")];
+                Vec3d hitVec = new Vec3d(tag.getDouble("HitX"), tag.getDouble("HitY"), tag.getDouble("HitZ"));
                 switch (type)
                 {
                     case ENTITY:
                         World world = DimensionManager.getWorld(tag.getInteger("EntityDimension"));
                         Entity entity = world.getEntityByID(tag.getInteger("Entity"));
-                        return new MovingObjectPosition(entity, hitVec);
+                        return new RayTraceResult(entity, hitVec);
                     case BLOCK:
                         EnumFacing facing = EnumFacing.getFront(tag.getInteger("SideHit"));
                         BlockPos pos = new BlockPos(tag.getInteger("BlockX"), tag.getInteger("BlockY"), tag.getInteger("BlockZ"));
-                        return new MovingObjectPosition(hitVec, facing, pos);
+                        return new RayTraceResult(hitVec, facing, pos);
                     default:
-                        return new MovingObjectPosition(MovingObjectPosition.MovingObjectType.MISS, hitVec, null, BlockPos.ORIGIN);
+                        return new RayTraceResult(RayTraceResult.Type.MISS, hitVec, null, BlockPos.ORIGIN);
                 }
             }
         });

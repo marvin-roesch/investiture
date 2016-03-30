@@ -11,9 +11,8 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.TextComponentTranslation;
 
 import java.util.Arrays;
 import java.util.List;
@@ -24,9 +23,9 @@ import java.util.Optional;
  */
 public class AllomancyCommand extends CommandBase
 {
-    public static final String ACTION_ADD = "grant";
-    public static final String ACTION_REMOVE = "take";
-    public static final String ACTION_ALL = "mistborn";
+    private static final String ACTION_ADD = "grant";
+    private static final String ACTION_REMOVE = "take";
+    private static final String ACTION_ALL = "mistborn";
 
     @Override
     public String getCommandName()
@@ -47,7 +46,7 @@ public class AllomancyCommand extends CommandBase
     }
 
     @Override
-    public List<String> addTabCompletionOptions(ICommandSender sender, String[] args, BlockPos pos)
+    public List<String> getTabCompletionOptions(MinecraftServer server, ICommandSender sender, String[] args, BlockPos pos)
     {
         switch (args.length)
         {
@@ -55,13 +54,13 @@ public class AllomancyCommand extends CommandBase
                 return getListOfStringsMatchingLastWord(args, ACTION_ADD, ACTION_REMOVE, ACTION_ALL);
             case 2:
                 if (!ACTION_ALL.equalsIgnoreCase(args[0]))
-                    return getListOfStringsMatchingLastWord(args, MinecraftServer.getServer().getAllUsernames());
+                    return getListOfStringsMatchingLastWord(args, AllomancyAPIImpl.INSTANCE.getMistingNames());
             case 3:
                 if (ACTION_ALL.equalsIgnoreCase(args[0]) && args.length == 3)
-                    return super.addTabCompletionOptions(sender, args, pos);
-                return getListOfStringsMatchingLastWord(args, MinecraftServer.getServer().getAllUsernames());
+                    return super.getTabCompletionOptions(server, sender, args, pos);
+                return getListOfStringsMatchingLastWord(args, server.getAllUsernames());
         }
-        return super.addTabCompletionOptions(sender, args, pos);
+        return super.getTabCompletionOptions(server, sender, args, pos);
     }
 
     @Override
@@ -71,7 +70,7 @@ public class AllomancyCommand extends CommandBase
     }
 
     @Override
-    public void processCommand(ICommandSender sender, String[] args) throws CommandException
+    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
         if (args.length < 1)
             throw new WrongUsageException(getCommandUsage(sender));
@@ -80,19 +79,19 @@ public class AllomancyCommand extends CommandBase
         {
             case ACTION_ADD:
             case ACTION_REMOVE:
-                handleSingle(sender, action, Arrays.copyOfRange(args, 1, args.length));
+                handleSingle(server, sender, action, Arrays.copyOfRange(args, 1, args.length));
                 break;
             case ACTION_ALL:
-                handleAll(sender, action, Arrays.copyOfRange(args, 1, args.length));
+                handleAll(server, sender, action, Arrays.copyOfRange(args, 1, args.length));
                 break;
             default:
                 throw new WrongUsageException(getCommandUsage(sender));
         }
     }
 
-    public void handleSingle(ICommandSender sender, String action, String[] args) throws CommandException
+    private void handleSingle(MinecraftServer server, ICommandSender sender, String action, String[] args) throws CommandException
     {
-        EntityPlayer player = args.length > 1 ? getPlayer(sender, args[1]) : getCommandSenderAsPlayer(sender);
+        EntityPlayer player = args.length > 1 ? getPlayer(server, sender, args[1]) : getCommandSenderAsPlayer(sender);
         Optional<Allomancer> allomancer = AllomancyAPIImpl.INSTANCE.toAllomancer(player);
         if (!allomancer.isPresent())
             throw new CommandException(Allomancy.DOMAIN + ".commands.manage.no_allomancer");
@@ -111,13 +110,13 @@ public class AllomancyCommand extends CommandBase
         }
     }
 
-    public void handleAll(ICommandSender sender, String action, String[] args) throws CommandException
+    private void handleAll(MinecraftServer server, ICommandSender sender, String action, String[] args) throws CommandException
     {
-        EntityPlayer player = args.length > 0 ? getPlayer(sender, args[0]) : getCommandSenderAsPlayer(sender);
+        EntityPlayer player = args.length > 0 ? getPlayer(server, sender, args[0]) : getCommandSenderAsPlayer(sender);
         Optional<Allomancer> allomancer = AllomancyAPIImpl.INSTANCE.toAllomancer(player);
         if (!allomancer.isPresent())
             throw new CommandException(Allomancy.DOMAIN + ".commands.manage.no_allomancer");
         Metals.BASE_METALS.forEach(m -> allomancer.get().grantPower(m.mistingType()));
-        sender.addChatMessage(new ChatComponentTranslation(Allomancy.DOMAIN + ".commands.manage.granted_all", sender.getDisplayName()));
+        sender.addChatMessage(new TextComponentTranslation(Allomancy.DOMAIN + ".commands.manage.granted_all", sender.getDisplayName()));
     }
 }

@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import de.mineformers.investiture.allomancy.api.misting.mental.Rioter;
 import net.minecraft.entity.EntityCreature;
 import net.minecraft.entity.EntityLiving;
-import net.minecraft.entity.ai.EntityAIAttackOnCollide;
+import net.minecraft.entity.ai.EntityAIAttackMelee;
 import net.minecraft.entity.ai.EntityAINearestAttackableTarget;
 
 /**
@@ -16,9 +16,9 @@ public class RioterImpl extends AbstractEmotionManipulator implements Rioter
     protected AIData gather(EntityCreature entity)
     {
         return AIData.install(entity,
-                              ImmutableMap.of(new EntityAIAttackOnCollide(entity, EntityLiving.class, 1.0D, true), 2),
+                              ImmutableMap.of(new EntityAIAttackMelee(entity, 1.0D, true), 2),
                               ImmutableMap.of(new EntityAINearestAttackableTarget<>(entity, EntityLiving.class, false), 2),
-                              t -> t instanceof EntityAIAttackOnCollide,
+                              t -> t instanceof EntityAIAttackMelee,
                               t -> t instanceof EntityAINearestAttackableTarget<?>);
     }
 

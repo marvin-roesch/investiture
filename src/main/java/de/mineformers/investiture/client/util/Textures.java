@@ -55,7 +55,7 @@ public class Textures
         @SubscribeEvent
         public void onStitch(TextureStitchEvent.Pre event)
         {
-            sprites.forEach(event.map::registerSprite);
+            sprites.forEach(event.getMap()::registerSprite);
         }
     }
 }

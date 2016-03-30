@@ -13,7 +13,7 @@ import net.minecraft.entity.ai.EntityAITasks.EntityAITaskEntry;
 import net.minecraft.entity.passive.EntityVillager;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ITickable;
-import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.village.Village;
 
 import javax.annotation.Nonnull;
@@ -73,7 +73,7 @@ public abstract class AbstractEmotionManipulator extends AbstractMisting impleme
     }
 
     @Override
-    public void apply(MovingObjectPosition target)
+    public void apply(RayTraceResult target)
     {
         if (!isValid(target))
             return;
@@ -95,9 +95,9 @@ public abstract class AbstractEmotionManipulator extends AbstractMisting impleme
     }
 
     @Override
-    public boolean isValid(MovingObjectPosition target)
+    public boolean isValid(RayTraceResult target)
     {
-        return target.typeOfHit == MovingObjectPosition.MovingObjectType.ENTITY && target.entityHit instanceof EntityCreature;
+        return target.typeOfHit == RayTraceResult.Type.ENTITY && target.entityHit instanceof EntityCreature;
     }
 
     public abstract int villagerReputation();

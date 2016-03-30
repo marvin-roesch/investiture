@@ -9,14 +9,16 @@ import de.mineformers.investiture.allomancy.impl.AllomancyAPIImpl;
 import de.mineformers.investiture.allomancy.impl.misting.AbstractMisting;
 import de.mineformers.investiture.util.Reflection;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.audio.ISound;
-import net.minecraft.client.audio.ITickableSound;
+import net.minecraft.client.audio.*;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.MobEffects;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.*;
+import net.minecraft.util.registry.RegistryNamespaced;
+import net.minecraft.util.registry.RegistrySimple;
 import net.minecraftforge.client.event.MouseEvent;
 import net.minecraftforge.client.event.sound.PlaySoundEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -29,7 +31,6 @@ import org.lwjgl.input.Keyboard;
 import javax.annotation.Nonnull;
 import java.lang.invoke.MethodHandle;
 import java.util.BitSet;
-import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -69,11 +70,11 @@ public class TineyeImpl extends AbstractMisting implements Tineye, ITickable
 
     @Nonnull
     @SuppressWarnings("unchecked")
-    private static ObjectIntIdentityMap<Potion> underlyingIntegerMap()
+    private static IntIdentityHashBiMap<Potion> underlyingIntegerMap()
     {
         try
         {
-            return (ObjectIntIdentityMap<Potion>) UNDERLYING_INTEGER_MAP_GETTER.bindTo(GameData.getPotionRegistry()).invokeExact();
+            return (IntIdentityHashBiMap<Potion>) UNDERLYING_INTEGER_MAP_GETTER.bindTo(GameData.getPotionRegistry()).invokeExact();
         }
         catch (Throwable throwable)
         {
@@ -99,11 +100,11 @@ public class TineyeImpl extends AbstractMisting implements Tineye, ITickable
 
     @Nonnull
     @SuppressWarnings("unchecked")
-    private static IdentityHashMap<Potion, Integer> identityMap()
+    private static IntIdentityHashBiMap<Potion> identityMap()
     {
         try
         {
-            return (IdentityHashMap<Potion, Integer>) IDENTITY_MAP_GETTER.bindTo(underlyingIntegerMap()).invokeExact();
+            return (IntIdentityHashBiMap<Potion>) IDENTITY_MAP_GETTER.bindTo(underlyingIntegerMap()).invokeExact();
         }
         catch (Throwable throwable)
         {
@@ -144,17 +145,17 @@ public class TineyeImpl extends AbstractMisting implements Tineye, ITickable
 
     public static void init()
     {
-        Potion oldNightVision = Potion.nightVision;
+        Potion oldNightVision = MobEffects.nightVision;
         registryObjects().remove(new ResourceLocation("night_vision"));
-        identityMap().remove(oldNightVision);
+//        identityMap().remove(oldNightVision);
         objectList().remove(oldNightVision);
         objectList().add(16, null);
         availabilityMap().clear(16);
         class NightVisionWrapper extends Potion
         {
-            public NightVisionWrapper()
+            private NightVisionWrapper()
             {
-                super(16, new ResourceLocation("night_vision"), oldNightVision.isBadEffect(), oldNightVision.getLiquidColor());
+                super(oldNightVision.isBadEffect(), oldNightVision.getLiquidColor());
                 setPotionName(oldNightVision.getName());
                 int x = oldNightVision.getStatusIconIndex() & 0b111;
                 int y = oldNightVision.getStatusIconIndex() >> 3;
@@ -186,18 +187,6 @@ public class TineyeImpl extends AbstractMisting implements Tineye, ITickable
             }
 
             @Override
-            public double getEffectiveness()
-            {
-                return oldNightVision.getEffectiveness();
-            }
-
-            @Override
-            public boolean isUsable()
-            {
-                return oldNightVision.isUsable();
-            }
-
-            @Override
             public boolean shouldRender(PotionEffect effect)
             {
                 EntityPlayer player = Investiture.proxy.localPlayer();
@@ -220,7 +209,7 @@ public class TineyeImpl extends AbstractMisting implements Tineye, ITickable
                 oldNightVision.renderInventoryEffect(x, y, effect, mc);
             }
         }
-        Reflection.setFinalField(Potion.class, null, "nightVision", "field_76439_r", new NightVisionWrapper());
+        Reflection.setFinalField(MobEffects.class, null, "nightVision", "field_76439_r", new NightVisionWrapper());
     }
 
     @Inject
@@ -233,7 +222,7 @@ public class TineyeImpl extends AbstractMisting implements Tineye, ITickable
         if (entity instanceof EntityLivingBase)
         {
             EntityLivingBase living = (EntityLivingBase) entity;
-            living.addPotionEffect(new PotionEffect(Potion.nightVision.id, Short.MAX_VALUE, 0, false, false));
+            living.addPotionEffect(new PotionEffect(MobEffects.nightVision, Short.MAX_VALUE, 0, false, false));
         }
         if (Allomancy.config.mistings.tineye.fovEnabled && entity instanceof EntityPlayer && entity == Investiture.proxy.localPlayer())
         {
@@ -248,9 +237,9 @@ public class TineyeImpl extends AbstractMisting implements Tineye, ITickable
         if (entity instanceof EntityLivingBase)
         {
             EntityLivingBase living = (EntityLivingBase) entity;
-            if (!living.isPotionActive(Potion.nightVision))
+            if (!living.isPotionActive(MobEffects.nightVision))
             {
-                living.addPotionEffect(new PotionEffect(Potion.nightVision.id, Short.MAX_VALUE, 0, false, false));
+                living.addPotionEffect(new PotionEffect(MobEffects.nightVision, Short.MAX_VALUE, 0, false, false));
             }
         }
     }
@@ -261,7 +250,7 @@ public class TineyeImpl extends AbstractMisting implements Tineye, ITickable
         if (entity instanceof EntityLivingBase)
         {
             EntityLivingBase living = (EntityLivingBase) entity;
-            living.removePotionEffect(Potion.nightVision.id);
+            living.removePotionEffect(MobEffects.nightVision);
         }
         if (Allomancy.config.mistings.tineye.fovEnabled && entity instanceof EntityPlayer && entity == Investiture.proxy.localPlayer())
         {
@@ -280,13 +269,13 @@ public class TineyeImpl extends AbstractMisting implements Tineye, ITickable
             if (player == null || !Keyboard.isKeyDown(Keyboard.KEY_LMENU))
                 return;
             AllomancyAPIImpl.INSTANCE.toAllomancer(player).filter(a -> a.activePowers().contains(Tineye.class)).ifPresent(a -> {
-                if (event.dwheel > 0 && (Minecraft.getMinecraft().gameSettings.fovSetting == normalFOV || normalFOV == -1))
+                if (event.getDwheel() > 0 && (Minecraft.getMinecraft().gameSettings.fovSetting == normalFOV || normalFOV == -1))
                 {
                     normalFOV = Minecraft.getMinecraft().gameSettings.fovSetting;
                     Investiture.proxy.animateFOV(Allomancy.config.mistings.tineye.fovZoom, 10);
                     event.setCanceled(true);
                 }
-                else if (event.dwheel < 0 && normalFOV != -1)
+                else if (event.getDwheel() < 0 && normalFOV != -1)
                 {
                     Investiture.proxy.animateFOV(normalFOV, 10);
                     normalFOV = -1;
@@ -302,10 +291,10 @@ public class TineyeImpl extends AbstractMisting implements Tineye, ITickable
             if (player == null)
                 return;
             AllomancyAPIImpl.INSTANCE.toAllomancer(player).filter(a -> a.activePowers().contains(Tineye.class)).ifPresent(a -> {
-                ISound previousResult = event.result;
+                ISound previousResult = event.getResultSound();
                 if (previousResult instanceof ITickableSound)
                 {
-                    event.result = new ITickableSound()
+                    event.setResultSound(new ITickableSound()
                     {
                         @Override
                         public boolean isDonePlaying()
@@ -372,11 +361,29 @@ public class TineyeImpl extends AbstractMisting implements Tineye, ITickable
                         {
                             return previousResult.getAttenuationType();
                         }
-                    };
+
+                        @Override
+                        public SoundEventAccessor createAccessor(SoundHandler soundHandler)
+                        {
+                            return previousResult.createAccessor(soundHandler);
+                        }
+
+                        @Override
+                        public Sound getSound()
+                        {
+                            return previousResult.getSound();
+                        }
+
+                        @Override
+                        public SoundCategory getCategory()
+                        {
+                            return previousResult.getCategory();
+                        }
+                    });
                 }
                 else
                 {
-                    new ISound()
+                    event.setResultSound(new ISound()
                     {
                         @Override
                         public ResourceLocation getSoundLocation()
@@ -431,7 +438,25 @@ public class TineyeImpl extends AbstractMisting implements Tineye, ITickable
                         {
                             return previousResult.getAttenuationType();
                         }
-                    };
+
+                        @Override
+                        public SoundEventAccessor createAccessor(SoundHandler soundHandler)
+                        {
+                            return previousResult.createAccessor(soundHandler);
+                        }
+
+                        @Override
+                        public Sound getSound()
+                        {
+                            return previousResult.getSound();
+                        }
+
+                        @Override
+                        public SoundCategory getCategory()
+                        {
+                            return previousResult.getCategory();
+                        }
+                    });
                 }
             });
         }

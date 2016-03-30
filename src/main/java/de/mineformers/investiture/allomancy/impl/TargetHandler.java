@@ -9,7 +9,8 @@ import de.mineformers.investiture.allomancy.network.TargetEffect;
 import de.mineformers.investiture.util.RayTracer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.util.EnumHand;
+import net.minecraft.util.math.RayTraceResult;
 import net.minecraftforge.client.event.MouseEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -24,8 +25,8 @@ import java.util.stream.Stream;
  */
 public class TargetHandler
 {
-    private MovingObjectPosition leftTarget;
-    private MovingObjectPosition rightTarget;
+    private RayTraceResult leftTarget;
+    private RayTraceResult rightTarget;
 
     @SubscribeEvent
     public void onMouseClick(MouseEvent event)
@@ -33,13 +34,13 @@ public class TargetHandler
         EntityPlayer player = Minecraft.getMinecraft().thePlayer;
         if (!Minecraft.getMinecraft().inGameHasFocus || player == null)
             return;
-        if (player.getHeldItem() == null && event.buttonstate && (event.button == 0 || event.button == 1))
+        if (player.getHeldItem(EnumHand.MAIN_HAND) == null && event.isButtonstate() && (event.getButton() == 0 || event.getButton() == 1))
         {
-            MovingObjectPosition blockHit = RayTracer.rayTraceBlocks(Minecraft.getMinecraft().thePlayer, 20, s -> true, false, false, false);
-            MovingObjectPosition entityHit = RayTracer.rayTraceEntities(Minecraft.getMinecraft().thePlayer, 20, e -> true);
+            RayTraceResult blockHit = RayTracer.rayTraceBlocks(Minecraft.getMinecraft().thePlayer, 20, s -> true, false, false, false);
+            RayTraceResult entityHit = RayTracer.rayTraceEntities(Minecraft.getMinecraft().thePlayer, 20, e -> true);
             if (blockHit != null || entityHit != null)
             {
-                MovingObjectPosition hit = blockHit;
+                RayTraceResult hit = blockHit;
                 if (hit == null)
                     hit = entityHit;
                 else if (entityHit != null)
@@ -48,14 +49,14 @@ public class TargetHandler
                     double entityDistance = entityHit.hitVec.distanceTo(Minecraft.getMinecraft().thePlayer.getPositionVector());
                     hit = blockDistance < entityDistance ? blockHit : entityHit;
                 }
-                final MovingObjectPosition finalHit = hit;
+                final RayTraceResult finalHit = hit;
                 AllomancyAPIImpl.INSTANCE.toAllomancer(player).ifPresent(a -> {
                     Stream<? extends Misting> mistings = a.activePowers()
                                                           .stream()
                                                           .map(m -> a.as(m).get())
                                                           .filter(m -> m instanceof Targeting &&
                                                               ((Targeting) m).isValid(finalHit));
-                    if (event.button == 0)
+                    if (event.getButton() == 0)
                     {
                         leftTarget = mistings.filter(m -> m.effect() == Effect.PUSH)
                                              .map(t -> {
@@ -79,7 +80,7 @@ public class TargetHandler
             }
             if (leftTarget != null || rightTarget != null)
             {
-                player.swingItem();
+                player.swingArm(EnumHand.MAIN_HAND);
                 event.setCanceled(true);
             }
         }
@@ -99,7 +100,7 @@ public class TargetHandler
                                         .map(m -> (Targeting) m)
                                         .collect(Collectors.toList());
             if (leftTarget != null && Mouse.isButtonDown(0) &&
-                player.getHeldItem() == null && player.getPositionVector().squareDistanceTo(leftTarget.hitVec) <= 400)
+                player.getHeldItem(EnumHand.MAIN_HAND) == null && player.getPositionVector().squareDistanceTo(leftTarget.hitVec) <= 400)
             {
                 mistings.stream()
                         .filter(m -> m.isValid(leftTarget) && m.repeatEvent() && m.effect() == Effect.PUSH)
@@ -111,7 +112,7 @@ public class TargetHandler
             }
 
             if (rightTarget != null && Mouse.isButtonDown(1) &&
-                player.getHeldItem() == null && player.getPositionVector().squareDistanceTo(rightTarget.hitVec) <= 400)
+                player.getHeldItem(EnumHand.MAIN_HAND) == null && player.getPositionVector().squareDistanceTo(rightTarget.hitVec) <= 400)
             {
                 mistings.stream()
                         .filter(m -> m.isValid(rightTarget) && m.repeatEvent() && m.effect() == Effect.PULL)
@@ -124,7 +125,7 @@ public class TargetHandler
         });
     }
 
-    private void apply(Allomancer allomancer, Targeting misting, MovingObjectPosition target)
+    private void apply(Allomancer allomancer, Targeting misting, RayTraceResult target)
     {
         Investiture.net().sendToServer(new TargetEffect(Minecraft.getMinecraft().thePlayer.getEntityId(),
                                                         allomancer.powers()

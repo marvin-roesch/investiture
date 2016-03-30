@@ -9,9 +9,9 @@ import de.mineformers.investiture.serialisation.Serialise;
 import de.mineformers.investiture.util.PathFinding;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
-import net.minecraft.util.BlockPos;
 import net.minecraft.util.ITickable;
-import net.minecraft.util.Vec3;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
@@ -31,7 +31,7 @@ public class AugurImpl extends AbstractMisting implements Augur, ITickable
     @Serialise
     private int deathDimension;
     @Serialise
-    private Vec3 position;
+    private Vec3d position;
     private boolean validPath = false;
     private int timer;
     private Queue<BlockPos> path = new ArrayDeque<>();
@@ -78,13 +78,13 @@ public class AugurImpl extends AbstractMisting implements Augur, ITickable
     private void spawnParticles(BlockPos step)
     {
         Minecraft.getMinecraft().effectRenderer
-            .addEffect(new FootStep(entity.worldObj, new Vec3(step).addVector(0.3, 0.0001, 0.3), 1f, 0, 0));
+            .addEffect(new FootStep(entity.worldObj, new Vec3d(step).addVector(0.3, 0.0001, 0.3), 1f, 0, 0));
         Minecraft.getMinecraft().effectRenderer
-            .addEffect(new FootStep(entity.worldObj, new Vec3(step).addVector(0.6, 0.0001, 0.6), 1f, 0, 0));
+            .addEffect(new FootStep(entity.worldObj, new Vec3d(step).addVector(0.6, 0.0001, 0.6), 1f, 0, 0));
     }
 
     @Override
-    public Optional<Vec3> lastDeathPosition()
+    public Optional<Vec3d> lastDeathPosition()
     {
         return Optional.ofNullable(position);
     }
@@ -94,13 +94,14 @@ public class AugurImpl extends AbstractMisting implements Augur, ITickable
         @SubscribeEvent
         public void onDeath(LivingDeathEvent event)
         {
-            if (event.entity.worldObj.isRemote)
+            Entity entity = event.getEntity();
+            if (entity.worldObj.isRemote)
                 return;
-            AllomancyAPIImpl.INSTANCE.toAllomancer(event.entity).flatMap(a -> a.as(Augur.class)).ifPresent(a -> {
+            AllomancyAPIImpl.INSTANCE.toAllomancer(entity).flatMap(a -> a.as(Augur.class)).ifPresent(a -> {
                 if (a instanceof AugurImpl)
                 {
-                    ((AugurImpl) a).deathDimension = event.entity.dimension;
-                    ((AugurImpl) a).position = event.entity.getPositionVector();
+                    ((AugurImpl) a).deathDimension = entity.dimension;
+                    ((AugurImpl) a).position = entity.getPositionVector();
                 }
             });
         }

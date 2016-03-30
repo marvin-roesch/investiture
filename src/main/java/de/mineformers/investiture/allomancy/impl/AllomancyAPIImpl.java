@@ -84,7 +84,7 @@ public class AllomancyAPIImpl implements AllomancyAPI
         registerMisting(Pulser.class, PulserImpl::new);
         registerMisting(Slider.class, SliderImpl::new);
 
-        TineyeImpl.init();
+//        TineyeImpl.init();
 
         Set<Item> metallicItems = ImmutableSet.of(Items.iron_ingot, Items.gold_ingot, Items.gold_nugget);
         registerMetallicItem(stack -> {
@@ -93,8 +93,8 @@ public class AllomancyAPIImpl implements AllomancyAPI
             return block != null && isMetallic(block.getDefaultState()) || metallicItems.contains(item);
         });
 
-        registerMetallicBlock(s -> s.getBlockState().getBlock().getMaterial() == Material.iron ||
-            s.getBlockState().getBlock().getMaterial() == Material.anvil);
+        registerMetallicBlock(s -> s.getBlockState().getBlock().getMaterial(s.getBlockState()) == Material.iron ||
+            s.getBlockState().getBlock().getMaterial(s.getBlockState()) == Material.anvil);
 
         registerMetallicEntity(e -> e instanceof EntityItem && isMetallic(((EntityItem) e).getEntityItem()));
     }
@@ -176,7 +176,7 @@ public class AllomancyAPIImpl implements AllomancyAPI
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends Misting> T instantiate(Class<T> type, Allomancer allomancer, Entity entity)
+    <T extends Misting> T instantiate(Class<T> type, Allomancer allomancer, Entity entity)
     {
         MistingData data = factories.get(type);
         if (data == null)
@@ -214,11 +214,11 @@ public class AllomancyAPIImpl implements AllomancyAPI
     static class MistingData
     {
         public final Class<? extends Misting> type;
-        public final MistingFactory<?> factory;
-        public final Collection<Field> injectedFields;
-        public final AllomancerCompanion companion;
+        private final MistingFactory<?> factory;
+        final Collection<Field> injectedFields;
+        final AllomancerCompanion companion;
 
-        public MistingData(Class<? extends Misting> baseType, MistingFactory<?> factory)
+        MistingData(Class<? extends Misting> baseType, MistingFactory<?> factory)
         {
             this.factory = factory;
             type = factory.referenceClass();
@@ -234,7 +234,7 @@ public class AllomancyAPIImpl implements AllomancyAPI
             Serialisation.INSTANCE.registerClass(type, true);
         }
 
-        public void inject(Misting instance, Map<Class<?>, Object> values)
+        void inject(Misting instance, Map<Class<?>, Object> values)
         {
             for (Field f : injectedFields)
             {

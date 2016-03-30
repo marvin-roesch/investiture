@@ -6,9 +6,9 @@ import de.mineformers.investiture.allomancy.api.misting.temporal.Slider;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockPos;
 import net.minecraft.util.ITickable;
-import net.minecraft.util.Vec3;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 
 import java.util.Random;
 
@@ -35,7 +35,7 @@ public class SliderImpl extends AbstractTimeManipulator implements Slider, ITick
     {
         if (bubble != null)
         {
-            Vec3 bubblePos = new Vec3(bubble.position.getX() + 0.5, bubble.position.getY(), bubble.position.getZ() + 0.5);
+            Vec3d bubblePos = new Vec3d(bubble.position.getX() + 0.5, bubble.position.getY(), bubble.position.getZ() + 0.5);
             if (entity.dimension != bubble.dimension || entity.getDistanceSq(bubblePos.xCoord, bubblePos.yCoord, bubblePos.zCoord) > 25)
             {
 //                if (!entity.worldObj.isRemote)
@@ -45,7 +45,7 @@ public class SliderImpl extends AbstractTimeManipulator implements Slider, ITick
             for (BlockPos pos : BlockPos.getAllInBox(bubble.position.add(-bubble.radius, -bubble.radius, -bubble.radius),
                                                      bubble.position.add(bubble.radius, bubble.radius, bubble.radius)))
             {
-                if (bubblePos.squareDistanceTo(new Vec3(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5)) > bubble.radius * bubble.radius)
+                if (bubblePos.squareDistanceTo(new Vec3d(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5)) > bubble.radius * bubble.radius)
                     continue;
                 TileEntity tile = entity.worldObj.getTileEntity(pos);
                 if (tile instanceof ITickable)
@@ -63,10 +63,10 @@ public class SliderImpl extends AbstractTimeManipulator implements Slider, ITick
                     int y = bubble.position.getY() + rand.nextInt(16) - rand.nextInt(16);
                     int z = bubble.position.getZ() + rand.nextInt(16) - rand.nextInt(16);
                     pos.set(x, y, z);
-                    if (bubblePos.squareDistanceTo(new Vec3(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5)) > bubble.radius * bubble.radius)
+                    if (bubblePos.squareDistanceTo(new Vec3d(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5)) > bubble.radius * bubble.radius)
                         continue;
                     IBlockState state = entity.worldObj.getBlockState(pos);
-                    state.getBlock().randomDisplayTick(entity.worldObj, pos, state, random);
+                    state.getBlock().randomDisplayTick(state, entity.worldObj, pos, random);
                 }
             }
         }

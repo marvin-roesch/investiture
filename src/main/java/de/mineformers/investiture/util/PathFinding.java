@@ -2,7 +2,7 @@ package de.mineformers.investiture.util;
 
 import com.google.common.collect.ImmutableList;
 import net.minecraft.entity.Entity;
-import net.minecraft.util.BlockPos;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 import java.util.List;

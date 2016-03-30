@@ -2,8 +2,8 @@ package de.mineformers.investiture.allomancy.network;
 
 import de.mineformers.investiture.network.TileEntityUpdate;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.BlockPos;
 
 /**
  * Updates a metal extractor tile entity

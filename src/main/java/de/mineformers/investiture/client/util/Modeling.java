@@ -8,21 +8,19 @@ import com.google.common.collect.ImmutableMap;
 import de.mineformers.investiture.Investiture;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.renderer.vertex.VertexFormat;
 import net.minecraft.client.renderer.vertex.VertexFormatElement;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.Vec3;
+import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.client.model.*;
 import net.minecraftforge.client.model.obj.OBJModel;
 import net.minecraftforge.client.model.pipeline.IVertexConsumer;
 import net.minecraftforge.client.model.pipeline.UnpackedBakedQuad;
 import net.minecraftforge.client.model.pipeline.VertexTransformer;
 
-import javax.vecmath.Matrix4f;
 import javax.vecmath.Vector4f;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -43,7 +41,7 @@ public class Modeling
      * @param resource the location of the model to load
      * @return the baked model if there was no error while trying to load it, substituting it with the missing model otherwise
      */
-    public static IFlexibleBakedModel loadModel(ResourceLocation resource)
+    public static IBakedModel loadModel(ResourceLocation resource)
     {
         return loadModel(resource, ImmutableMap.of());
     }
@@ -56,7 +54,7 @@ public class Modeling
      * @param textures a map from texture variables (starting with '#') in the model to the locations of the textures to use
      * @return the baked model if there was no error while trying to load it, substituting it with the missing model otherwise
      */
-    public static IFlexibleBakedModel loadModel(ResourceLocation resource, Map<String, ResourceLocation> textures)
+    public static IBakedModel loadModel(ResourceLocation resource, Map<String, ResourceLocation> textures)
     {
         return loadModel(resource, textures, ImmutableMap.of("flip-v", "true"));
     }
@@ -70,9 +68,9 @@ public class Modeling
      * @param visibleGroups the groups in the OBJ file to show in the baked model
      * @return the baked model if there was no error while trying to load it, substituting it with the missing model otherwise
      */
-    public static IFlexibleBakedModel loadModel(ResourceLocation resource,
-                                                Map<String, ResourceLocation> textures,
-                                                List<String> visibleGroups)
+    public static IBakedModel loadModel(ResourceLocation resource,
+                                        Map<String, ResourceLocation> textures,
+                                        List<String> visibleGroups)
     {
         return loadModel(resource, textures, visibleGroups, ImmutableMap.of("flip-v", "true"));
     }
@@ -86,9 +84,9 @@ public class Modeling
      * @param customData the custom data to pass to the OBJ loader
      * @return the baked model if there was no error while trying to load it, substituting it with the missing model otherwise
      */
-    public static IFlexibleBakedModel loadModel(ResourceLocation resource,
-                                                Map<String, ResourceLocation> textures,
-                                                ImmutableMap<String, String> customData)
+    public static IBakedModel loadModel(ResourceLocation resource,
+                                        Map<String, ResourceLocation> textures,
+                                        ImmutableMap<String, String> customData)
     {
         return loadModel(resource, textures, ImmutableList.of(OBJModel.Group.ALL), customData);
     }
@@ -102,10 +100,10 @@ public class Modeling
      * @param customData    the custom data to pass to the OBJ loader
      * @return the baked model if there was no error while trying to load it, substituting it with the missing model otherwise
      */
-    public static IFlexibleBakedModel loadModel(ResourceLocation resource,
-                                                Map<String, ResourceLocation> textures,
-                                                List<String> visibleGroups,
-                                                ImmutableMap<String, String> customData)
+    public static IBakedModel loadModel(ResourceLocation resource,
+                                        Map<String, ResourceLocation> textures,
+                                        List<String> visibleGroups,
+                                        ImmutableMap<String, String> customData)
     {
         try
         {
@@ -121,14 +119,14 @@ public class Modeling
             }
             return model.bake(new OBJModel.OBJState(visibleGroups, true), Attributes.DEFAULT_BAKED_FORMAT, TEXTURE_GETTER);
         }
-        catch (IOException e)
+        catch (Exception e)
         {
             Investiture.log().error("Failed loading OBJ model '%s'", resource.toString(), e);
         }
         return ModelLoaderRegistry.getMissingModel().bake(part -> Optional.absent(), Attributes.DEFAULT_BAKED_FORMAT, TEXTURE_GETTER);
     }
 
-    public static BakedQuad scale(VertexFormat format, BakedQuad quad, Vec3 scale)
+    public static BakedQuad scale(VertexFormat format, BakedQuad quad, Vec3d scale)
     {
         UnpackedBakedQuad.Builder builder = new UnpackedBakedQuad.Builder(format);
         IVertexConsumer cons = new VertexTransformer(builder)

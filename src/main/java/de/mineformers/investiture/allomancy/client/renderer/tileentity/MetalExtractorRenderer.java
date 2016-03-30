@@ -10,6 +10,7 @@ import de.mineformers.investiture.client.util.Textures;
 import de.mineformers.investiture.client.util.Textures.TextureType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.entity.RenderEntityItem;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
@@ -19,16 +20,15 @@ import net.minecraft.client.resources.IResourceManagerReloadListener;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.client.model.IFlexibleBakedModel;
 
 /**
  * Renders the metal extractor OBJ model.
  */
 public class MetalExtractorRenderer extends TileEntitySpecialRenderer<TileMetalExtractorMaster> implements IResourceManagerReloadListener
 {
-    private IFlexibleBakedModel modelFrame;
-    private IFlexibleBakedModel modelGrinder;
-    private IFlexibleBakedModel modelWaterWheel;
+    private IBakedModel modelFrame;
+    private IBakedModel modelGrinder;
+    private IBakedModel modelWaterWheel;
     private static final RenderEntityItem RENDER_ITEM = new RenderEntityItem(Minecraft.getMinecraft().getRenderManager(),
                                                                              Minecraft.getMinecraft().getRenderItem())
     {
@@ -145,7 +145,7 @@ public class MetalExtractorRenderer extends TileEntitySpecialRenderer<TileMetalE
     }
 
     @Override
-    public boolean forceTileEntityRender()
+    public boolean isGlobalRenderer(TileMetalExtractorMaster tile)
     {
         return true;
     }

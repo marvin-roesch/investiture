@@ -7,7 +7,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.PropertyBool;
 import net.minecraft.block.properties.PropertyEnum;
-import net.minecraft.block.state.BlockState;
+import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
@@ -15,7 +15,11 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.*;
+import net.minecraft.util.BlockRenderLayer;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.IStringSerializable;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.Explosion;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
@@ -76,9 +80,8 @@ public class MetalExtractor extends Block implements ExtractorPart
     }
 
     @Override
-    public float getBlockHardness(World world, BlockPos pos)
+    public float getBlockHardness(IBlockState state, World world, BlockPos pos)
     {
-        IBlockState state = world.getBlockState(pos);
         if (state.getBlock() == this)
         {
             switch (state.getValue(PART))
@@ -89,7 +92,7 @@ public class MetalExtractor extends Block implements ExtractorPart
                     return 2;
             }
         }
-        return super.getBlockHardness(world, pos);
+        return super.getBlockHardness(state, world, pos);
     }
 
     @Override
@@ -106,7 +109,7 @@ public class MetalExtractor extends Block implements ExtractorPart
                     return 2;
             }
         }
-        return super.getBlockHardness(world, pos);
+        return super.getExplosionResistance(world, pos, exploder, explosion);
     }
 
     /**
@@ -131,9 +134,9 @@ public class MetalExtractor extends Block implements ExtractorPart
 
     @SideOnly(Side.CLIENT)
     @Override
-    public EnumWorldBlockLayer getBlockLayer()
+    public BlockRenderLayer getBlockLayer()
     {
-        return EnumWorldBlockLayer.CUTOUT;
+        return BlockRenderLayer.CUTOUT;
     }
 
     @Override
@@ -151,30 +154,30 @@ public class MetalExtractor extends Block implements ExtractorPart
     }
 
     @Override
-    public boolean isFullBlock()
-    {
-        return false;
-    }
-
-    public boolean isOpaqueCube()
+    public boolean isFullBlock(IBlockState state)
     {
         return false;
     }
 
     @Override
-    public int getLightOpacity(IBlockAccess world, BlockPos pos)
+    public boolean isOpaqueCube(IBlockState state)
+    {
+        return false;
+    }
+
+    @Override
+    public int getLightOpacity(IBlockState state, IBlockAccess world, BlockPos pos)
     {
         return 0;
     }
 
     @Override
-    public boolean shouldSideBeRendered(IBlockAccess world, BlockPos pos, EnumFacing side)
+    public boolean shouldSideBeRendered(IBlockState state, IBlockAccess world, BlockPos pos, EnumFacing side)
     {
-        IBlockState state = world.getBlockState(pos);
         IBlockState oppositeState = world.getBlockState(pos.offset(side.getOpposite()));
         return !(oppositeState.getBlock() == this && state.getBlock() == this &&
             state.getValue(PART) == Part.GLASS && oppositeState.getValue(PART) == Part.GLASS) &&
-            super.shouldSideBeRendered(world, pos, side);
+            super.shouldSideBeRendered(state, world, pos, side);
     }
 
     @Override
@@ -226,9 +229,9 @@ public class MetalExtractor extends Block implements ExtractorPart
     }
 
     @Override
-    protected BlockState createBlockState()
+    protected BlockStateContainer createBlockState()
     {
-        return new BlockState(this, PART, BUILT);
+        return new BlockStateContainer(this, PART, BUILT);
     }
 
     /**

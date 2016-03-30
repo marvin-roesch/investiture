@@ -1,7 +1,6 @@
 package de.mineformers.investiture.allomancy.core;
 
 import com.google.common.base.Throwables;
-import com.google.common.collect.FluentIterable;
 import de.mineformers.investiture.Investiture;
 import de.mineformers.investiture.allomancy.Allomancy;
 import de.mineformers.investiture.allomancy.api.misting.Misting;
@@ -24,9 +23,10 @@ import de.mineformers.investiture.allomancy.network.SpeedBubbleUpdate;
 import de.mineformers.investiture.allomancy.tileentity.TileMetalExtractorMaster;
 import de.mineformers.investiture.client.KeyBindings;
 import de.mineformers.investiture.client.renderer.block.ModuleStateMap;
-import net.minecraft.client.resources.model.ModelBakery;
-import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.client.renderer.block.model.ModelBakery;
+import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.entity.Entity;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.client.model.obj.OBJLoader;
 import net.minecraftforge.common.MinecraftForge;
@@ -37,6 +37,7 @@ import net.minecraftforge.fml.relauncher.Side;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Handles all Allomancy-level operations specific to the dedicated client.
@@ -47,7 +48,7 @@ public class ClientProxy extends de.mineformers.investiture.core.ClientProxy
     @SuppressWarnings("unchecked")
     public void preInit(FMLPreInitializationEvent event)
     {
-        OBJLoader.instance.addDomain(Allomancy.DOMAIN);
+        OBJLoader.INSTANCE.addDomain(Allomancy.DOMAIN);
 
         registerMetalResources(Allomancy.Items.allomantic_ingot);
         registerMetalResources(Allomancy.Items.allomantic_chunk);
@@ -128,7 +129,7 @@ public class ClientProxy extends de.mineformers.investiture.core.ClientProxy
 
         Investiture.net().addHandler(SpeedBubbleUpdate.class, Side.CLIENT, (msg, ctx) -> {
             ctx.schedule(() -> {
-                if(ctx.player().dimension != msg.dimension)
+                if (ctx.player().dimension != msg.dimension)
                     return;
                 SpeedBubble bubble = new SpeedBubble(msg.dimension, msg.position, msg.radius);
                 if (msg.action == SpeedBubbleUpdate.ACTION_ADD)
@@ -149,11 +150,11 @@ public class ClientProxy extends de.mineformers.investiture.core.ClientProxy
 
     private void registerMetalResources(MetalItem item)
     {
-        final List<ModelResourceLocation> resources = FluentIterable.from(Arrays.asList(item.getNames()))
-                                                                    .transform(n -> new ModelResourceLocation(
-                                                                        Allomancy.DOMAIN + ":allomantic_metal_" + item.getItemType(),
-                                                                        "metal=" + n)).toList();
+        final List<ModelResourceLocation> resources =
+            Arrays.stream(item.getNames())
+                  .map(n -> new ModelResourceLocation(Allomancy.DOMAIN + ":allomantic_metal_" + item.getItemType(), "metal=" + n))
+                  .collect(Collectors.toList());
         ModelLoader.setCustomMeshDefinition(item, stack -> resources.get(item.clampDamage(stack.getItemDamage())));
-        ModelBakery.registerItemVariants(item, resources.toArray(new ModelResourceLocation[resources.size()]));
+        ModelBakery.registerItemVariants(item, resources.toArray(new ResourceLocation[resources.size()]));
     }
 }

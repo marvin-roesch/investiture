@@ -3,7 +3,7 @@ package de.mineformers.investiture.allomancy.api.misting.physical;
 import de.mineformers.investiture.allomancy.api.misting.Misting;
 import de.mineformers.investiture.allomancy.api.misting.Targeting;
 import net.minecraft.entity.Entity;
-import net.minecraft.util.BlockPos;
+import net.minecraft.util.math.BlockPos;
 
 import java.util.Collection;
 

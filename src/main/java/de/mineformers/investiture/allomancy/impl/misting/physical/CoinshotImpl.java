@@ -1,7 +1,7 @@
 package de.mineformers.investiture.allomancy.impl.misting.physical;
 
 import de.mineformers.investiture.allomancy.api.misting.physical.Coinshot;
-import net.minecraft.util.Vec3;
+import net.minecraft.util.math.Vec3d;
 
 /**
  * ${JDOC}
@@ -9,8 +9,8 @@ import net.minecraft.util.Vec3;
 public class CoinshotImpl extends AbstractMetalManipulator implements Coinshot
 {
     @Override
-    public Vec3 distanceFactor()
+    public Vec3d distanceFactor()
     {
-        return new Vec3(1, 1, 1);
+        return new Vec3d(1, 1, 1);
     }
 }

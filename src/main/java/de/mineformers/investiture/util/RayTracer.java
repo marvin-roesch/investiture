@@ -4,7 +4,9 @@ import net.minecraft.block.Block;
 import net.minecraft.block.state.BlockWorldState;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
-import net.minecraft.util.*;
+import net.minecraft.util.EntitySelectors;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.*;
 import net.minecraft.world.World;
 
 import java.util.List;
@@ -15,13 +17,13 @@ import java.util.function.Predicate;
  */
 public class RayTracer
 {
-    public static MovingObjectPosition rayTraceEntities(Entity entity, double reach, Predicate<Entity> predicate)
+    public static RayTraceResult rayTraceEntities(Entity entity, double reach, Predicate<Entity> predicate)
     {
-        Vec3 start = entity.getPositionEyes(1);
-        Vec3 direction = entity.getLook(1);
-        Vec3 end = start.addVector(direction.xCoord * reach, direction.yCoord * reach, direction.zCoord * reach);
+        Vec3d start = entity.getPositionEyes(1);
+        Vec3d direction = entity.getLook(1);
+        Vec3d end = start.addVector(direction.xCoord * reach, direction.yCoord * reach, direction.zCoord * reach);
         Entity result = null;
-        Vec3 hitVec = null;
+        Vec3d hitVec = null;
         List<Entity> list = entity.worldObj.getEntitiesInAABBexcluding(entity, entity.getEntityBoundingBox()
                                                                                      .addCoord(direction.xCoord * reach,
                                                                                                direction.yCoord * reach,
@@ -33,7 +35,7 @@ public class RayTracer
         {
             float borderSize = checkedEntity.getCollisionBorderSize();
             AxisAlignedBB axisalignedbb = checkedEntity.getEntityBoundingBox().expand(borderSize, borderSize, borderSize);
-            MovingObjectPosition mop = axisalignedbb.calculateIntercept(start, end);
+            RayTraceResult mop = axisalignedbb.calculateIntercept(start, end);
 
             if (axisalignedbb.isVecInside(start))
             {
@@ -50,7 +52,7 @@ public class RayTracer
 
                 if (distance < minDistance || minDistance == 0.0D)
                 {
-                    if (checkedEntity == entity.ridingEntity && !entity.canRiderInteract())
+                    if (checkedEntity == entity.getRidingEntity() && !entity.canRiderInteract())
                     {
                         if (predicate.test(checkedEntity) && minDistance == 0.0D)
                         {
@@ -71,28 +73,28 @@ public class RayTracer
             }
         }
         if (result != null)
-            return new MovingObjectPosition(result, hitVec);
+            return new RayTraceResult(result, hitVec);
         else
             return null;
     }
 
-    public static MovingObjectPosition rayTraceBlocks(Entity entity, double reach,
-                                                      Predicate<BlockWorldState> predicate,
-                                                      boolean stopOnLiquid,
-                                                      boolean ignoreBlockWithoutBoundingBox,
-                                                      boolean returnLastUncollidableBlock)
+    public static RayTraceResult rayTraceBlocks(Entity entity, double reach,
+                                                Predicate<BlockWorldState> predicate,
+                                                boolean stopOnLiquid,
+                                                boolean ignoreBlockWithoutBoundingBox,
+                                                boolean returnLastUncollidableBlock)
     {
-        Vec3 start = entity.getPositionVector().addVector(0, entity.getEyeHeight(), 0);
-        Vec3 look = entity.getLook(1);
-        Vec3 end = start.addVector(look.xCoord * reach, look.yCoord * reach, look.zCoord * reach);
+        Vec3d start = entity.getPositionVector().addVector(0, entity.getEyeHeight(), 0);
+        Vec3d look = entity.getLook(1);
+        Vec3d end = start.addVector(look.xCoord * reach, look.yCoord * reach, look.zCoord * reach);
         return rayTraceBlocks(entity.worldObj, start, end, predicate, stopOnLiquid, ignoreBlockWithoutBoundingBox, returnLastUncollidableBlock);
     }
 
-    public static MovingObjectPosition rayTraceBlocks(World world, Vec3 start, Vec3 end,
-                                                      Predicate<BlockWorldState> predicate,
-                                                      boolean stopOnLiquid,
-                                                      boolean ignoreBlockWithoutBoundingBox,
-                                                      boolean returnLastUncollidableBlock)
+    public static RayTraceResult rayTraceBlocks(World world, Vec3d start, Vec3d end,
+                                                Predicate<BlockWorldState> predicate,
+                                                boolean stopOnLiquid,
+                                                boolean ignoreBlockWithoutBoundingBox,
+                                                boolean returnLastUncollidableBlock)
     {
         if (!Double.isNaN(start.xCoord) && !Double.isNaN(start.yCoord) && !Double.isNaN(start.zCoord))
         {
@@ -111,10 +113,10 @@ public class RayTracer
 
 
                     if (predicate.test(new BlockWorldState(world, pos, true)))
-                        if ((!ignoreBlockWithoutBoundingBox || block.getCollisionBoundingBox(world, pos, state) != null) &&
+                        if ((!ignoreBlockWithoutBoundingBox || block.getCollisionBoundingBox(state, world, pos) != null) &&
                             block.canCollideCheck(state, stopOnLiquid))
                         {
-                            MovingObjectPosition result = block.collisionRayTrace(world, pos, start, end);
+                            RayTraceResult result = block.collisionRayTrace(state, world, pos, start, end);
 
                             if (result != null)
                             {
@@ -123,7 +125,7 @@ public class RayTracer
                         }
                 }
 
-                MovingObjectPosition result = null;
+                RayTraceResult result = null;
                 int k1 = 200;
 
                 while (k1-- >= 0)
@@ -226,17 +228,17 @@ public class RayTracer
                     if (stepX < stepY && stepX < stepZ)
                     {
                         direction = endX > startX ? EnumFacing.WEST : EnumFacing.EAST;
-                        start = new Vec3(x, start.yCoord + dY * stepX, start.zCoord + dZ * stepX);
+                        start = new Vec3d(x, start.yCoord + dY * stepX, start.zCoord + dZ * stepX);
                     }
                     else if (stepY < stepZ)
                     {
                         direction = endY > startY ? EnumFacing.DOWN : EnumFacing.UP;
-                        start = new Vec3(start.xCoord + dX * stepY, y, start.zCoord + dZ * stepY);
+                        start = new Vec3d(start.xCoord + dX * stepY, y, start.zCoord + dZ * stepY);
                     }
                     else
                     {
                         direction = endZ > startZ ? EnumFacing.NORTH : EnumFacing.SOUTH;
-                        start = new Vec3(start.xCoord + dX * stepZ, start.yCoord + dY * stepZ, z);
+                        start = new Vec3d(start.xCoord + dX * stepZ, start.yCoord + dY * stepZ, z);
                     }
 
                     startX = MathHelper.floor_double(start.xCoord) - (direction == EnumFacing.EAST ? 1 : 0);
@@ -248,15 +250,15 @@ public class RayTracer
 
                     if (!predicate.test(new BlockWorldState(world, pos, true)))
                     {
-                        result = new MovingObjectPosition(MovingObjectPosition.MovingObjectType.MISS, start, direction, pos);
+                        result = new RayTraceResult(RayTraceResult.Type.MISS, start, direction, pos);
                         continue;
                     }
 
-                    if (!ignoreBlockWithoutBoundingBox || block.getCollisionBoundingBox(world, pos, state) != null)
+                    if (!ignoreBlockWithoutBoundingBox || block.getCollisionBoundingBox(state, world, pos) != null)
                     {
                         if (block.canCollideCheck(state, stopOnLiquid))
                         {
-                            MovingObjectPosition tmp = block.collisionRayTrace(world, pos, start, end);
+                            RayTraceResult tmp = block.collisionRayTrace(state, world, pos, start, end);
 
                             if (tmp != null)
                             {
@@ -265,7 +267,7 @@ public class RayTracer
                         }
                         else
                         {
-                            result = new MovingObjectPosition(MovingObjectPosition.MovingObjectType.MISS, start, direction, pos);
+                            result = new RayTraceResult(RayTraceResult.Type.MISS, start, direction, pos);
                         }
                     }
                 }

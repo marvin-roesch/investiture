@@ -11,6 +11,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
@@ -18,9 +19,8 @@ import net.minecraft.client.resources.IReloadableResourceManager;
 import net.minecraft.client.resources.IResourceManager;
 import net.minecraft.client.resources.IResourceManagerReloadListener;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.Vec3;
+import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
-import net.minecraftforge.client.model.IFlexibleBakedModel;
 import net.minecraftforge.client.model.pipeline.LightUtil;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
@@ -32,7 +32,7 @@ import static org.lwjgl.opengl.GL11.*;
  */
 public class SpeedBubbleRenderer implements IResourceManagerReloadListener
 {
-    private IFlexibleBakedModel model;
+    private IBakedModel model;
     private Tessellator batchBuffer = new Tessellator(0x200000);
 
     public SpeedBubbleRenderer()
@@ -57,7 +57,7 @@ public class SpeedBubbleRenderer implements IResourceManagerReloadListener
             return;
         pushMatrix();
         pushAttrib();
-        Vec3 pos = Rendering.interpolatedPosition(player, event.partialTicks);
+        Vec3d pos = Rendering.interpolatedPosition(player, event.getPartialTicks());
         translate(-pos.xCoord, -pos.yCoord, -pos.zCoord);
         disableLighting();
         enableBlend();
@@ -71,24 +71,24 @@ public class SpeedBubbleRenderer implements IResourceManagerReloadListener
             GlStateManager.shadeModel(GL_FLAT);
 
         Minecraft.getMinecraft().getTextureManager().bindTexture(TextureMap.locationBlocksTexture);
-        batchBuffer.getWorldRenderer().begin(GL_QUADS, model.getFormat());
+        batchBuffer.getBuffer().begin(GL_QUADS, DefaultVertexFormats.ITEM);
         Frustum frustum = new Frustum();
         frustum.setPosition(pos.xCoord, pos.yCoord + player.getEyeHeight(), pos.zCoord);
         AllomancyAPIImpl.INSTANCE.speedBubbles(player.worldObj).forEach(bubble -> {
-            if(!frustum.isBoundingBoxInFrustum(bubble.bounds))
-                return;
-            for (BakedQuad quad : model.getGeneralQuads())
+//            if (!frustum.isBoundingBoxInFrustum(bubble.bounds))
+//                return;
+            for (BakedQuad quad : model.getQuads(null, null, 0))
             {
-                LightUtil.renderQuadColor(batchBuffer.getWorldRenderer(),
-                                          Modeling.scale(model.getFormat(), quad, new Vec3(bubble.radius, bubble.radius, bubble.radius)),
+                LightUtil.renderQuadColor(batchBuffer.getBuffer(),
+                                          Modeling.scale(DefaultVertexFormats.ITEM, quad, new Vec3d(bubble.radius, bubble.radius, bubble.radius)),
                                           0xFFFFFFFF);
-                batchBuffer.getWorldRenderer()
+                batchBuffer.getBuffer()
                            .putPosition(bubble.position.getX() + 0.5, bubble.position.getY(), bubble.position.getZ() + 0.5);
             }
         });
-        batchBuffer.getWorldRenderer().sortVertexData((float) pos.xCoord, (float) pos.yCoord, (float) pos.zCoord);
+        batchBuffer.getBuffer().sortVertexData((float) pos.xCoord, (float) pos.yCoord, (float) pos.zCoord);
         batchBuffer.draw();
-        batchBuffer.getWorldRenderer().getVertexState();
+        batchBuffer.getBuffer().getVertexState();
 
         enableCull();
         disableBlend();

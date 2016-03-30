@@ -17,6 +17,7 @@ import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 /**
  * ${JDOC}
@@ -51,7 +52,7 @@ public class CapabilityHandler
     @SubscribeEvent
     public void onJoin(EntityJoinWorldEvent event)
     {
-        AllomancyAPIImpl.INSTANCE.toAllomancer(event.entity).ifPresent(a -> {
+        AllomancyAPIImpl.INSTANCE.toAllomancer(event.getEntity()).ifPresent(a -> {
             if (a instanceof EntityAllomancer)
             {
                 for (Class<? extends Misting> type : a.powers())
@@ -68,15 +69,16 @@ public class CapabilityHandler
     @SubscribeEvent
     public void onStartTracking(PlayerEvent.StartTracking event)
     {
-        AllomancyAPIImpl.INSTANCE.toAllomancer(event.target).ifPresent(a -> {
+        AllomancyAPIImpl.INSTANCE.toAllomancer(event.getTarget()).ifPresent(a -> {
             if (a instanceof EntityAllomancer)
             {
                 for (Class<? extends Misting> type : a.powers())
                 {
                     a.as(type).ifPresent(
-                        m -> AllomancyAPIImpl.INSTANCE.factories.get(type).companion.sendTo(event.entityPlayer, m, ((EntityAllomancer) a).entity));
+                        m -> AllomancyAPIImpl.INSTANCE.factories.get(type).companion
+                            .sendTo(event.getEntityPlayer(), m, ((EntityAllomancer) a).entity));
                 }
-                ((EntityAllomancer) a).sync(event.entityPlayer);
+                ((EntityAllomancer) a).sync(event.getEntityPlayer());
             }
         });
     }
@@ -84,8 +86,21 @@ public class CapabilityHandler
     @SubscribeEvent
     public void onClone(PlayerEvent.Clone event)
     {
-        NBTTagCompound data = ((EntityAllomancer) event.original.getCapability(ALLOMANCER_CAPABILITY, null)).serializeNBT();
-        ((EntityAllomancer) event.entityPlayer.getCapability(ALLOMANCER_CAPABILITY, null)).deserializeNBT(data);
+        NBTTagCompound data = ((EntityAllomancer) event.getOriginal().getCapability(ALLOMANCER_CAPABILITY, null)).serializeNBT();
+        ((EntityAllomancer) event.getEntity().getCapability(ALLOMANCER_CAPABILITY, null)).deserializeNBT(data);
+    }
+
+    /**
+     * Updates every player's burning metals.
+     *
+     * @param event the event triggering this method
+     */
+    @SubscribeEvent
+    public void onPlayerTick(TickEvent.PlayerTickEvent event)
+    {
+        if (event.phase == TickEvent.Phase.END)
+            return;
+        AllomancyAPIImpl.INSTANCE.toAllomancer(event.player).ifPresent(a -> AllomancyAPIImpl.INSTANCE.update(a, event.player));
     }
 
     @SubscribeEvent

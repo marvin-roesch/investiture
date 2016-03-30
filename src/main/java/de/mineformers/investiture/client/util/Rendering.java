@@ -6,13 +6,12 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.EntityRenderer;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.WorldRenderer;
+import net.minecraft.client.renderer.VertexBuffer;
 import net.minecraft.client.renderer.block.model.BakedQuad;
-import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
+import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.Entity;
-import net.minecraft.util.Vec3;
-import net.minecraftforge.client.model.IFlexibleBakedModel;
+import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.client.model.pipeline.LightUtil;
 import org.lwjgl.opengl.GL11;
 
@@ -67,7 +66,7 @@ public class Rendering
     public static void drawRectangle(int x, int y, float uMin, float vMin, float uMax, float vMax, int width, int height)
     {
         Tessellator tessellator = Tessellator.getInstance();
-        WorldRenderer wr = tessellator.getWorldRenderer();
+        VertexBuffer wr = tessellator.getBuffer();
         wr.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
         wr.pos(x, y + height, 0)
           .tex(uMin, vMax)
@@ -92,7 +91,7 @@ public class Rendering
     public static void drawRing(int centreX, int centreY, int innerRadius, int width, Colour innerColour, Colour outerColour)
     {
         Tessellator tess = Tessellator.getInstance();
-        WorldRenderer wr = tess.getWorldRenderer();
+        VertexBuffer wr = tess.getBuffer();
 
         wr.begin(GL_TRIANGLE_STRIP, DefaultVertexFormats.POSITION_COLOR);
         wr.pos(centreX + cos(0) * innerRadius, centreY + sin(0) * innerRadius, 0)
@@ -117,7 +116,7 @@ public class Rendering
      *
      * @param model the model to draw
      */
-    public static void drawModel(IFlexibleBakedModel model)
+    public static void drawModel(IBakedModel model)
     {
         drawModel(model, 0xFFFFFFFF);
     }
@@ -128,10 +127,10 @@ public class Rendering
      * @param model  the model to draw
      * @param colour the tint that should be applied to the model, format is 0xAABBGGRR
      */
-    public static void drawModel(IFlexibleBakedModel model, int colour)
+    public static void drawModel(IBakedModel model, int colour)
     {
         Tessellator tessellator = Tessellator.getInstance();
-        WorldRenderer worldrenderer = tessellator.getWorldRenderer();
+        VertexBuffer worldrenderer = tessellator.getBuffer();
 
         pushAttrib();
         RenderHelper.disableStandardItemLighting();
@@ -143,8 +142,8 @@ public class Rendering
         {
             shadeModel(GL11.GL_FLAT);
         }
-        worldrenderer.begin(GL11.GL_QUADS, model.getFormat());
-        for (BakedQuad bakedquad : model.getGeneralQuads())
+        worldrenderer.begin(GL11.GL_QUADS, DefaultVertexFormats.ITEM);
+        for (BakedQuad bakedquad : model.getQuads(null, null, 0))
         {
             LightUtil.renderQuadColor(worldrenderer, bakedquad, colour);
         }
@@ -153,12 +152,12 @@ public class Rendering
         popAttrib();
     }
 
-    public static Vec3 interpolatedPosition(Entity entity, float partialTicks)
+    public static Vec3d interpolatedPosition(Entity entity, float partialTicks)
     {
         double x = entity.lastTickPosX + (entity.posX - entity.lastTickPosX) * partialTicks;
         double y = entity.lastTickPosY + (entity.posY - entity.lastTickPosY) * partialTicks;
         double z = entity.lastTickPosZ + (entity.posZ - entity.lastTickPosZ) * partialTicks;
-        return new Vec3(x, y, z);
+        return new Vec3d(x, y, z);
     }
 
     public static void drawFacingQuad(float scale)
@@ -167,11 +166,11 @@ public class Rendering
         rotate(-Minecraft.getMinecraft().getRenderManager().playerViewY, 0.0F, 1.0F, 0.0F);
         rotate(Minecraft.getMinecraft().getRenderManager().playerViewX, 1.0F, 0.0F, 0.0F);
         Tessellator tessellator = Tessellator.getInstance();
-        tessellator.getWorldRenderer().begin(GL_QUADS, DefaultVertexFormats.POSITION_TEX_NORMAL);
-        tessellator.getWorldRenderer().pos(-scale, -scale, 0).tex(0, 0).normal(0.0F, 1.0F, 0.0F).endVertex();
-        tessellator.getWorldRenderer().pos(-scale, scale, 0).tex(0, 1).normal(0.0F, 1.0F, 0.0F).endVertex();
-        tessellator.getWorldRenderer().pos(scale, scale, 0).tex(1, 1).normal(0.0F, 1.0F, 0.0F).endVertex();
-        tessellator.getWorldRenderer().pos(scale, -scale, 0).tex(1, 0).normal(0.0F, 1.0F, 0.0F).endVertex();
+        tessellator.getBuffer().begin(GL_QUADS, DefaultVertexFormats.POSITION_TEX_NORMAL);
+        tessellator.getBuffer().pos(-scale, -scale, 0).tex(0, 0).normal(0.0F, 1.0F, 0.0F).endVertex();
+        tessellator.getBuffer().pos(-scale, scale, 0).tex(0, 1).normal(0.0F, 1.0F, 0.0F).endVertex();
+        tessellator.getBuffer().pos(scale, scale, 0).tex(1, 1).normal(0.0F, 1.0F, 0.0F).endVertex();
+        tessellator.getBuffer().pos(scale, -scale, 0).tex(1, 0).normal(0.0F, 1.0F, 0.0F).endVertex();
         tessellator.draw();
         popMatrix();
     }

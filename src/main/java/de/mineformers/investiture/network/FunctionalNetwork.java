@@ -12,7 +12,7 @@ import net.minecraft.network.INetHandler;
 import net.minecraft.network.Packet;
 import net.minecraft.server.management.PlayerManager;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockPos;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.fml.common.FMLLog;
@@ -225,7 +225,7 @@ public class FunctionalNetwork
     {
         if (tileEntity.getWorld() instanceof WorldServer)
         {
-            PlayerManager manager = ((WorldServer) tileEntity.getWorld()).getPlayerManager();
+            PlayerManager manager = ((WorldServer) tileEntity.getWorld()).getPlayerChunkMap();
             for (EntityPlayer player : tileEntity.getWorld().playerEntities)
                 if (manager.isPlayerWatchingChunk((EntityPlayerMP) player, tileEntity.getPos().getX() >> 4, tileEntity.getPos().getZ() >> 4))
                     ((EntityPlayerMP) player).playerNetServerHandler.sendPacket(tileEntity.getDescriptionPacket());
@@ -236,7 +236,7 @@ public class FunctionalNetwork
     {
         if (world instanceof WorldServer)
         {
-            PlayerManager manager = ((WorldServer) world).getPlayerManager();
+            PlayerManager manager = ((WorldServer) world).getPlayerChunkMap();
             for (EntityPlayer player : world.playerEntities)
                 if (manager.isPlayerWatchingChunk((EntityPlayerMP) player, pos.getX() >> 4, pos.getZ() >> 4))
                     sendTo((EntityPlayerMP) player, message);
