@@ -17,6 +17,9 @@ import java.util.function.Predicate;
 @ParametersAreNonnullByDefault
 public class MultiBlock
 {
+    /**
+     * @return an empty builder for a multi block structure
+     */
     public static Builder builder()
     {
         return new Builder();
@@ -29,6 +32,14 @@ public class MultiBlock
         this.pattern = pattern;
     }
 
+    /**
+     * Tries to match the pattern of the multi block structure against the actual world.
+     *
+     * @param world     the world the structure is in
+     * @param corner    the lowest, front corner of the structure, used as a reference point
+     * @param operation an operation to apply to all parts of the structure that definitely match the pattern
+     * @return true if the whole pattern was matched successfully, false otherwise
+     */
     public boolean validate(World world, BlockPos corner, Consumer<MultiBlockPart> operation)
     {
         return validateImpl(world, corner, EnumFacing.UP, EnumFacing.EAST, EnumFacing.SOUTH, operation) ||
@@ -65,6 +76,9 @@ public class MultiBlock
         return true;
     }
 
+    /**
+     * Provides a builder for multi block structures.
+     */
     public static final class Builder
     {
         private List<Predicate<BlockWorldState>[][]> layers = new ArrayList<>();
@@ -75,6 +89,14 @@ public class MultiBlock
         {
         }
 
+        /**
+         * Adds a layer of parts to the underlying structure.
+         * Note that the length of the passed array has to be the same for subsequent calls.
+         * Additionally, individual rows all have to have the same length.
+         *
+         * @param rows the rows of blocks the layer to add consists of
+         * @return this builder with an additional layer
+         */
         @SafeVarargs
         public final Builder layer(Predicate<BlockWorldState>[]... rows)
         {
@@ -91,6 +113,11 @@ public class MultiBlock
             return this;
         }
 
+        /**
+         * Finalises the building process.
+         *
+         * @return a multi block structure matching the previously defined structure
+         */
         @SuppressWarnings("unchecked")
         public final MultiBlock build()
         {

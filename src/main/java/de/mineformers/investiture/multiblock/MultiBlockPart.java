@@ -5,7 +5,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 /**
- * Provides access to a specific block within a mulitblock structure.
+ * Provides access to a specific block within a multi block structure.
  */
 public class MultiBlockPart extends BlockWorldState
 {
@@ -17,6 +17,9 @@ public class MultiBlockPart extends BlockWorldState
         this.partId = partId;
     }
 
+    /**
+     * @return the local, sequential ID of the block within the multi block structure
+     */
     public int index()
     {
         return partId;
