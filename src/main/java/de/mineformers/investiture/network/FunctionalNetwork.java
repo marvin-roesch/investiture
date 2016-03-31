@@ -221,6 +221,12 @@ public class FunctionalNetwork
         channels.get(Side.CLIENT).writeAndFlush(message).addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
     }
 
+    /**
+     * Send the description message for a particular packet to all players watching its chunk.
+     * Note that this will only work on the server.
+     *
+     * @param tileEntity the tile entity whose description packet to send
+     */
     public void sendDescription(TileEntity tileEntity)
     {
         if (tileEntity.getWorld() instanceof WorldServer)
@@ -232,6 +238,13 @@ public class FunctionalNetwork
         }
     }
 
+    /**
+     * Send a message to all players watching the chunk at a given position.
+     *
+     * @param world   the world the chunk is in
+     * @param pos     a position belonging to the chunk
+     * @param message the message to send
+     */
     public void sendToWatching(World world, BlockPos pos, Message message)
     {
         if (world instanceof WorldServer)
@@ -243,6 +256,12 @@ public class FunctionalNetwork
         }
     }
 
+    /**
+     * Send a message to all players tracking a given entity.
+     *
+     * @param entity  the entity to check for tracking
+     * @param message the message to send
+     */
     public void sendToTracking(Entity entity, Message message)
     {
         if (entity.worldObj instanceof WorldServer)
