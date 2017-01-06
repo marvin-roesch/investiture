@@ -11,6 +11,6 @@ public class CoinshotImpl extends AbstractMetalManipulator implements Coinshot
     @Override
     public Vec3d distanceFactor()
     {
-        return new Vec3d(1, 1, 1);
+        return new Vec3d(1, 1.5, 1);
     }
 }

@@ -20,7 +20,6 @@ archivesBaseName = "investiture"
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
-minecraft.version = "1.9-12.16.0.1770-1.9"
 minecraft {
     version = "1.9-12.16.0.1813-1.9"
     runDir = "run"

@@ -79,16 +79,15 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
     }
 
     @Override
-    public boolean isValid(RayTraceResult target)
+    public boolean isValid(Entity entity)
     {
-        switch (target.typeOfHit)
-        {
-            case BLOCK:
-                return affectedBlocks().contains(target.getBlockPos());
-            case ENTITY:
-                return affectedEntities().contains(target.entityHit);
-        }
-        return false;
+        return affectedEntities().contains(entity);
+    }
+
+    @Override
+    public boolean isValid(BlockPos pos)
+    {
+        return affectedBlocks().contains(pos);
     }
 
     @Override
@@ -118,7 +117,7 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
     {
         Vec3d start = entity.getPositionVector()
                             .addVector(0, entity.height / 2, 0);
-        double distance = 1 / start.distanceTo(end) * 0.1;
+        double distance = 1 / (start.distanceTo(end) + 0.1) * 0.1;
         Vec3d direction = start.subtract(end);
         Vec3d velocity = new Vec3d(direction.xCoord * distance * distanceFactor().xCoord * factor,
                                    direction.yCoord * distance * distanceFactor().yCoord * factor,
@@ -126,7 +125,7 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
 
         target.addVelocity(velocity.xCoord, velocity.yCoord, velocity.zCoord);
         if (target == entity)
-            entity.fallDistance = (float) Math.max(0, entity.fallDistance - velocity.yCoord / factor);
+            entity.fallDistance = (float) Math.max(0, entity.fallDistance - velocity.yCoord);
     }
 
     @Override

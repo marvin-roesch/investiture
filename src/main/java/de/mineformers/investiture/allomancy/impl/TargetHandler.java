@@ -2,7 +2,6 @@ package de.mineformers.investiture.allomancy.impl;
 
 import de.mineformers.investiture.Investiture;
 import de.mineformers.investiture.allomancy.api.Allomancer;
-import de.mineformers.investiture.allomancy.api.misting.Misting;
 import de.mineformers.investiture.allomancy.api.misting.Targeting;
 import de.mineformers.investiture.allomancy.api.power.Effect;
 import de.mineformers.investiture.allomancy.network.TargetEffect;
@@ -36,8 +35,30 @@ public class TargetHandler
             return;
         if (player.getHeldItem(EnumHand.MAIN_HAND) == null && event.isButtonstate() && (event.getButton() == 0 || event.getButton() == 1))
         {
-            RayTraceResult blockHit = RayTracing.rayTraceBlocks(Minecraft.getMinecraft().thePlayer, 20, s -> true, false, false, false);
-            RayTraceResult entityHit = RayTracing.rayTraceEntities(Minecraft.getMinecraft().thePlayer, 20, e -> true);
+            updateTargets(event.getButton() == 0, player);
+            if (leftTarget != null || rightTarget != null)
+            {
+                player.swingArm(EnumHand.MAIN_HAND);
+                event.setCanceled(true);
+            }
+        }
+    }
+
+    private void updateTargets(boolean leftClick, EntityPlayer player)
+    {
+
+        AllomancyAPIImpl.INSTANCE.toAllomancer(player).ifPresent(a -> {
+
+            List<Targeting> mistings = a.activePowers()
+                                        .stream()
+                                        .map(m -> a.as(m).get())
+                                        .filter(m -> m instanceof Targeting)
+                                        .map(m -> (Targeting) m)
+                                        .collect(Collectors.toList());
+            RayTraceResult blockHit = RayTracing.rayTraceBlocks(Minecraft.getMinecraft().thePlayer, 20,
+                                                                s -> mistings.stream().anyMatch(m -> m.isValid(s.getPos())), false, false, false);
+            RayTraceResult entityHit = RayTracing.rayTraceEntities(Minecraft.getMinecraft().thePlayer, 20,
+                                                                   e -> mistings.stream().anyMatch(m -> m.isValid(e)));
             if (blockHit != null || entityHit != null)
             {
                 RayTraceResult hit = blockHit;
@@ -50,47 +71,36 @@ public class TargetHandler
                     hit = blockDistance < entityDistance ? blockHit : entityHit;
                 }
                 final RayTraceResult finalHit = hit;
-                AllomancyAPIImpl.INSTANCE.toAllomancer(player).ifPresent(a -> {
-                    Stream<? extends Misting> mistings = a.activePowers()
-                                                          .stream()
-                                                          .map(m -> a.as(m).get())
-                                                          .filter(m -> m instanceof Targeting &&
-                                                              ((Targeting) m).isValid(finalHit));
-                    if (event.getButton() == 0)
-                    {
-                        leftTarget = mistings.filter(m -> m.effect() == Effect.PUSH)
-                                             .map(t -> {
-                                                 apply(a, (Targeting) t, finalHit);
-                                                 return null;
-                                             })
-                                             .count() > 0 ? finalHit
-                                                          : null;
-                    }
-                    else
-                    {
-                        rightTarget = mistings.filter(m -> m.effect() == Effect.PULL)
-                                              .map(t -> {
-                                                  apply(a, (Targeting) t, finalHit);
-                                                  return null;
-                                              })
-                                              .count() > 0 ? finalHit
-                                                           : null;
-                    }
-                });
+                Stream<Targeting> targeters = mistings.stream().filter(m -> m.isValid(finalHit));
+                if (leftClick)
+                {
+                    leftTarget = targeters.filter(m -> m.effect() == Effect.PUSH)
+                                          .map(t -> {
+                                              apply(a, t, finalHit);
+                                              return null;
+                                          })
+                                          .count() > 0 ? finalHit
+                                                       : null;
+                }
+                else
+                {
+                    rightTarget = targeters.filter(m -> m.effect() == Effect.PULL)
+                                           .map(t -> {
+                                               apply(a, t, finalHit);
+                                               return null;
+                                           })
+                                           .count() > 0 ? finalHit
+                                                        : null;
+                }
             }
-            if (leftTarget != null || rightTarget != null)
-            {
-                player.swingArm(EnumHand.MAIN_HAND);
-                event.setCanceled(true);
-            }
-        }
+        });
     }
 
     @SubscribeEvent
     public void onClientTick(TickEvent.ClientTickEvent event)
     {
         EntityPlayer player = Minecraft.getMinecraft().thePlayer;
-        if (event.phase != TickEvent.Phase.START || player == null)
+        if (event.phase != TickEvent.Phase.START || player == null || !Minecraft.getMinecraft().inGameHasFocus)
             return;
         AllomancyAPIImpl.INSTANCE.toAllomancer(player).ifPresent(a -> {
             List<Targeting> mistings = a.activePowers()
@@ -99,6 +109,18 @@ public class TargetHandler
                                         .filter(m -> m instanceof Targeting)
                                         .map(m -> (Targeting) m)
                                         .collect(Collectors.toList());
+            if (leftTarget == null && Mouse.isButtonDown(0))
+            {
+                if ((leftTarget.entityHit != null && leftTarget.entityHit.isDead) ||
+                    mistings.stream().noneMatch(m -> m.isValid(leftTarget)))
+                    updateTargets(true, player);
+            }
+            if (rightTarget == null && Mouse.isButtonDown(1))
+            {
+                if ((rightTarget.entityHit != null && rightTarget.entityHit.isDead) ||
+                    mistings.stream().noneMatch(m -> m.isValid(rightTarget)))
+                    updateTargets(true, player);
+            }
             if (leftTarget != null && Mouse.isButtonDown(0) &&
                 player.getHeldItem(EnumHand.MAIN_HAND) == null && player.getPositionVector().squareDistanceTo(leftTarget.hitVec) <= 400)
             {

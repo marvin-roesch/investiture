@@ -11,6 +11,6 @@ public class LurcherImpl extends AbstractMetalManipulator implements Lurcher
     @Override
     public Vec3d distanceFactor()
     {
-        return new Vec3d(-1, -2, -1);
+        return new Vec3d(-1, -1.5, -1);
     }
 }
