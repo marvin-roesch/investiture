@@ -224,14 +224,17 @@ task buildPR() {
 }
 
 task buildCI() {
-    if (System.getenv("CI") != "true")
-        throw new GradleException("Tried to trigger CI build outside of CI!")
-    if (System.getenv("TRAVIS_PULL_REQUEST") == "false") {
+    def pr = System.getenv("TRAVIS_PULL_REQUEST")
+    def prBranch = System.getenv("TRAVIS_PULL_REQUEST_BRANCH")
+    if (!(pr == null || pr == "false" || pr.isEmpty() || prBranch == null || prBranch.isEmpty())) {
+        println "Found Travis PR information, triggering PR build..."
+        dependsOn buildPR
+    } else if (System.getenv("CI") == "true") {
         println "No Travis PR information found, triggering build with Bintray upload..."
         dependsOn build
     } else {
-        println "Found Travis PR information, triggering PR build..."
-        dependsOn buildPR
+        println "No CI environment found, triggering normal assembly..."
+        dependsOn assemble
     }
 }
 
