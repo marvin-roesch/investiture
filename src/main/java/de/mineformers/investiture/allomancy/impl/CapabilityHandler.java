@@ -56,35 +56,44 @@ public class CapabilityHandler
     @SubscribeEvent
     public void onJoin(EntityJoinWorldEvent event)
     {
-        AllomancyAPIImpl.INSTANCE.toAllomancer(event.getEntity()).ifPresent(a -> {
-            if (a instanceof EntityAllomancer)
-            {
-                for (Class<? extends Misting> type : a.powers())
-                {
-                    a.as(type).ifPresent(
-                        m -> AllomancyAPIImpl.INSTANCE.factories.get(type).companion.sendToAll(m, ((EntityAllomancer) a).entity));
-                }
-                a.activePowers().forEach(p -> a.as(p).ifPresent(Misting::startBurning));
-                ((EntityAllomancer) a).sync();
-            }
-        });
+        AllomancyAPIImpl.INSTANCE.toAllomancer(event.getEntity())
+                                 .ifPresent(a ->
+                                            {
+                                                if (a instanceof EntityAllomancer)
+                                                {
+                                                    for (Class<? extends Misting> type : a.powers())
+                                                    {
+                                                        a.as(type).ifPresent(
+                                                            m -> AllomancyAPIImpl.INSTANCE.factories
+                                                                .get(type).companion
+                                                                .sendToAll(m, ((EntityAllomancer) a).entity));
+                                                    }
+                                                    a.activePowers()
+                                                     .forEach(p -> a.as(p).ifPresent(Misting::startBurning));
+                                                    ((EntityAllomancer) a).sync();
+                                                }
+                                            });
     }
 
     @SubscribeEvent
     public void onStartTracking(PlayerEvent.StartTracking event)
     {
-        AllomancyAPIImpl.INSTANCE.toAllomancer(event.getTarget()).ifPresent(a -> {
-            if (a instanceof EntityAllomancer)
-            {
-                for (Class<? extends Misting> type : a.powers())
-                {
-                    a.as(type).ifPresent(
-                        m -> AllomancyAPIImpl.INSTANCE.factories.get(type).companion
-                            .sendTo(event.getEntityPlayer(), m, ((EntityAllomancer) a).entity));
-                }
-                ((EntityAllomancer) a).sync(event.getEntityPlayer());
-            }
-        });
+        AllomancyAPIImpl.INSTANCE.toAllomancer(event.getTarget())
+                                 .ifPresent(a ->
+                                            {
+                                                if (a instanceof EntityAllomancer)
+                                                {
+                                                    for (Class<? extends Misting> type : a.powers())
+                                                    {
+                                                        a.as(type).ifPresent(
+                                                            m -> AllomancyAPIImpl.INSTANCE.factories
+                                                                .get(type).companion
+                                                                .sendTo(event.getEntityPlayer(), m,
+                                                                        ((EntityAllomancer) a).entity));
+                                                    }
+                                                    ((EntityAllomancer) a).sync(event.getEntityPlayer());
+                                                }
+                                            });
     }
 
     @SubscribeEvent
@@ -112,44 +121,51 @@ public class CapabilityHandler
     {
         if (event.getObject() instanceof EntityPlayer)
         {
-            class PlayerCapabilityProvider implements ICapabilityProvider, INBTSerializable<NBTTagCompound>
+            event.addCapability(Allomancy.resource("entity_allomancer"), new PlayerCapabilityProvider(event.getObject()));
+        }
+    }
+
+    private static class PlayerCapabilityProvider implements ICapabilityProvider, INBTSerializable<NBTTagCompound>
+    {
+        private Entity entity;
+        private EntityAllomancer allomancer;
+
+        private PlayerCapabilityProvider(Entity entity)
+        {
+            this.entity = entity;
+        }
+
+        @Override
+        public boolean hasCapability(Capability<?> capability, @Nullable EnumFacing facing)
+        {
+            return capability == ALLOMANCER_CAPABILITY;
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public <T> T getCapability(Capability<T> capability, @Nullable EnumFacing facing)
+        {
+            if (capability == ALLOMANCER_CAPABILITY)
             {
-                private EntityAllomancer allomancer;
-
-                @Override
-                public boolean hasCapability(Capability<?> capability, @Nullable EnumFacing facing)
-                {
-                    return capability == ALLOMANCER_CAPABILITY;
-                }
-
-                @SuppressWarnings("unchecked")
-                @Override
-                public <T> T getCapability(Capability<T> capability, @Nullable EnumFacing facing)
-                {
-                    if (capability == ALLOMANCER_CAPABILITY)
-                    {
-                        if (allomancer == null)
-                            allomancer = new EntityAllomancer(event.getObject());
-                        return (T) allomancer;
-                    }
-                    return null;
-                }
-
-                @Override
-                public NBTTagCompound serializeNBT()
-                {
-                    return allomancer != null ? allomancer.serializeNBT() : new NBTTagCompound();
-                }
-
-                @Override
-                public void deserializeNBT(NBTTagCompound nbt)
-                {
-                    if (allomancer == null)
-                        allomancer = new EntityAllomancer(event.getObject());
-                    allomancer.deserializeNBT(nbt);
-                }
+                if (allomancer == null)
+                    allomancer = new EntityAllomancer(entity);
+                return (T) allomancer;
             }
-            event.addCapability(Allomancy.resource("entity_allomancer"), new PlayerCapabilityProvider());
+            return null;
+        }
+
+        @Override
+        public NBTTagCompound serializeNBT()
+        {
+            return allomancer != null ? allomancer.serializeNBT() : new NBTTagCompound();
+        }
+
+        @Override
+        public void deserializeNBT(NBTTagCompound nbt)
+        {
+            if (allomancer == null)
+                allomancer = new EntityAllomancer(entity);
+            allomancer.deserializeNBT(nbt);
         }
     }
 }

@@ -76,12 +76,6 @@ configurations {
     compile.extendsFrom shade
 }
 
-repositories {
-    maven {
-        url "http://dl.bintray.com/paleocrafter/MinecraftMods"
-    }
-}
-
 shadowJar {
     configurations = [project.configurations.shade]
     classifier ''
@@ -91,9 +85,6 @@ reobf {
     shadowJar { mappingType = 'SEARGE' }
 }
 tasks.build.dependsOn reobfShadowJar
-
-import groovy.json.JsonOutput
-import groovy.json.JsonSlurper
 
 processResources {
     // this will ensure that this task is redone when the versions change.
@@ -209,7 +200,9 @@ if (cfApi != null) {
 
 task release() {
     if (isRelease()) {
-        println "Triggering release build"
+        doFirst {
+            println "Triggering release build"
+        }
         dependsOn "curseforge"
     } else
         dependsOn bintrayUpload
@@ -218,7 +211,7 @@ task release() {
 task buildPR() {
     dependsOn assemble
 
-    afterEvaluate {
+    doFirst {
         println "Building PR #${System.getenv("TRAVIS_PULL_REQUEST")} for branch '${System.getenv("TRAVIS_PULL_REQUEST_BRANCH")}'"
     }
 }
@@ -226,17 +219,26 @@ task buildPR() {
 task buildCI() {
     def pr = System.getenv("TRAVIS_PULL_REQUEST")
     def prBranch = System.getenv("TRAVIS_PULL_REQUEST_BRANCH")
+    doFirst {
+        if (!(pr == null || pr == "false" || pr.isEmpty() || prBranch == null || prBranch.isEmpty())) {
+            println "Found Travis PR information, triggering PR build..."
+        } else if (System.getenv("CI") == "true") {
+            println "No Travis PR information found, triggering build with Bintray upload..."
+        } else {
+            println "No CI environment found, triggering normal assembly..."
+        }
+    }
     if (!(pr == null || pr == "false" || pr.isEmpty() || prBranch == null || prBranch.isEmpty())) {
-        println "Found Travis PR information, triggering PR build..."
         dependsOn buildPR
     } else if (System.getenv("CI") == "true") {
-        println "No Travis PR information found, triggering build with Bintray upload..."
         dependsOn build
     } else {
-        println "No CI environment found, triggering normal assembly..."
         dependsOn assemble
     }
 }
+
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
 
 task generateChangelogs() {
     doLast {
