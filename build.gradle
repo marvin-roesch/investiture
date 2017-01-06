@@ -39,7 +39,9 @@ if (privateConfig)
     ext.priv = parseConfig(file('private.properties'))
 def tagMatcher = "git tag --contains HEAD".execute().text =~ /v[-\d.]+/
 ext["gitTag"] = tagMatcher.count > 0 ? tagMatcher[0] : null
+
 def isRelease() { return project.gitTag == "v${project.version}" && System.getenv("CI") == "true" }
+
 def forgeVersion = "${config.mc_version}-${config.forge_version}${config.forge_branch != '' ? '-' : ''}${config.forge_branch}"
 
 def updateUrl = "https://raw.githubusercontent.com/PaleoCrafter/investiture/master/metadata/promotions.json"
@@ -76,7 +78,7 @@ configurations {
 
 repositories {
     maven {
-        url  "http://dl.bintray.com/paleocrafter/MinecraftMods"
+        url "http://dl.bintray.com/paleocrafter/MinecraftMods"
     }
 }
 
@@ -217,7 +219,19 @@ task buildPR() {
     dependsOn assemble
 
     afterEvaluate {
-        println "Triggering PR build for PR #${System.getenv("TRAVIS_PULL_REQUEST")} for branch '${System.getenv("TRAVIS_PULL_REQUEST_BRANCH")}'"
+        println "Building PR #${System.getenv("TRAVIS_PULL_REQUEST")} for branch '${System.getenv("TRAVIS_PULL_REQUEST_BRANCH")}'"
+    }
+}
+
+task buildCI() {
+    if (System.getenv("CI") != "true")
+        throw new GradleException("Tried to trigger CI build outside of CI!")
+    if (System.getenv("TRAVIS_PULL_REQUEST") == "false") {
+        println "No Travis PR information found, triggering build with Bintray upload..."
+        dependsOn build
+    } else {
+        println "Found Travis PR information, triggering PR build..."
+        dependsOn buildPR
     }
 }
 
