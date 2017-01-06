@@ -213,6 +213,14 @@ task release() {
         dependsOn bintrayUpload
 }
 
+task buildPR() {
+    dependsOn assemble
+
+    afterEvaluate {
+        println "Triggering PR build for PR #${System.getenv("TRAVIS_PULL_REQUEST")} for branch '${System.getenv("TRAVIS_PULL_REQUEST_BRANCH")}'"
+    }
+}
+
 task generateChangelogs() {
     doLast {
         def changeFile = file('metadata/changes.json')
