@@ -6,7 +6,7 @@ import de.mineformers.investiture.core.Manifestation;
 import de.mineformers.investiture.core.Proxy;
 import de.mineformers.investiture.network.FunctionalNetwork;
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
@@ -18,6 +18,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javax.annotation.Nonnull;
 import java.util.List;
 
 /**
@@ -27,25 +28,21 @@ import java.util.List;
 public final class Investiture
 {
     public static final String MOD_ID = "investiture";
-    public static final String MOD_VERSION = "0.0.1";
+    public static final String MOD_VERSION = "@VERSION@";
     public static final CreativeTabs CREATIVE_TAB = new CreativeTabs(CreativeTabs.getNextID(), MOD_ID)
     {
         @Override
+        @Nonnull
         @SideOnly(Side.CLIENT)
-        public Item getTabIconItem()
+        public ItemStack getTabIconItem()
         {
-            return Allomancy.Items.allomantic_ingot;
-        }
-
-        @Override
-        public int getIconItemDamage()
-        {
-            return 8;
+            return new ItemStack(Allomancy.Items.INGOT, 1, 8);
         }
     };
     @Mod.Instance(MOD_ID)
     public static Investiture instance;
-    @SidedProxy(modId = MOD_ID, clientSide = "de.mineformers.investiture.core.ClientProxy",
+    @SidedProxy(modId = MOD_ID,
+        clientSide = "de.mineformers.investiture.core.ClientProxy",
         serverSide = "de.mineformers.investiture.core.ServerProxy")
     public static Proxy proxy;
 
@@ -78,10 +75,11 @@ public final class Investiture
     public void serverStart(FMLServerStartingEvent event)
     {
         // Delegate event to modules
-        modules.forEach(m -> {
-            log().info("Running server start for module '" + m.id() + "'");
-            m.serverStart(event);
-        });
+        modules.forEach(m ->
+                        {
+                            log().info("Running server start for module '" + m.id() + "'");
+                            m.serverStart(event);
+                        });
     }
 
     /**
@@ -95,10 +93,11 @@ public final class Investiture
         network = FunctionalNetwork.create(MOD_ID);
         log = LogManager.getLogger(MOD_ID);
         // Delegate event to modules
-        modules.forEach(m -> {
-            log().info("Running pre-initialisation for module '" + m.id() + "'");
-            m.preInit(event);
-        });
+        modules.forEach(m ->
+                        {
+                            log().info("Running pre-initialisation for module '" + m.id() + "'");
+                            m.preInit(event);
+                        });
         proxy.preInit(event);
     }
 
@@ -111,10 +110,11 @@ public final class Investiture
     public void init(FMLInitializationEvent event)
     {
         // Delegate event to modules
-        modules.forEach(m -> {
-            log().info("Running initialisation for module '" + m.id() + "'");
-            m.init(event);
-        });
+        modules.forEach(m ->
+                        {
+                            log().info("Running initialisation for module '" + m.id() + "'");
+                            m.init(event);
+                        });
         proxy.init(event);
     }
 
@@ -127,10 +127,11 @@ public final class Investiture
     public void postInit(FMLPostInitializationEvent event)
     {
         // Delegate event to modules
-        modules.forEach(m -> {
-            log().info("Running post-initialisation for module '" + m.id() + "'");
-            m.postInit(event);
-        });
+        modules.forEach(m ->
+                        {
+                            log().info("Running post-initialisation for module '" + m.id() + "'");
+                            m.postInit(event);
+                        });
         proxy.postInit(event);
     }
 }

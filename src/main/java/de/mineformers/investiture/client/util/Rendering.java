@@ -19,8 +19,7 @@ import java.lang.invoke.MethodHandle;
 
 import static java.lang.Math.*;
 import static net.minecraft.client.renderer.GlStateManager.*;
-import static org.lwjgl.opengl.GL11.GL_QUADS;
-import static org.lwjgl.opengl.GL11.GL_TRIANGLE_STRIP;
+import static org.lwjgl.opengl.GL11.*;
 
 /**
  * Provides utility methods for rendering.
@@ -83,31 +82,36 @@ public class Rendering
         tessellator.draw();
     }
 
-    public static void drawRing(int centreX, int centreY, int innerRadius, int width, Colour colour)
+    public static void drawRing(int centreX, int centreY, int innerRadius, int width, int accuracy, double startAngle, Colour colour)
     {
-        drawRing(centreX, centreY, innerRadius, width, colour, colour);
+        drawRing(centreX, centreY, innerRadius, width, accuracy, startAngle, colour, colour);
     }
 
-    public static void drawRing(int centreX, int centreY, int innerRadius, int width, Colour innerColour, Colour outerColour)
+    public static void drawRing(int centreX, int centreY, int innerRadius, int width, int accuracy, double startAngle, Colour innerColour, Colour outerColour)
     {
         Tessellator tess = Tessellator.getInstance();
         VertexBuffer wr = tess.getBuffer();
-
+        glPointSize(5);
+        double step = Math.PI / accuracy * 2;
+        double halfStep = Math.PI / accuracy;
+        startAngle = toRadians(startAngle);
         wr.begin(GL_TRIANGLE_STRIP, DefaultVertexFormats.POSITION_COLOR);
-        wr.pos(centreX + cos(0) * innerRadius, centreY + sin(0) * innerRadius, 0)
+        wr.pos(centreX + cos(-halfStep + startAngle) * innerRadius, centreY + sin(-halfStep + startAngle) * innerRadius, 0)
           .color(innerColour.r(), innerColour.g(), innerColour.b(), innerColour.a())
           .endVertex();
-        for (int i = -1; i <= 99; i++)
+        for (int i = 0; i < accuracy; i++)
         {
-            double angle0 = PI * 2 * i / 100;
-            double angle1 = PI * 2 * (i + 1) / 100;
-            wr.pos(centreX + cos(angle1) * innerRadius, centreY + sin(angle1) * innerRadius, 0)
+            double angle = i * step + halfStep + startAngle;
+            wr.pos(centreX + cos(angle) * innerRadius, centreY + sin(angle) * innerRadius, 0)
               .color(innerColour.r(), innerColour.g(), innerColour.b(), innerColour.a())
               .endVertex();
-            wr.pos(centreX + cos(angle0) * (innerRadius + width), centreY + sin(angle0) * (innerRadius + width), 0)
+            wr.pos(centreX + cos(angle) * (innerRadius + width), centreY + sin(angle) * (innerRadius + width), 0)
               .color(outerColour.r(), outerColour.g(), outerColour.b(), outerColour.a())
               .endVertex();
         }
+        wr.pos(centreX + cos(halfStep + startAngle) * (innerRadius + width), centreY + sin(halfStep + startAngle) * (innerRadius + width), 0)
+          .color(outerColour.r(), outerColour.g(), outerColour.b(), outerColour.a())
+          .endVertex();
         tess.draw();
     }
 

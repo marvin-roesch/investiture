@@ -47,12 +47,8 @@ public class MetalSelectionHUD
     private static final Map<Metal, ResourceLocation> METAL_TEXTURES =
         Metals.BASE_METALS.stream()
                           .collect(Collectors.toMap(m -> m, m -> new ResourceLocation(Allomancy.DOMAIN, "textures/metals/" + m.id() + ".png")));
-    public static final ResourceLocation WHEEL_BG_TEXTURE = new ResourceLocation(Allomancy.DOMAIN, "textures/gui/wheel_background.png");
-    public static final ResourceLocation WHEEL_TEXTURE = new ResourceLocation(Allomancy.DOMAIN, "textures/gui/wheel.png");
     private Optional<Metal> hoveredMetal = Optional.empty();
     private boolean display;
-    private final Shader wheelShader = new Shader(new ResourceLocation(Allomancy.DOMAIN, "metal_wheel"),
-                                                  new ResourceLocation(Allomancy.DOMAIN, "metal_wheel"));
     private final Shader iconShader = new Shader(null, new ResourceLocation(Allomancy.DOMAIN, "metal_icon"));
 
     @SubscribeEvent
@@ -71,15 +67,15 @@ public class MetalSelectionHUD
         for (int i = 0; i < METALS.length / 2; i++)
         {
             double angle = PI / 4 * (i + 0.5);
-            int startX = centreX + (int) (cos(angle) * 40) - 8;
-            int startY = centreY - (int) (sin(angle) * 40) - 8;
+            int startX = centreX + (int) (cos(angle) * 45) - 8;
+            int startY = centreY - (int) (sin(angle) * 45) - 8;
             int endX = startX + 16;
             int endY = startY + 16;
             if (mouseX >= startX && mouseX <= endX && mouseY >= startY && mouseY <= endY)
                 hoveredMetal = Optional.of(METALS[i * 2]);
             angle = PI / 4 * (i + 0.5);
-            startX = centreX + (int) (cos(angle) * 75) - 8;
-            startY = centreY - (int) (sin(angle) * 75) - 8;
+            startX = centreX + (int) (cos(angle) * 85) - 8;
+            startY = centreY - (int) (sin(angle) * 85) - 8;
             endX = startX + 16;
             endY = startY + 16;
             if (mouseX >= startX && mouseX <= endX && mouseY >= startY && mouseY <= endY)
@@ -91,15 +87,9 @@ public class MetalSelectionHUD
         GlStateManager.tryBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
         GlStateManager.blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        // Draws the wheel's background texture (the red metal part)
-//        Minecraft.getMinecraft().getTextureManager().bindTexture(WHEEL_BG_TEXTURE);
-//        Rendering.drawRectangle(centreX - 100, centreY - 100, 0, 0, 1, 1, 200, 200);
-
         // Disable the alpha test such that everything will get drawn as translucently as desired
         GlStateManager.disableAlpha();
-
         drawRings(centreX, centreY);
-
         drawMetalIcons(centreX, centreY);
 
         // Draw the wheel's frame
@@ -127,56 +117,8 @@ public class MetalSelectionHUD
     private void drawRings(int centreX, int centreY)
     {
         GlStateManager.disableTexture2D();
-        Rendering.drawRing(centreX, centreY, 25, 30, new Colour(0, 0, 0, 0.3f));
-        Rendering.drawRing(centreX, centreY, 60, 30, new Colour(0, 0, 0, 0.3f));
-        GlStateManager.enableTexture2D();
-    }
-
-    /**
-     * Draws the mist effect using shaders.
-     *
-     * @param centreX the x coordinate the mist circle should be centred on
-     * @param centreY the y coordinate the mist circle should be centred on
-     */
-    private void drawMist(int centreX, int centreY)
-    {
-        ScaledResolution sr = new ScaledResolution(Minecraft.getMinecraft());
-        Tessellator tess = Tessellator.getInstance();
-        VertexBuffer wr = tess.getBuffer();
-
-        // We don't need textures for drawing the mist
-        GlStateManager.disableTexture2D();
-
-        // The wheel shader uses Perlin noise to generate cloud-like effects
-        wheelShader.activate();
-        wheelShader.setUniformFloat("corner", centreX - 90, centreY - 90);
-        wheelShader.setUniformFloat("scale", sr.getScaleFactor());
-        wheelShader.setUniformFloat("time", (System.currentTimeMillis() % 72000) / 7200f);
-        wheelShader.setUniformInt("octavesMin", 0);
-        wheelShader.setUniformInt("octavesMax", 5);
-        wheelShader.setUniformFloat("persistence", 1f);
-        // Draw a simple circle with a radius of 60
-        // If shaders are not supported, players will just see a translucent white circle
-//        wr.begin(GL_TRIANGLE_FAN, DefaultVertexFormats.POSITION_COLOR);
-//        wr.pos(centreX, centreY, 0)
-//          .color(1, 1, 1, 0.3f)
-//          .endVertex();
-//        for (int i = 100; i >= 0; i--)
-//        {
-//            double angle = PI * 2 * i / 100;
-//            wr.pos(centreX + cos(angle) * 60, centreY + sin(angle) * 60, 0)
-//              .color(1, 1, 1, 0.3f)
-//              .endVertex();
-//        }
-//        tess.draw();
-        Rendering.drawRing(centreX, centreY, 25, 30, new Colour(0, 0, 0, 0.3f));
-
-        // Draw the outer part of the circle as triangle strip, resulting in a ring
-        // Use the smooth shading model to create a gradient from translucent to transparent
-        Rendering.drawRing(centreX, centreY, 60, 30, new Colour(0, 0, 0, 0.3f));
-        wheelShader.deactivate();
-
-        // We're about to draw textures again
+        Rendering.drawRing(centreX, centreY, 30, 30, 8, 0, new Colour(0, 0, 0, 0.75f));
+        Rendering.drawRing(centreX, centreY, 70, 30, 8, 0, new Colour(0, 0, 0, 0.75f));
         GlStateManager.enableTexture2D();
     }
 
@@ -189,7 +131,7 @@ public class MetalSelectionHUD
     private void drawMetalIcons(int centreX, int centreY)
     {
         GlStateManager.color(1, 1, 1, 1);
-        Allomancer allomancer = AllomancyAPIImpl.INSTANCE.toAllomancer(Minecraft.getMinecraft().thePlayer).get();
+        Allomancer allomancer = AllomancyAPIImpl.INSTANCE.toAllomancer(Minecraft.getMinecraft().player).get();
         // The icon shader will replace the colours of the metal icons entirely, depending on the amount stored of the respective metal
         iconShader.activate();
         iconShader.setUniformInt("tex", 0);
@@ -204,7 +146,7 @@ public class MetalSelectionHUD
             iconShader.setUniformBool("hovered", hoveredMetal.orElse(null) == innerMetal);
             // Change the main colour of the icon if the metal is burning
             iconShader.setUniform("backColour", allomancer.activePowers().contains(innerMetal.mistingType()) ? new Vec3d(205 / 255f, 43 / 255f, 0)
-                                                                                                             : new Vec3d(0.1f, 0.1f, 0.1f));
+                                                                                                             : new Vec3d(0.9f, 0.9f, 0.9f));
 //            iconShader.setUniformFloat("metalLevel", (float) burner.get(innerMetal) / MetalStorage.MAX_STORAGE);
 //            iconShader.setUniformFloat("impurityLevel", (float) burner.getImpurity(innerMetal) / MetalStorage.MAX_STORAGE);
             iconShader.setUniformFloat("metalLevel", 0);
@@ -212,15 +154,15 @@ public class MetalSelectionHUD
 
             // The textures in the array are aligned in pairs of two
             Minecraft.getMinecraft().getTextureManager().bindTexture(METAL_TEXTURES.get(innerMetal));
-            // Draw the inner icon 40 units away from the circle's centre
-            Rendering.drawRectangle(centreX + (int) (cos(angle) * 40) - 8,
-                                    centreY - (int) (sin(angle) * 40) - 8, 0, 0, 1, 1, 16, 16);
+            // Draw the inner icon 45 units away from the circle's centre
+            Rendering.drawRectangle(centreX + (int) (cos(angle) * 45) - 8,
+                                    centreY - (int) (sin(angle) * 45) - 8, 0, 0, 1, 1, 16, 16);
 
             Metal outerMetal = METALS[i * 2 + 1];
             iconShader.setUniformBool("hovered", hoveredMetal.orElse(null) == outerMetal);
             // Change the main colour of the icon if the metal is burning
             iconShader.setUniform("backColour", allomancer.activePowers().contains(outerMetal.mistingType()) ? new Vec3d(205 / 255f, 43 / 255f, 0)
-                                                                                                             : new Vec3d(0.1f, 0.1f, 0.1f));
+                                                                                                             : new Vec3d(0.9f, 0.9f, 0.9f));
 //            iconShader.setUniformFloat("metalLevel", (float) burner.get(outerMetal) / MetalStorage.MAX_STORAGE);
 //            iconShader.setUniformFloat("impurityLevel", (float) burner.getImpurity(outerMetal) / MetalStorage.MAX_STORAGE);
             iconShader.setUniformFloat("metalLevel", 0);
@@ -229,8 +171,8 @@ public class MetalSelectionHUD
             // The textures in the array are aligned in pairs of two
             Minecraft.getMinecraft().getTextureManager().bindTexture(METAL_TEXTURES.get(outerMetal));
             // Draw the outer icon 75 units away from the circle's centre
-            Rendering.drawRectangle(centreX + (int) (cos(angle) * 75) - 8,
-                                    centreY - (int) (sin(angle) * 75) - 8, 0, 0, 1, 1, 16, 16);
+            Rendering.drawRectangle(centreX + (int) (cos(angle) * 85) - 8,
+                                    centreY - (int) (sin(angle) * 85) - 8, 0, 0, 1, 1, 16, 16);
         }
         iconShader.deactivate();
     }

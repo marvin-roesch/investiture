@@ -9,6 +9,7 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.*;
 import net.minecraft.world.World;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -25,6 +26,7 @@ public class RayTracing
      * @param predicate a predicate filtering the set of plausible targets
      * @return a result indicating the success of the ray trace
      */
+    @Nullable
     public static RayTraceResult rayTraceEntities(Entity camera, double reach, Predicate<Entity> predicate)
     {
         // Effectively a copy of EntityRenderer.getMouseOver, see that for details
@@ -33,7 +35,7 @@ public class RayTracing
         Vec3d end = start.addVector(direction.xCoord * reach, direction.yCoord * reach, direction.zCoord * reach);
         Entity result = null;
         Vec3d hitVec = null;
-        List<Entity> list = camera.worldObj.getEntitiesInAABBexcluding(camera, camera.getEntityBoundingBox()
+        List<Entity> list = camera.world.getEntitiesInAABBexcluding(camera, camera.getEntityBoundingBox()
                                                                                      .addCoord(direction.xCoord * reach,
                                                                                                direction.yCoord * reach,
                                                                                                direction.zCoord * reach)
@@ -98,6 +100,7 @@ public class RayTracing
      * @param returnLastUncollidableBlock  determines if the last uncollided block should be returned if the ray hits the last block without a result
      * @return a result indicating the success of the ray trace
      */
+    @Nullable
     public static RayTraceResult rayTraceBlocks(Entity camera, double reach,
                                                 Predicate<BlockWorldState> predicate,
                                                 boolean stopOnLiquid,
@@ -107,7 +110,7 @@ public class RayTracing
         Vec3d start = camera.getPositionVector().addVector(0, camera.getEyeHeight(), 0);
         Vec3d look = camera.getLook(1);
         Vec3d end = start.addVector(look.xCoord * reach, look.yCoord * reach, look.zCoord * reach);
-        return rayTraceBlocks(camera.worldObj, start, end, predicate, stopOnLiquid, collideWithBoundingBoxesOnly, returnLastUncollidableBlock);
+        return rayTraceBlocks(camera.world, start, end, predicate, stopOnLiquid, collideWithBoundingBoxesOnly, returnLastUncollidableBlock);
     }
 
     /**
@@ -122,6 +125,7 @@ public class RayTracing
      * @param returnLastUncollidableBlock  determines if the last uncollided block should be returned if the ray hits the last block without a result
      * @return a result indicating the success of the ray trace
      */
+    @Nullable
     public static RayTraceResult rayTraceBlocks(World world, Vec3d start, Vec3d end,
                                                 Predicate<BlockWorldState> predicate,
                                                 boolean stopOnLiquid,
@@ -133,12 +137,12 @@ public class RayTracing
         {
             if (!Double.isNaN(end.xCoord) && !Double.isNaN(end.yCoord) && !Double.isNaN(end.zCoord))
             {
-                int startX = MathHelper.floor_double(start.xCoord);
-                int startY = MathHelper.floor_double(start.yCoord);
-                int startZ = MathHelper.floor_double(start.zCoord);
-                int endX = MathHelper.floor_double(end.xCoord);
-                int endY = MathHelper.floor_double(end.yCoord);
-                int endZ = MathHelper.floor_double(end.zCoord);
+                int startX = MathHelper.floor(start.xCoord);
+                int startY = MathHelper.floor(start.yCoord);
+                int startZ = MathHelper.floor(start.zCoord);
+                int endX = MathHelper.floor(end.xCoord);
+                int endY = MathHelper.floor(end.yCoord);
+                int endZ = MathHelper.floor(end.zCoord);
                 BlockPos pos = new BlockPos(startX, startY, startZ);
                 {
                     IBlockState state = world.getBlockState(pos);
@@ -274,9 +278,9 @@ public class RayTracing
                         start = new Vec3d(start.xCoord + dX * stepZ, start.yCoord + dY * stepZ, z);
                     }
 
-                    startX = MathHelper.floor_double(start.xCoord) - (direction == EnumFacing.EAST ? 1 : 0);
-                    startY = MathHelper.floor_double(start.yCoord) - (direction == EnumFacing.UP ? 1 : 0);
-                    startZ = MathHelper.floor_double(start.zCoord) - (direction == EnumFacing.SOUTH ? 1 : 0);
+                    startX = MathHelper.floor(start.xCoord) - (direction == EnumFacing.EAST ? 1 : 0);
+                    startY = MathHelper.floor(start.yCoord) - (direction == EnumFacing.UP ? 1 : 0);
+                    startZ = MathHelper.floor(start.zCoord) - (direction == EnumFacing.SOUTH ? 1 : 0);
                     pos = new BlockPos(startX, startY, startZ);
                     IBlockState state = world.getBlockState(pos);
                     Block block = state.getBlock();

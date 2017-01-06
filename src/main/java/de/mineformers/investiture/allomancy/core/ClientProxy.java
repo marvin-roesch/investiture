@@ -50,15 +50,15 @@ public class ClientProxy extends de.mineformers.investiture.core.ClientProxy
     {
         OBJLoader.INSTANCE.addDomain(Allomancy.DOMAIN);
 
-        registerMetalResources(Allomancy.Items.allomantic_ingot);
-        registerMetalResources(Allomancy.Items.allomantic_chunk);
-        registerMetalResources(Allomancy.Items.allomantic_nugget);
-        registerMetalResources(Allomancy.Items.allomantic_bead);
-        registerMetalResources(Allomancy.Items.allomantic_dust);
+        registerMetalResources(Allomancy.Items.INGOT);
+        registerMetalResources(Allomancy.Items.CHUNK);
+        registerMetalResources(Allomancy.Items.NUGGET);
+        registerMetalResources(Allomancy.Items.BEAD);
+        registerMetalResources(Allomancy.Items.DUST);
 
-        registerBlockResources(Allomancy.DOMAIN, Allomancy.Blocks.allomantic_ore);
-        registerBlockResources(Allomancy.DOMAIN, Allomancy.Blocks.metal_extractor);
-        registerBlockResources(Allomancy.DOMAIN, Allomancy.Blocks.metal_extractor_controller,
+        registerBlockResources(Allomancy.DOMAIN, Allomancy.Blocks.ORE);
+        registerBlockResources(Allomancy.DOMAIN, Allomancy.Blocks.METAL_EXTRACTOR);
+        registerBlockResources(Allomancy.DOMAIN, Allomancy.Blocks.METAL_EXTRACTOR_CONTROLLER,
                                ModuleStateMap.builder().ignore(MetalExtractorController.MASTER));
 
         // Register key bindings
@@ -74,7 +74,7 @@ public class ClientProxy extends de.mineformers.investiture.core.ClientProxy
 //            ctx.schedule(() -> {
 //                if (ctx.player() != null)
 //                {
-//                    Entity entity = ctx.player().worldObj.getEntityByID(msg.entity);
+//                    Entity entity = ctx.player().world.getEntityByID(msg.entity);
 //                    MetalStorage.from(entity).copy(msg.storage);
 //                }
 //            });
@@ -86,7 +86,7 @@ public class ClientProxy extends de.mineformers.investiture.core.ClientProxy
 //            ctx.schedule(() -> {
 //                if (ctx.player() != null)
 //                {
-//                    Entity entity = ctx.player().worldObj.getEntityByID(msg.entity);
+//                    Entity entity = ctx.player().world.getEntityByID(msg.entity);
 //                    MetalBurner.from(entity).copy(msg.burner);
 //                }
 //            });
@@ -95,15 +95,15 @@ public class ClientProxy extends de.mineformers.investiture.core.ClientProxy
 
         Investiture.net().addHandler(MetalExtractorUpdate.class, Side.CLIENT, (msg, ctx) -> {
             ctx.schedule(() -> {
-                if (ctx.player().worldObj.getTileEntity(msg.pos) instanceof TileMetalExtractorMaster)
-                    ((TileMetalExtractorMaster) ctx.player().worldObj.getTileEntity(msg.pos)).processUpdate(msg);
+                if (ctx.player().world.getTileEntity(msg.pos) instanceof TileMetalExtractorMaster)
+                    ((TileMetalExtractorMaster) ctx.player().world.getTileEntity(msg.pos)).processUpdate(msg);
             });
             return null;
         });
 
         Investiture.net().addHandler(AllomancerUpdate.class, Side.CLIENT, (msg, ctx) -> {
             ctx.schedule(() -> {
-                Entity entity = ctx.player().worldObj.getEntityByID(msg.entityId);
+                Entity entity = ctx.player().world.getEntityByID(msg.entityId);
                 AllomancyAPIImpl.INSTANCE.toAllomancer(entity).ifPresent(a -> {
                     if (a instanceof EntityAllomancer)
                         ((EntityAllomancer) a).setActivePowers(msg.activePowers);
@@ -114,7 +114,7 @@ public class ClientProxy extends de.mineformers.investiture.core.ClientProxy
 
         Investiture.net().addHandler(MistingUpdate.class, Side.CLIENT, (msg, ctx) -> {
             ctx.schedule(() -> {
-                Entity entity = ctx.player().worldObj.getEntityByID(msg.entityId);
+                Entity entity = ctx.player().world.getEntityByID(msg.entityId);
                 try
                 {
                     AllomancyAPIImpl.INSTANCE.read(entity, (Class<? extends Misting>) Class.forName(msg.type), msg.data);
@@ -133,9 +133,9 @@ public class ClientProxy extends de.mineformers.investiture.core.ClientProxy
                     return;
                 SpeedBubble bubble = new SpeedBubble(msg.dimension, msg.position, msg.radius);
                 if (msg.action == SpeedBubbleUpdate.ACTION_ADD)
-                    SpeedBubbles.from(ctx.player().worldObj).add(bubble);
+                    SpeedBubbles.from(ctx.player().world).add(bubble);
                 else if (msg.action == SpeedBubbleUpdate.ACTION_REMOVE)
-                    SpeedBubbles.from(ctx.player().worldObj).remove(bubble);
+                    SpeedBubbles.from(ctx.player().world).remove(bubble);
             });
             return null;
         });

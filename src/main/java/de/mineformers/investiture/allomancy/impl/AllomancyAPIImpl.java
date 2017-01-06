@@ -40,6 +40,7 @@ import net.minecraft.world.World;
 import org.apache.commons.lang3.ClassUtils;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.lang.reflect.Field;
 import java.util.*;
@@ -86,15 +87,15 @@ public class AllomancyAPIImpl implements AllomancyAPI
 
 //        TineyeImpl.init();
 
-        Set<Item> metallicItems = ImmutableSet.of(Items.iron_ingot, Items.gold_ingot, Items.gold_nugget);
-        registerMetallicItem(stack -> {
-            Item item = stack.getItem();
-            Block block = Block.getBlockFromItem(item);
-            return block != null && isMetallic(block.getDefaultState()) || metallicItems.contains(item);
-        });
+        Set<Item> metallicItems = ImmutableSet.of(Items.IRON_INGOT, Items.GOLD_INGOT, Items.GOLD_NUGGET);
+        registerMetallicItem(stack ->
+                             {
+                                 Item item = stack.getItem();
+                                 Block block = Block.getBlockFromItem(item);
+                                 return isMetallic(block.getDefaultState()) || metallicItems.contains(item);
+                             });
 
-        registerMetallicBlock(s -> s.getBlockState().getBlock().getMaterial(s.getBlockState()) == Material.iron ||
-            s.getBlockState().getBlock().getMaterial(s.getBlockState()) == Material.anvil);
+        registerMetallicBlock(s -> s.getBlockState().getMaterial() == Material.IRON || s.getBlockState().getMaterial() == Material.ANVIL);
 
         registerMetallicEntity(e -> e instanceof EntityItem && isMetallic(((EntityItem) e).getEntityItem()));
     }
@@ -175,6 +176,7 @@ public class AllomancyAPIImpl implements AllomancyAPI
         return SpeedBubbles.from(world);
     }
 
+    @Nullable
     @SuppressWarnings("unchecked")
     <T extends Misting> T instantiate(Class<T> type, Allomancer allomancer, Entity entity)
     {
@@ -191,12 +193,13 @@ public class AllomancyAPIImpl implements AllomancyAPI
     {
         for (Class<? extends Misting> type : allomancer.powers())
         {
-            allomancer.as(type).ifPresent(m -> {
-                if (allomancer.activePowers().contains(type) && m instanceof ITickable)
-                    ((ITickable) m).update();
-                if (!entity.worldObj.isRemote)
-                    factories.get(type).companion.write(m, entity);
-            });
+            allomancer.as(type).ifPresent(m ->
+                                          {
+                                              if (allomancer.activePowers().contains(type) && m instanceof ITickable)
+                                                  ((ITickable) m).update();
+                                              if (!entity.world.isRemote)
+                                                  factories.get(type).companion.write(m, entity);
+                                          });
         }
     }
 
@@ -242,16 +245,17 @@ public class AllomancyAPIImpl implements AllomancyAPI
                       .stream()
                       .filter(e -> e.isAssignableFrom(f.getType()))
                       .findFirst()
-                      .ifPresent(t -> {
-                          try
-                          {
-                              f.set(instance, values.get(t));
-                          }
-                          catch (IllegalAccessException e)
-                          {
-                              Throwables.propagate(e);
-                          }
-                      });
+                      .ifPresent(t ->
+                                 {
+                                     try
+                                     {
+                                         f.set(instance, values.get(t));
+                                     }
+                                     catch (IllegalAccessException e)
+                                     {
+                                         Throwables.propagate(e);
+                                     }
+                                 });
             }
         }
     }

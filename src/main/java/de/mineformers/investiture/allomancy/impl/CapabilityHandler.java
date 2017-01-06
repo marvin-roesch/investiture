@@ -3,6 +3,7 @@ package de.mineformers.investiture.allomancy.impl;
 import de.mineformers.investiture.allomancy.Allomancy;
 import de.mineformers.investiture.allomancy.api.Allomancer;
 import de.mineformers.investiture.allomancy.api.misting.Misting;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
@@ -19,6 +20,8 @@ import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
+import javax.annotation.Nullable;
+
 /**
  * ${JDOC}
  */
@@ -31,6 +34,7 @@ public class CapabilityHandler
     {
         CapabilityManager.INSTANCE.register(Allomancer.class, new Capability.IStorage<Allomancer>()
         {
+            @Nullable
             @Override
             public NBTBase writeNBT(Capability<Allomancer> capability, Allomancer instance, EnumFacing side)
             {
@@ -104,28 +108,28 @@ public class CapabilityHandler
     }
 
     @SubscribeEvent
-    public void onAttach(AttachCapabilitiesEvent.Entity event)
+    public void onAttach(AttachCapabilitiesEvent<Entity> event)
     {
-        if (event.getEntity() instanceof EntityPlayer)
+        if (event.getObject() instanceof EntityPlayer)
         {
             class PlayerCapabilityProvider implements ICapabilityProvider, INBTSerializable<NBTTagCompound>
             {
                 private EntityAllomancer allomancer;
 
                 @Override
-                public boolean hasCapability(Capability<?> capability, EnumFacing facing)
+                public boolean hasCapability(Capability<?> capability, @Nullable EnumFacing facing)
                 {
                     return capability == ALLOMANCER_CAPABILITY;
                 }
 
                 @SuppressWarnings("unchecked")
                 @Override
-                public <T> T getCapability(Capability<T> capability, EnumFacing facing)
+                public <T> T getCapability(Capability<T> capability, @Nullable EnumFacing facing)
                 {
                     if (capability == ALLOMANCER_CAPABILITY)
                     {
                         if (allomancer == null)
-                            allomancer = new EntityAllomancer(event.getEntity());
+                            allomancer = new EntityAllomancer(event.getObject());
                         return (T) allomancer;
                     }
                     return null;
@@ -141,7 +145,7 @@ public class CapabilityHandler
                 public void deserializeNBT(NBTTagCompound nbt)
                 {
                     if (allomancer == null)
-                        allomancer = new EntityAllomancer(event.getEntity());
+                        allomancer = new EntityAllomancer(event.getObject());
                     allomancer.deserializeNBT(nbt);
                 }
             }

@@ -26,9 +26,9 @@ public class Inventories
             boolean shouldUpdate = false;
 
             int max = Math.min(stack.getMaxStackSize(), inventory.getInventoryStackLimit());
-            if (stored == null)
+            if (stored.isEmpty())
             {
-                if (max >= stack.stackSize)
+                if (max >= stack.getCount())
                 {
                     inventory.setInventorySlotContents(index, stack);
                     result = true;
@@ -41,11 +41,11 @@ public class Inventories
             }
             else if (canCombine(stored, stack))
             {
-                if (max > stored.stackSize)
+                if (max > stored.getCount())
                 {
-                    int storedAmount = Math.min(stack.stackSize, max - stored.stackSize);
-                    stack.stackSize -= storedAmount;
-                    stored.stackSize += storedAmount;
+                    int storedAmount = Math.min(stack.getCount(), max - stored.getCount());
+                    stack.shrink(storedAmount);
+                    stored.grow(storedAmount);
                     shouldUpdate = storedAmount > 0;
                 }
             }
@@ -69,7 +69,7 @@ public class Inventories
     {
         return stack1.getItem() == stack2.getItem() &&
             stack1.getMetadata() == stack2.getMetadata() &&
-            stack1.stackSize <= stack1.getMaxStackSize() &&
+            stack1.getCount() <= stack1.getMaxStackSize() &&
             ItemStack.areItemStackTagsEqual(stack1, stack2);
     }
 
@@ -98,10 +98,10 @@ public class Inventories
         for (int i = 0; i < length; i++)
         {
             ItemStack item = inventory.getStackInSlot(i);
-            if (item != null)
+            if (!item.isEmpty())
             {
                 NBTTagCompound itemCompound = item.writeToNBT(new NBTTagCompound());
-                itemCompound.setInteger("slot", i);
+                itemCompound.setInteger("Slot", i);
                 nbt.appendTag(itemCompound);
             }
         }
@@ -133,11 +133,9 @@ public class Inventories
         for (int i = 0; i < listSize; i++)
         {
             NBTTagCompound stackCompound = list.getCompoundTagAt(i);
-
-            ItemStack stack = ItemStack.loadItemStackFromNBT(stackCompound);
-            int slot = stackCompound.getInteger("slot");
+            int slot = stackCompound.getInteger("Slot");
             if (slot >= 0 && slot < inventorySize)
-                inventory.setInventorySlotContents(slot, stack);
+                inventory.setInventorySlotContents(slot, new ItemStack(stackCompound));
         }
     }
 }

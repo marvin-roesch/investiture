@@ -7,28 +7,47 @@ import javax.annotation.Nonnull;
 
 public interface MetalMapping extends MetalHolder<ItemStack>
 {
-
     boolean matches(@Nonnull ItemStack stack);
 
-    class MetalMappingItem implements MetalMapping
+    abstract class AbstractMetalMapping implements MetalMapping
     {
-
         protected final Metal metal;
-        protected final ItemStack stack;
         protected final float quantity;
         protected final boolean nbt;
 
-        public MetalMappingItem(@Nonnull Metal metal, @Nonnull ItemStack stack, float quantity)
+        public AbstractMetalMapping(Metal metal, float quantity, boolean nbt)
+        {
+            this.metal = metal;
+            this.quantity = quantity;
+            this.nbt = nbt;
+        }
+
+        @Override
+        public Metal getMetal(ItemStack stack)
+        {
+            return metal;
+        }
+
+        @Override
+        public float getMetalQuantity(ItemStack stack)
+        {
+            return quantity * stack.getCount();
+        }
+    }
+
+    class MetalMappingItem extends AbstractMetalMapping
+    {
+        protected final ItemStack stack;
+
+        public MetalMappingItem(Metal metal, ItemStack stack, float quantity)
         {
             this(metal, stack, quantity, false);
         }
 
-        public MetalMappingItem(@Nonnull Metal metal, @Nonnull ItemStack stack, float quantity, boolean nbt)
+        public MetalMappingItem(Metal metal, ItemStack stack, float quantity, boolean nbt)
         {
-            this.metal = metal;
+            super(metal, quantity, nbt);
             this.stack = stack;
-            this.quantity = quantity;
-            this.nbt = nbt;
         }
 
         @Override
@@ -41,52 +60,22 @@ public interface MetalMapping extends MetalHolder<ItemStack>
 
             return ItemStack.areItemStacksEqual(stack, this.stack);
         }
-
-        @Override
-        public Metal getMetal(@Nonnull ItemStack stack)
-        {
-            return this.metal;
-        }
-
-        @Override
-        public float getMetalQuantity(@Nonnull ItemStack stack)
-        {
-            return this.quantity * stack.stackSize;
-        }
     }
 
-    class MetalMappingOreDict extends MetalMappingItem
+    class MetalMappingOreDict extends AbstractMetalMapping
     {
-
         protected final String oreName;
 
-        public MetalMappingOreDict(@Nonnull Metal metal, @Nonnull ItemStack stack, float quantity)
+        public MetalMappingOreDict(Metal metal, String oreName, float quantity, boolean nbt)
         {
-            super(metal, stack, quantity);
-            this.oreName = null;
-        }
-
-        public MetalMappingOreDict(@Nonnull Metal metal, @Nonnull ItemStack stack, float quantity, boolean nbt)
-        {
-            super(metal, stack, quantity, nbt);
-            this.oreName = null;
-        }
-
-        public MetalMappingOreDict(@Nonnull Metal metal, String oreName, float quantity, boolean nbt)
-        {
-            super(metal, null, quantity, nbt);
+            super(metal, quantity, nbt);
             this.oreName = oreName;
         }
 
         @Override
         public boolean matches(@Nonnull ItemStack stack)
         {
-            if (this.stack != null)
-            {
-                return OreDictionary.containsMatch(this.nbt, OreDictionary.getOres(this.oreName), stack);
-            }
-
-            return OreDictionary.itemMatches(this.stack, stack, this.nbt);
+            return OreDictionary.containsMatch(this.nbt, OreDictionary.getOres(this.oreName), stack);
         }
     }
 }

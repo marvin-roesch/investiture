@@ -85,7 +85,7 @@ public class Message implements IMessage
         @SideOnly(Side.CLIENT)
         private EntityPlayer clientPlayer()
         {
-            return Minecraft.getMinecraft().thePlayer;
+            return Minecraft.getMinecraft().player;
         }
 
         /**
@@ -103,7 +103,7 @@ public class Message implements IMessage
             }
             else
             {
-                ((WorldServer) serverHandler().playerEntity.worldObj).addScheduledTask(f);
+                ((WorldServer) serverHandler().playerEntity.world).addScheduledTask(f);
             }
         }
 

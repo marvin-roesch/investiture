@@ -12,7 +12,6 @@ import de.mineformers.investiture.allomancy.extractor.ExtractorOutput;
 import de.mineformers.investiture.allomancy.extractor.ExtractorPart;
 import de.mineformers.investiture.allomancy.extractor.ExtractorRecipes;
 import de.mineformers.investiture.allomancy.network.MetalExtractorUpdate;
-import de.mineformers.investiture.inventory.SimpleInventory;
 import de.mineformers.investiture.multiblock.BlockRecipe;
 import de.mineformers.investiture.multiblock.MultiBlock;
 import de.mineformers.investiture.multiblock.MultiBlockPart;
@@ -22,9 +21,7 @@ import de.mineformers.investiture.util.Functional;
 import de.mineformers.investiture.util.ItemStacks;
 import net.minecraft.block.state.BlockWorldState;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
-import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -36,20 +33,24 @@ import net.minecraft.util.ITickable;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
+import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.Constants;
+import net.minecraftforge.items.ItemStackHandler;
+import net.minecraftforge.items.wrapper.RangedWrapper;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.function.Predicate;
 
 import static de.mineformers.investiture.allomancy.block.MetalExtractor.Part.*;
+import static net.minecraftforge.items.CapabilityItemHandler.ITEM_HANDLER_CAPABILITY;
 
 /**
  * Provides the logic of the metal extractor
  */
-public class TileMetalExtractorMaster extends TileEntity implements SimpleInventory, ISidedInventory, ITickable
+public class TileMetalExtractorMaster extends TileEntity implements ITickable
 {
     public static class Processor
     {
@@ -73,7 +74,30 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
     private boolean validMultiBlock = false;
     private boolean checkedValidity = false;
     private ImmutableList<BlockPos> children = ImmutableList.of();
-    private ItemStack[] inventory = new ItemStack[3];
+    private ItemStackHandler inventory = new ItemStackHandler(3)
+    {
+        @Nonnull
+        @Override
+        public ItemStack insertItem(int slot, @Nonnull ItemStack stack, boolean simulate)
+        {
+            if (slot > INPUT_SLOT || ExtractorRecipes.recipes().stream().anyMatch(e -> e.match(stack).isPresent()))
+            {
+                return stack;
+            }
+            return super.insertItem(slot, stack, simulate);
+        }
+
+        @Nonnull
+        @Override
+        public ItemStack extractItem(int slot, int amount, boolean simulate)
+        {
+            if (slot == INPUT_SLOT)
+            {
+                return ItemStack.EMPTY;
+            }
+            return super.extractItem(slot, amount, simulate);
+        }
+    };
     @Nonnull
     private Optional<Processor> processing = Optional.empty();
     private List<FlowPoint> verticalFluidPositions = new ArrayList<>();
@@ -85,7 +109,7 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
     @Override
     public void update()
     {
-        if (worldObj.isRemote)
+        if (world.isRemote)
             return;
         if (!checkedValidity)
         {
@@ -103,10 +127,10 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
                     markDirty();
                 return;
             }
-            if (primaryOutput() != null && primaryOutput().stackSize == 0)
-                inventory[PRIMARY_OUTPUT_SLOT] = null;
-            if (secondaryOutput() != null && secondaryOutput().stackSize == 0)
-                inventory[SECONDARY_OUTPUT_SLOT] = null;
+            if (!primaryOutput().isEmpty() && primaryOutput().getCount() == 0)
+                inventory.setStackInSlot(PRIMARY_OUTPUT_SLOT, ItemStack.EMPTY);
+            if (!secondaryOutput().isEmpty() && secondaryOutput().getCount() == 0)
+                inventory.setStackInSlot(SECONDARY_OUTPUT_SLOT, ItemStack.EMPTY);
             if (processing.isPresent())
             {
                 double perTick = 360f / 1440 * (1 / 360f) * power;
@@ -119,80 +143,75 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
                 {
                     ItemStack primaryOutput = current.output.getPrimaryResult().copy();
                     ItemStack primaryFit = null;
-                    if (primaryOutput() == null)
+                    if (primaryOutput().isEmpty())
                     {
                         primaryFit = primaryOutput;
                     }
                     else if (primaryOutput().isItemEqual(primaryOutput) &&
                         Objects.equals(primaryOutput().getTagCompound(), primaryOutput.getTagCompound()) &&
-                        (primaryOutput().stackSize + primaryOutput.stackSize) < primaryOutput().getMaxStackSize())
+                        (primaryOutput().getCount() + primaryOutput.getCount()) < primaryOutput().getMaxStackSize())
                     {
                         primaryFit = primaryOutput().copy();
-                        primaryFit.stackSize += primaryOutput.stackSize;
+                        primaryFit.grow(primaryOutput.getCount());
                     }
-                    if (primaryFit != null && (Math.random() <= current.output.getSecondaryChance() || current.output.getSecondaryResult() != null))
+                    if (primaryFit != null && (Math.random() <= current.output.getSecondaryChance() || !current.output.getSecondaryResult()
+                                                                                                                      .isEmpty()))
                     {
-                        ItemStack secondaryOutput = current.output.getSecondaryResult() != null ? current.output.getSecondaryResult().copy()
-                                                                                                : new ItemStack(Blocks.cobblestone);
-                        if (secondaryOutput() == null)
+                        ItemStack secondaryOutput = !current.output.getSecondaryResult().isEmpty() ? current.output.getSecondaryResult().copy()
+                                                                                                   : new ItemStack(Blocks.COBBLESTONE);
+                        if (secondaryOutput().isEmpty())
                         {
-                            inventory[PRIMARY_OUTPUT_SLOT] = primaryFit;
-                            inventory[SECONDARY_OUTPUT_SLOT] = secondaryOutput;
+                            inventory.setStackInSlot(PRIMARY_OUTPUT_SLOT, primaryFit);
+                            inventory.setStackInSlot(SECONDARY_OUTPUT_SLOT, secondaryOutput);
                             processing = Optional.empty();
                         }
                         else if (secondaryOutput().isItemEqual(secondaryOutput) &&
                             Objects.equals(secondaryOutput().getTagCompound(), secondaryOutput.getTagCompound()) &&
-                            (secondaryOutput().stackSize + secondaryOutput.stackSize) < secondaryOutput().getMaxStackSize())
+                            (secondaryOutput().getCount() + secondaryOutput.getCount()) < secondaryOutput().getMaxStackSize())
                         {
-                            inventory[PRIMARY_OUTPUT_SLOT] = primaryFit;
-                            inventory[SECONDARY_OUTPUT_SLOT].stackSize += secondaryOutput.stackSize;
+                            inventory.setStackInSlot(PRIMARY_OUTPUT_SLOT, primaryFit);
+                            inventory.getStackInSlot(SECONDARY_OUTPUT_SLOT).grow(secondaryOutput.getCount());
                             processing = Optional.empty();
                         }
                     }
                     else if (primaryFit != null)
                     {
-                        inventory[PRIMARY_OUTPUT_SLOT] = primaryFit;
+                        inventory.setStackInSlot(PRIMARY_OUTPUT_SLOT, primaryFit);
                         processing = Optional.empty();
                     }
                 }
             }
-            if (inventory[INPUT_SLOT] != null && !processing.isPresent())
+            if (!inventory.getStackInSlot(INPUT_SLOT).isEmpty() && !processing.isPresent())
             {
-                Optional<ExtractorOutput> output = Functional.flatten(FluentIterable.from(ExtractorRecipes.recipes())
-                                                                                    .transform(r -> r.match(inventory[INPUT_SLOT]))
-                                                                                    .firstMatch(Optional::isPresent));
-                if (output.isPresent())
-                    processing = Optional.of(new Processor(decrStackSize(INPUT_SLOT, 1), output.get(), 0));
+                Optional<ExtractorOutput> output = Functional.flatten(
+                    ExtractorRecipes.recipes().stream().map(r -> r.match(inventory.getStackInSlot(INPUT_SLOT))).filter(Optional::isPresent)
+                                    .findFirst());
+                output.ifPresent(
+                    extractorOutput -> processing = Optional.of(new Processor(inventory.extractItem(INPUT_SLOT, 1, false), extractorOutput, 0)));
             }
             BlockPos spawnPos = pos.offset(orientation, 5);
-            if (primaryOutput() != null && worldObj.isAirBlock(spawnPos))
+            if (!primaryOutput().isEmpty() && world.isAirBlock(spawnPos))
             {
-                ItemStacks.spawn(worldObj, spawnPos, primaryOutput());
-                inventory[PRIMARY_OUTPUT_SLOT] = null;
+                ItemStacks.spawn(world, spawnPos, primaryOutput());
+                inventory.setStackInSlot(PRIMARY_OUTPUT_SLOT, ItemStack.EMPTY);
             }
-            if (secondaryOutput() != null && worldObj.isAirBlock(spawnPos))
+            if (!secondaryOutput().isEmpty() && world.isAirBlock(spawnPos))
             {
-                ItemStacks.spawn(worldObj, spawnPos, secondaryOutput());
-                inventory[SECONDARY_OUTPUT_SLOT] = null;
+                ItemStacks.spawn(world, spawnPos, secondaryOutput());
+                inventory.setStackInSlot(SECONDARY_OUTPUT_SLOT, ItemStack.EMPTY);
             }
             markDirty();
         }
     }
 
-    @Override
-    public int getInventoryStackLimit()
-    {
-        return 1;
-    }
-
     public ItemStack primaryOutput()
     {
-        return inventory[PRIMARY_OUTPUT_SLOT];
+        return inventory.getStackInSlot(PRIMARY_OUTPUT_SLOT);
     }
 
     public ItemStack secondaryOutput()
     {
-        return inventory[SECONDARY_OUTPUT_SLOT];
+        return inventory.getStackInSlot(SECONDARY_OUTPUT_SLOT);
     }
 
     @Nonnull
@@ -212,9 +231,9 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
     }
 
     @Override
-    public void writeToNBT(NBTTagCompound compound)
+    public NBTTagCompound writeToNBT(NBTTagCompound compound)
     {
-        super.writeToNBT(compound);
+        compound = super.writeToNBT(compound);
         NBTTagList children = new NBTTagList();
         for (BlockPos child : this.children)
             children.appendTag(new NBTTagLong(child.toLong()));
@@ -222,7 +241,8 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
         compound.setBoolean("ValidMultiBlock", validMultiBlock);
         compound.setInteger("Orientation", orientation.getHorizontalIndex());
         compound.setFloat("Rotation", rotation);
-        writeInventoryToNBT(compound);
+        compound.setTag("Items", inventory.serializeNBT());
+        return compound;
     }
 
     @Override
@@ -237,12 +257,12 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
         this.validMultiBlock = compound.getBoolean("ValidMultiBlock");
         this.orientation = EnumFacing.getHorizontal(compound.getInteger("Orientation"));
         this.rotation = compound.getFloat("Rotation");
-        readInventoryFromNBT(compound);
+        inventory.deserializeNBT(compound.getCompoundTag("Items"));
     }
 
     private static Predicate<BlockWorldState> part(Part part)
     {
-        return s -> s.getBlockState().getBlock() == Allomancy.Blocks.metal_extractor && s.getBlockState().getValue(MetalExtractor.PART) == part;
+        return s -> s.getBlockState().getBlock() == Allomancy.Blocks.METAL_EXTRACTOR && s.getBlockState().getValue(MetalExtractor.PART) == part;
     }
 
     private static final MultiBlock multiBlock;
@@ -250,10 +270,10 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
     static
     {
         ImmutableMap.Builder<Character, Predicate<BlockWorldState>> predicates = ImmutableMap.builder();
-        predicates.put(' ', s -> s.getBlockState().getBlock() == Blocks.air);
+        predicates.put(' ', s -> s.getBlockState().getBlock() == Blocks.AIR);
         predicates.put('F', part(FRAME));
         predicates.put('G', part(GLASS));
-        predicates.put('C', s -> s.getBlockState().getBlock() == Allomancy.Blocks.metal_extractor_controller);
+        predicates.put('C', s -> s.getBlockState().getBlock() == Allomancy.Blocks.METAL_EXTRACTOR_CONTROLLER);
         predicates.put('g', part(GRINDER));
         predicates.put('W', part(WHEEL));
         predicates.put('A', s -> true);
@@ -288,14 +308,16 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
 
     public boolean validateMultiBlock()
     {
-        if (worldObj.isRemote)
+        if (world.isRemote)
             return false;
         Optional<EnumFacing> orientation = Functional.convert(FluentIterable.from(Arrays.asList(EnumFacing.HORIZONTALS))
-                                                                            .firstMatch(f -> {
-                                                                                IBlockState state = worldObj.getBlockState(pos.offset(f));
-                                                                                return state.getBlock() == Allomancy.Blocks.metal_extractor &&
-                                                                                    state.getValue(MetalExtractor.PART) == GRINDER;
-                                                                            }));
+                                                                            .firstMatch(f ->
+                                                                                        {
+                                                                                            IBlockState state = world.getBlockState(pos.offset(f));
+                                                                                            return state
+                                                                                                .getBlock() == Allomancy.Blocks.METAL_EXTRACTOR &&
+                                                                                                state.getValue(MetalExtractor.PART) == GRINDER;
+                                                                                        }));
         validMultiBlock = false;
         verticalFluidPositions.clear();
         horizontalFluidPositions.clear();
@@ -306,7 +328,8 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
             ImmutableList.Builder<BlockPos> childrenBuilder = ImmutableList.builder();
             EnumFacing horizontal = getHorizontal();
             BlockPos corner = pos.offset(horizontal.getOpposite(), 2).down();
-            if (multiBlock.validate(worldObj, corner, p -> {
+            if (multiBlock.validate(world, corner, p ->
+            {
                 if (!p.getPos().equals(pos) && p.getBlockState().getBlock() instanceof ExtractorPart)
                 {
                     childrenBuilder.add(p.getPos().subtract(pos));
@@ -318,13 +341,13 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
                 this.children = childrenBuilder.build();
                 for (BlockPos child : children)
                 {
-                    IBlockState state = worldObj.getBlockState(pos.add(child));
-                    if (state.getBlock() == Allomancy.Blocks.metal_extractor)
+                    IBlockState state = world.getBlockState(pos.add(child));
+                    if (state.getBlock() == Allomancy.Blocks.METAL_EXTRACTOR)
                         state = state.withProperty(MetalExtractor.BUILT, true);
-                    else if (state.getBlock() == Allomancy.Blocks.metal_extractor_controller)
+                    else if (state.getBlock() == Allomancy.Blocks.METAL_EXTRACTOR_CONTROLLER)
                         state = state.withProperty(MetalExtractorController.BUILT, true);
-                    worldObj.setBlockState(pos.add(child), state);
-                    ((TileMetalExtractorSlave) worldObj.getTileEntity(pos.add(child))).setMasterPosition(pos);
+                    world.setBlockState(pos.add(child), state);
+                    ((TileMetalExtractorSlave) world.getTileEntity(pos.add(child))).setMasterPosition(pos);
                 }
                 this.validMultiBlock = true;
                 Investiture.net().sendDescription(this);
@@ -374,8 +397,8 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
 
     private double calculateFlow()
     {
-        Vec3d horizontal = Fluids.getFlowVector(worldObj, pos, horizontalFluidPositions);
-        Vec3d vertical = Fluids.getFlowVector(worldObj, pos, verticalFluidPositions);
+        Vec3d horizontal = Fluids.getFlowVector(world, pos, horizontalFluidPositions);
+        Vec3d vertical = Fluids.getFlowVector(world, pos, verticalFluidPositions);
         return Math.abs(orientation.getFrontOffsetX()) * horizontal.xCoord +
             Math.abs(orientation.getFrontOffsetZ()) * horizontal.zCoord + vertical.yCoord;
     }
@@ -395,17 +418,17 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
         for (BlockPos child : children)
         {
             BlockPos childPos = pos.add(child);
-            IBlockState state = worldObj.getBlockState(childPos);
-            if (state.getBlock() == Allomancy.Blocks.metal_extractor)
-                worldObj.setBlockState(pos.add(child), state.withProperty(MetalExtractor.BUILT, false));
-            else if (state.getBlock() == Allomancy.Blocks.metal_extractor_controller)
-                worldObj.setBlockState(pos.add(child), state.withProperty(MetalExtractorController.BUILT, false)
-                                                            .withProperty(MetalExtractorController.MASTER, false));
+            IBlockState state = world.getBlockState(childPos);
+            if (state.getBlock() == Allomancy.Blocks.METAL_EXTRACTOR)
+                world.setBlockState(pos.add(child), state.withProperty(MetalExtractor.BUILT, false));
+            else if (state.getBlock() == Allomancy.Blocks.METAL_EXTRACTOR_CONTROLLER)
+                world.setBlockState(pos.add(child), state.withProperty(MetalExtractorController.BUILT, false)
+                                                         .withProperty(MetalExtractorController.MASTER, false));
         }
-        if (worldObj.getBlockState(pos).getBlock() == Allomancy.Blocks.metal_extractor_controller)
-            worldObj.setBlockState(pos, worldObj.getBlockState(pos)
-                                                .withProperty(MetalExtractorController.BUILT, false)
-                                                .withProperty(MetalExtractorController.MASTER, false));
+        if (world.getBlockState(pos).getBlock() == Allomancy.Blocks.METAL_EXTRACTOR_CONTROLLER)
+            world.setBlockState(pos, world.getBlockState(pos)
+                                          .withProperty(MetalExtractorController.BUILT, false)
+                                          .withProperty(MetalExtractorController.MASTER, false));
     }
 
     @Override
@@ -465,60 +488,12 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
         return oldState != newSate;
     }
 
-    @Override
     public Packet getDescriptionPacket()
     {
         ItemStack processingStack = processing.isPresent() ? processing.get().input : null;
         int processingTimer = processing.isPresent() ? processing.get().timer : -1;
         return Investiture.net().getPacketFrom(
             new MetalExtractorUpdate(pos, validMultiBlock, orientation, processingStack, processingTimer, rotation, prevRotation, power));
-    }
-
-    @Override
-    public int[] getSlotsForFace(EnumFacing side)
-    {
-        if (side == orientation)
-            return new int[]{PRIMARY_OUTPUT_SLOT, SECONDARY_OUTPUT_SLOT};
-        else if (side == orientation.getOpposite())
-            return new int[]{INPUT_SLOT};
-        return new int[0];
-    }
-
-    @Override
-    public boolean canInsertItem(int index, ItemStack stack, EnumFacing direction)
-    {
-        return direction == orientation.getOpposite() && index == INPUT_SLOT && isItemValidForSlot(index, stack);
-    }
-
-    @Override
-    public boolean canExtractItem(int index, ItemStack stack, EnumFacing direction)
-    {
-        return direction == orientation && (index == PRIMARY_OUTPUT_SLOT || index == SECONDARY_OUTPUT_SLOT);
-    }
-
-    @Override
-    public boolean isItemValidForSlot(int index, ItemStack stack)
-    {
-        return index != INPUT_SLOT || ExtractorRecipes.recipes().stream().anyMatch(e -> e.match(stack).isPresent());
-    }
-
-    @Override
-    public int getSizeInventory()
-    {
-        return inventory.length;
-    }
-
-    @Override
-    public ItemStack getStackInSlot(int index)
-    {
-        return inventory[index];
-    }
-
-    @Override
-    public void setInventorySlotContents(int index, ItemStack stack)
-    {
-        inventory[index] = stack;
-        markDirty();
     }
 
     @Override
@@ -529,56 +504,24 @@ public class TileMetalExtractorMaster extends TileEntity implements SimpleInvent
     }
 
     @Override
-    public boolean isUseableByPlayer(EntityPlayer player)
+    public boolean hasCapability(Capability<?> capability, @Nullable EnumFacing facing)
     {
-        return false;
+        if (capability == ITEM_HANDLER_CAPABILITY)
+            return facing == null || facing == orientation || facing == orientation.getOpposite();
+        return super.hasCapability(capability, facing);
     }
 
+    @Nullable
     @Override
-    public void openInventory(EntityPlayer player)
+    public <T> T getCapability(Capability<T> capability, @Nullable EnumFacing facing)
     {
-
-    }
-
-    @Override
-    public void closeInventory(EntityPlayer player)
-    {
-
-    }
-
-    @Override
-    public int getField(int id)
-    {
-        return 0;
-    }
-
-    @Override
-    public void setField(int id, int value)
-    {
-
-    }
-
-    @Override
-    public int getFieldCount()
-    {
-        return 0;
-    }
-
-    @Override
-    public String getName()
-    {
-        return null;
-    }
-
-    @Override
-    public boolean hasCustomName()
-    {
-        return false;
-    }
-
-    @Override
-    public ITextComponent getDisplayName()
-    {
-        return null;
+        if (capability == ITEM_HANDLER_CAPABILITY)
+            if (facing == orientation)
+                return ITEM_HANDLER_CAPABILITY.cast(new RangedWrapper(inventory, PRIMARY_OUTPUT_SLOT, SECONDARY_OUTPUT_SLOT + 1));
+            else if (facing == orientation.getOpposite())
+                return ITEM_HANDLER_CAPABILITY.cast(new RangedWrapper(inventory, INPUT_SLOT, PRIMARY_OUTPUT_SLOT));
+            else if (facing == null)
+                return ITEM_HANDLER_CAPABILITY.cast(inventory);
+        return super.getCapability(capability, facing);
     }
 }

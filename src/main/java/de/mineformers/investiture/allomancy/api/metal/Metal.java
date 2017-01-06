@@ -45,7 +45,7 @@ public interface Metal
     {
         if (entity instanceof EntityLivingBase)
         {
-            ((EntityLivingBase) entity).addPotionEffect(new PotionEffect(MobEffects.moveSlowdown, 30, 3));
+            ((EntityLivingBase) entity).addPotionEffect(new PotionEffect(MobEffects.SLOWNESS, 30, 3));
         }
     }
 

@@ -30,28 +30,28 @@ public class ItemStacks
         float z = RANDOM.nextFloat() * 0.8F + 0.1F;
 
         // Split the stack iteratively into smaller ones and spawn each individual one, leading to a nicer distribution.
-        while (stack.stackSize > 0)
+        while (stack.getCount() > 0)
         {
             int droppedCount = RANDOM.nextInt(21) + 10;
 
-            if (droppedCount > stack.stackSize)
+            if (droppedCount > stack.getCount())
             {
-                droppedCount = stack.stackSize;
+                droppedCount = stack.getCount();
             }
 
-            stack.stackSize -= droppedCount;
+            stack.shrink(droppedCount);
             EntityItem entity = new EntityItem(world, pos.getX() + x, pos.getY() + y, pos.getZ() + z,
                                                new ItemStack(stack.getItem(), droppedCount, stack.getMetadata()));
 
             if (stack.hasTagCompound())
             {
-                entity.getEntityItem().setTagCompound((NBTTagCompound) stack.getTagCompound().copy());
+                entity.getEntityItem().setTagCompound(stack.getTagCompound().copy());
             }
 
             entity.motionX = RANDOM.nextGaussian() * 0.05;
             entity.motionY = RANDOM.nextGaussian() * 0.05 + 0.2;
             entity.motionZ = RANDOM.nextGaussian() * 0.05;
-            world.spawnEntityInWorld(entity);
+            world.spawnEntity(entity);
         }
     }
 }

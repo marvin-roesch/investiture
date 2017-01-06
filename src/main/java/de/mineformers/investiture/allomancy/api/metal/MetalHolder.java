@@ -5,7 +5,6 @@ package de.mineformers.investiture.allomancy.api.metal;
  */
 public interface MetalHolder<T>
 {
-
     Metal getMetal(T stack);
 
     float getMetalQuantity(T stack);

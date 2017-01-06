@@ -2,7 +2,7 @@ package de.mineformers.investiture.allomancy.client.particle;
 
 import de.mineformers.investiture.client.util.Rendering;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.particle.EntityFX;
+import net.minecraft.client.particle.Particle;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.VertexBuffer;
@@ -20,14 +20,14 @@ import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
 /**
  * ${JDOC}
  */
-public class FootStep extends EntityFX
+public class FootStep extends Particle
 {
     private static final ResourceLocation FOOTPRINT_TEXTURE = new ResourceLocation("textures/particle/footprint.png");
 
     public FootStep(World world, Vec3d position, float r, float g, float b)
     {
         super(world, position.xCoord, position.yCoord, position.zCoord, 0, 0, 0);
-        xSpeed = ySpeed = zSpeed = 0;
+        motionX = motionY = motionZ;
         particleRed = r;
         particleGreen = g;
         particleBlue = b;
@@ -83,7 +83,7 @@ public class FootStep extends EntityFX
     public void onUpdate()
     {
         super.onUpdate();
-        if (worldObj.isAirBlock(new BlockPos(posX, posY, posZ).down()))
+        if (world.isAirBlock(new BlockPos(posX, posY, posZ).down()))
             setExpired();
     }
 

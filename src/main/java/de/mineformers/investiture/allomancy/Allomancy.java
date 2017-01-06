@@ -24,7 +24,10 @@ import de.mineformers.investiture.core.Manifestation;
 import de.mineformers.investiture.core.Proxy;
 import de.mineformers.investiture.network.Message;
 import de.mineformers.investiture.serialisation.Translator;
+import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
@@ -38,7 +41,9 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.oredict.OreDictionary;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nullable;
 import java.util.Optional;
+import java.util.function.Function;
 
 /**
  * The "Allomancy" module is based on the "Mistborn" series of books by Brandon Sanderson.
@@ -52,7 +57,6 @@ public final class Allomancy implements Manifestation
         clientSide = "de.mineformers.investiture.allomancy.core.ClientProxy",
         serverSide = "de.mineformers.investiture.allomancy.core.ServerProxy")
     public static Proxy proxy;
-    public static AllomancyConfig config;
 
     /**
      * @param path the path of the resource
@@ -78,7 +82,7 @@ public final class Allomancy implements Manifestation
     @Override
     public void preInit(FMLPreInitializationEvent event)
     {
-        config = new AllomancyConfig(loadConfig(event));
+        Metals.init();
         Blocks.register();
         Items.register();
         ExtractorRecipes.register(Metals.IRON);
@@ -92,7 +96,6 @@ public final class Allomancy implements Manifestation
         ExtractorRecipes.register(Metals.BISMUTH);
         ExtractorRecipes.register(Metals.LEAD);
         GameRegistry.registerWorldGenerator(new MetalGenerator(), 0);
-        Metals.init();
         AllomancyAPIImpl.INSTANCE.init();
         CapabilityHandler.init();
 
@@ -119,18 +122,18 @@ public final class Allomancy implements Manifestation
      */
     public static class Blocks
     {
-        public static MetalOre allomantic_ore;
-        public static MetalExtractor metal_extractor;
-        public static MetalExtractorController metal_extractor_controller;
+        public static MetalOre ORE;
+        public static MetalExtractor METAL_EXTRACTOR;
+        public static MetalExtractorController METAL_EXTRACTOR_CONTROLLER;
 
         /**
          * Adds all blocks to the game's registry.
          */
         public static void register()
         {
-            GameRegistry.registerBlock(allomantic_ore = new MetalOre(), MetalOre.ItemRepresentation.class);
-            GameRegistry.registerBlock(metal_extractor = new MetalExtractor(), MetalExtractor.ItemRepresentation.class);
-            GameRegistry.registerBlock(metal_extractor_controller = new MetalExtractorController());
+            register(ORE = new MetalOre(), MetalOre.ItemRepresentation::new);
+            register(METAL_EXTRACTOR = new MetalExtractor(), MetalExtractor.ItemRepresentation::new);
+            register(METAL_EXTRACTOR_CONTROLLER = new MetalExtractorController());
             GameRegistry.registerTileEntity(TileMetalExtractorMaster.class, "allomancy:metal_extractor_master");
             GameRegistry.registerTileEntity(TileMetalExtractorSlave.class, "allomancy:metal_extractor_slave");
             GameRegistry.registerTileEntity(TileMetalExtractorOutput.class, "allomancy:metal_extractor_output");
@@ -138,7 +141,25 @@ public final class Allomancy implements Manifestation
             // Add ores to the ore dictionary
             for (int i = 0; i < MetalOre.NAMES.length; i++)
             {
-                OreDictionary.registerOre(String.format("ore%s", StringUtils.capitalize(MetalOre.NAMES[i])), new ItemStack(allomantic_ore, 1, i));
+                OreDictionary.registerOre(String.format("ore%s", StringUtils.capitalize(MetalOre.NAMES[i])), new ItemStack(ORE, 1, i));
+            }
+        }
+
+        private static void register(Block block)
+        {
+            register(block, ItemBlock::new);
+        }
+
+        private static void register(Block block, @Nullable Function<Block, Item> itemFactory)
+        {
+            GameRegistry.register(block);
+            if (itemFactory == null)
+                return;
+            Item item = itemFactory.apply(block);
+            if (item != null)
+            {
+                item.setRegistryName(block.getRegistryName());
+                GameRegistry.register(item);
             }
         }
     }
@@ -148,43 +169,43 @@ public final class Allomancy implements Manifestation
      */
     public static class Items
     {
-        public static MetalItem allomantic_ingot;
-        public static MetalItem allomantic_nugget;
-        public static MetalItem allomantic_bead;
-        public static MetalItem allomantic_chunk;
-        public static MetalItem allomantic_dust;
+        public static MetalItem INGOT;
+        public static MetalItem NUGGET;
+        public static MetalItem BEAD;
+        public static MetalItem CHUNK;
+        public static MetalItem DUST;
 
         /**
          * Adds all items to the game's registry.
          */
         public static void register()
         {
-            GameRegistry.registerItem(allomantic_ingot = new MetalItem("allomantic_metal_ingot", "ingot", MetalItem.Type.INGOT, new String[]{
-                "bronze", "brass", "copper", "zinc", "tin", "pewter", "steel", "lead", "nickel", "silver", "bismuth", "duralumin", "nicrosil",
-                "aluminium", "chromium", "cadmium", "electrum", "bendalloy"
+            GameRegistry.register(CHUNK = new MetalItem("chunk", "chunk", MetalItem.Type.CHUNK, new String[]{
+                "copper", "tin", "zinc", "iron", "lead", "aluminium", "chromium", "gold", "cadmium", "silver", "bismuth", "nickel"
             }));
-            GameRegistry.registerItem(allomantic_nugget = new MetalItem("allomantic_metal_nugget", "nugget", MetalItem.Type.NUGGET, new String[]{
+            GameRegistry.register(DUST = new MetalItem("dust", "dust", MetalItem.Type.DUST, new String[]{
+                "bronze", "brass", "copper", "zinc", "tin", "pewter", "steel", "iron", "lead", "nickel", "silver", "bismuth", "gold", "duralumin",
+                "nicrosil", "aluminium", "chromium", "cadmium", "electrum", "bendalloy"
+            }));
+            GameRegistry.register(BEAD = new MetalItem("bead", "bead", MetalItem.Type.BEAD, new String[]{
+                "bronze", "brass", "copper", "zinc", "tin", "pewter", "steel", "iron", "lead", "nickel", "silver", "bismuth", "gold", "duralumin",
+                "nicrosil", "aluminium", "chromium", "cadmium", "electrum", "bendalloy"
+            }));
+            GameRegistry.register(NUGGET = new MetalItem("nugget", "nugget", MetalItem.Type.NUGGET, new String[]{
                 "bronze", "brass", "copper", "zinc", "tin", "pewter", "steel", "iron", "lead", "nickel", "silver", "bismuth", "duralumin", "nicrosil",
                 "aluminium", "chromium", "cadmium", "electrum", "bendalloy"
             }));
-            GameRegistry.registerItem(allomantic_bead = new MetalItem("allomantic_metal_bead", "bead", MetalItem.Type.BEAD, new String[]{
-                "bronze", "brass", "copper", "zinc", "tin", "pewter", "steel", "iron", "lead", "nickel", "silver", "bismuth", "gold", "duralumin",
-                "nicrosil", "aluminium", "chromium", "cadmium", "electrum", "bendalloy"
-            }));
-            GameRegistry.registerItem(allomantic_chunk = new MetalItem("allomantic_metal_chunk", "chunk", MetalItem.Type.CHUNK, new String[]{
-                "copper", "tin", "zinc", "iron", "lead", "aluminium", "chromium", "gold", "cadmium", "silver", "bismuth", "nickel"
-            }));
-            GameRegistry.registerItem(allomantic_dust = new MetalItem("allomantic_metal_dust", "dust", MetalItem.Type.DUST, new String[]{
-                "bronze", "brass", "copper", "zinc", "tin", "pewter", "steel", "iron", "lead", "nickel", "silver", "bismuth", "gold", "duralumin",
-                "nicrosil", "aluminium", "chromium", "cadmium", "electrum", "bendalloy"
+            GameRegistry.register(INGOT = new MetalItem("ingot", "ingot", MetalItem.Type.INGOT, new String[]{
+                "bronze", "brass", "copper", "zinc", "tin", "pewter", "steel", "lead", "nickel", "silver", "bismuth", "duralumin", "nicrosil",
+                "aluminium", "chromium", "cadmium", "electrum", "bendalloy"
             }));
 
             // Add items to the ore dictionary
-            allomantic_bead.registerOreDict();
-            allomantic_chunk.registerOreDict();
-            allomantic_dust.registerOreDict();
-            allomantic_ingot.registerOreDict();
-            allomantic_nugget.registerOreDict();
+            CHUNK.registerOreDict();
+            BEAD.registerOreDict();
+            DUST.registerOreDict();
+            INGOT.registerOreDict();
+            NUGGET.registerOreDict();
         }
     }
 
@@ -210,48 +231,56 @@ public final class Allomancy implements Manifestation
             Investiture.net().registerMessage(SpeedBubbleUpdate.class);
 
             // Add handler for toggling the burning of a metal
-            Investiture.net().addHandler(ToggleBurningMetal.class, Side.SERVER, (msg, ctx) -> {
-                ctx.schedule(() -> AllomancyAPIImpl.INSTANCE.toAllomancer(ctx.player()).ifPresent(a -> {
-                    Optional<Metal> optional = Metals.get(msg.metal);
+            Investiture.net().addHandler(ToggleBurningMetal.class, Side.SERVER, (msg, ctx) ->
+            {
+                ctx.schedule(() -> AllomancyAPIImpl.INSTANCE.toAllomancer(ctx.player()).ifPresent(a ->
+                                                                                                  {
+                                                                                                      Optional<Metal> optional = Metals
+                                                                                                          .get(msg.metal);
 
-                    // Safety measures, in case the client sends bad data
-                    if (optional.isPresent())
-                    {
-                        Metal metal = optional.get();
-                        if (a.activePowers().contains(metal.mistingType()))
-                        {
-                            a.deactivate(metal.mistingType());
-                        }
-                        else
-                        {
-                            a.activate(metal.mistingType());
-                        }
-                    }
-                }));
+                                                                                                      // Safety measures, in case the client sends
+                                                                                                      // bad data
+                                                                                                      if (optional.isPresent())
+                                                                                                      {
+                                                                                                          Metal metal = optional.get();
+                                                                                                          if (a.activePowers()
+                                                                                                               .contains(metal.mistingType()))
+                                                                                                          {
+                                                                                                              a.deactivate(metal.mistingType());
+                                                                                                          }
+                                                                                                          else
+                                                                                                          {
+                                                                                                              a.activate(metal.mistingType());
+                                                                                                          }
+                                                                                                      }
+                                                                                                  }));
                 return null;
             });
 
-            Investiture.net().addHandler(TargetEffect.class, Side.SERVER, (msg, ctx) -> {
-                ctx.schedule(() -> {
-                    Entity entity = ctx.player().worldObj.getEntityByID(msg.entityId);
-                    if (entity != null)
-                    {
-                        AllomancyAPIImpl.INSTANCE.toAllomancer(entity)
-                                                 .flatMap(a -> {
-                                                     try
-                                                     {
-                                                         return a.as((Class<? extends Misting>) Class.forName(msg.type));
-                                                     }
-                                                     catch (ClassNotFoundException e)
-                                                     {
-                                                         Throwables.propagate(e);
-                                                     }
-                                                     return Optional.empty();
-                                                 })
-                                                 .filter(m -> m instanceof Targeting && ((Targeting) m).isValid(msg.target))
-                                                 .ifPresent(t -> ((Targeting) t).apply(msg.target));
-                    }
-                });
+            Investiture.net().addHandler(TargetEffect.class, Side.SERVER, (msg, ctx) ->
+            {
+                ctx.schedule(() ->
+                             {
+                                 Entity entity = ctx.player().world.getEntityByID(msg.entityId);
+                                 if (entity != null)
+                                 {
+                                     AllomancyAPIImpl.INSTANCE.toAllomancer(entity)
+                                                              .flatMap(a ->
+                                                                       {
+                                                                           try
+                                                                           {
+                                                                               return a.as((Class<? extends Misting>) Class.forName(msg.type));
+                                                                           }
+                                                                           catch (ClassNotFoundException e)
+                                                                           {
+                                                                               Throwables.propagate(e);
+                                                                           }
+                                                                           return Optional.empty();
+                                                                       })
+                                                              .filter(m -> m instanceof Targeting && ((Targeting) m).isValid(msg.target))
+                                                              .ifPresent(t -> ((Targeting) t).apply(msg.target));
+                                 }
+                             });
                 return null;
             });
         }

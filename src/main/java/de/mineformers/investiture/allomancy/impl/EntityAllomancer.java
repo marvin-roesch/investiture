@@ -15,6 +15,7 @@ import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.common.util.INBTSerializable;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
 
@@ -40,6 +41,7 @@ public class EntityAllomancer implements Allomancer, INBTSerializable<NBTTagComp
         return powers().stream().filter(type::isAssignableFrom).map(powers::get).map(type::cast).findFirst();
     }
 
+    @Nullable
     @Override
     public <T extends Misting> T grantPower(Class<T> type)
     {
@@ -150,7 +152,7 @@ public class EntityAllomancer implements Allomancer, INBTSerializable<NBTTagComp
 
     public void sync(EntityPlayer player)
     {
-        if (!player.worldObj.isRemote)
+        if (!player.world.isRemote)
             Investiture.net().sendTo((EntityPlayerMP) player, new AllomancerUpdate(entity.getEntityId(), activePowers));
     }
 

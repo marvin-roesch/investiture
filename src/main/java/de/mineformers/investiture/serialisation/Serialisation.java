@@ -324,7 +324,7 @@ public class Serialisation
             @Override
             public ItemStack deserialiseImpl(NBTTagCompound tag)
             {
-                return ItemStack.loadItemStackFromNBT(tag);
+                return new ItemStack(tag);
             }
         });
 

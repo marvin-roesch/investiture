@@ -10,6 +10,7 @@ import net.minecraft.client.renderer.block.statemap.StateMapperBase;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -25,7 +26,7 @@ public class ModuleStateMap extends StateMapperBase
     private final String suffix;
     private final List<IProperty<?>> ignored;
 
-    private ModuleStateMap(String domain, IProperty<?> name, String suffix, List<IProperty<?>> ignored)
+    private ModuleStateMap(@Nullable String domain, @Nullable IProperty<?> name, @Nullable String suffix, List<IProperty<?>> ignored)
     {
         this.domain = domain;
         this.name = name;
@@ -45,13 +46,13 @@ public class ModuleStateMap extends StateMapperBase
         String name;
         String domain;
         if (this.domain == null)
-            domain = Block.blockRegistry.getNameForObject(state.getBlock()).getResourceDomain();
+            domain = Block.REGISTRY.getNameForObject(state.getBlock()).getResourceDomain();
         else
             domain = this.domain;
 
         if (this.name == null)
         {
-            name = String.format("%s:%s", domain, Block.blockRegistry.getNameForObject(state.getBlock()).getResourcePath());
+            name = String.format("%s:%s", domain, Block.REGISTRY.getNameForObject(state.getBlock()).getResourcePath());
         }
         else
         {

@@ -3,6 +3,7 @@ package de.mineformers.investiture.allomancy.impl.misting.physical;
 import com.google.common.base.Throwables;
 import de.mineformers.investiture.Investiture;
 import de.mineformers.investiture.allomancy.Allomancy;
+import de.mineformers.investiture.allomancy.AllomancyConfig;
 import de.mineformers.investiture.allomancy.api.misting.Inject;
 import de.mineformers.investiture.allomancy.api.misting.physical.Tineye;
 import de.mineformers.investiture.allomancy.impl.AllomancyAPIImpl;
@@ -145,7 +146,7 @@ public class TineyeImpl extends AbstractMisting implements Tineye, ITickable
 
     public static void init()
     {
-        Potion oldNightVision = MobEffects.nightVision;
+        Potion oldNightVision = MobEffects.NIGHT_VISION;
         registryObjects().remove(new ResourceLocation("night_vision"));
 //        identityMap().remove(oldNightVision);
         objectList().remove(oldNightVision);
@@ -222,12 +223,12 @@ public class TineyeImpl extends AbstractMisting implements Tineye, ITickable
         if (entity instanceof EntityLivingBase)
         {
             EntityLivingBase living = (EntityLivingBase) entity;
-            living.addPotionEffect(new PotionEffect(MobEffects.nightVision, Short.MAX_VALUE, 0, false, false));
+            living.addPotionEffect(new PotionEffect(MobEffects.NIGHT_VISION, Short.MAX_VALUE, 0, false, false));
         }
-        if (Allomancy.config.mistings.tineye.fovEnabled && entity instanceof EntityPlayer && entity == Investiture.proxy.localPlayer())
+        if (AllomancyConfig.mistings.tineye.fovEnabled && entity instanceof EntityPlayer && entity == Investiture.proxy.localPlayer())
         {
             prevFOV = Investiture.proxy.getFOV((EntityPlayer) entity);
-            Investiture.proxy.animateFOV(prevFOV + Allomancy.config.mistings.tineye.fovIncrease, 10);
+            Investiture.proxy.animateFOV(prevFOV + AllomancyConfig.mistings.tineye.fovIncrease, 10);
         }
     }
 
@@ -237,9 +238,9 @@ public class TineyeImpl extends AbstractMisting implements Tineye, ITickable
         if (entity instanceof EntityLivingBase)
         {
             EntityLivingBase living = (EntityLivingBase) entity;
-            if (!living.isPotionActive(MobEffects.nightVision))
+            if (!living.isPotionActive(MobEffects.NIGHT_VISION))
             {
-                living.addPotionEffect(new PotionEffect(MobEffects.nightVision, Short.MAX_VALUE, 0, false, false));
+                living.addPotionEffect(new PotionEffect(MobEffects.NIGHT_VISION, Short.MAX_VALUE, 0, false, false));
             }
         }
     }
@@ -250,9 +251,9 @@ public class TineyeImpl extends AbstractMisting implements Tineye, ITickable
         if (entity instanceof EntityLivingBase)
         {
             EntityLivingBase living = (EntityLivingBase) entity;
-            living.removePotionEffect(MobEffects.nightVision);
+            living.removePotionEffect(MobEffects.NIGHT_VISION);
         }
-        if (Allomancy.config.mistings.tineye.fovEnabled && entity instanceof EntityPlayer && entity == Investiture.proxy.localPlayer())
+        if (AllomancyConfig.mistings.tineye.fovEnabled && entity instanceof EntityPlayer && entity == Investiture.proxy.localPlayer())
         {
             Investiture.proxy.animateFOV(prevFOV, 10);
         }
@@ -261,24 +262,27 @@ public class TineyeImpl extends AbstractMisting implements Tineye, ITickable
     public static class EventHandler
     {
         private float normalFOV = -1;
+        private int lastDirection = 0;
 
         @SubscribeEvent
         public void onMouse(MouseEvent event)
         {
-            EntityPlayer player = Minecraft.getMinecraft().thePlayer;
+            EntityPlayer player = Minecraft.getMinecraft().player;
             if (player == null || !Keyboard.isKeyDown(Keyboard.KEY_LMENU))
                 return;
             AllomancyAPIImpl.INSTANCE.toAllomancer(player).filter(a -> a.activePowers().contains(Tineye.class)).ifPresent(a -> {
-                if (event.getDwheel() > 0 && (Minecraft.getMinecraft().gameSettings.fovSetting == normalFOV || normalFOV == -1))
+                if (event.getDwheel() > 0 && (Minecraft.getMinecraft().gameSettings.fovSetting == normalFOV || normalFOV == -1)  && lastDirection <= 0)
                 {
-                    normalFOV = Minecraft.getMinecraft().gameSettings.fovSetting;
-                    Investiture.proxy.animateFOV(Allomancy.config.mistings.tineye.fovZoom, 10);
+                    normalFOV = Investiture.proxy.getFOV(player);
+                    Investiture.proxy.animateFOV(AllomancyConfig.mistings.tineye.fovZoom, 10);
+                    lastDirection = 1;
                     event.setCanceled(true);
                 }
-                else if (event.getDwheel() < 0 && normalFOV != -1)
+                else if (event.getDwheel() < 0 && normalFOV != -1 && lastDirection >= 0)
                 {
                     Investiture.proxy.animateFOV(normalFOV, 10);
                     normalFOV = -1;
+                    lastDirection = -1;
                     event.setCanceled(true);
                 }
             });
@@ -287,7 +291,7 @@ public class TineyeImpl extends AbstractMisting implements Tineye, ITickable
         @SubscribeEvent
         public void onSound(PlaySoundEvent event)
         {
-            EntityPlayer player = Minecraft.getMinecraft().thePlayer;
+            EntityPlayer player = Minecraft.getMinecraft().player;
             if (player == null)
                 return;
             AllomancyAPIImpl.INSTANCE.toAllomancer(player).filter(a -> a.activePowers().contains(Tineye.class)).ifPresent(a -> {

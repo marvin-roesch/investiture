@@ -1,50 +1,251 @@
 buildscript {
     repositories {
         jcenter()
+        mavenCentral()
         maven {
-            name = "forge"
-            url = "http://files.minecraftforge.net/maven"
+            name = 'forge'
+            url = 'http://files.minecraftforge.net/maven'
+        }
+        maven {
+            name = "sonatype"
+            url = "https://oss.sonatype.org/content/repositories/snapshots/"
         }
     }
     dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:2.1-SNAPSHOT'
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.2-SNAPSHOT'
+        classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.3'
+        classpath 'com.matthewprenger:CurseGradle:1.0-SNAPSHOT'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.1'
     }
 }
 
 apply plugin: 'net.minecraftforge.gradle.forge'
+apply plugin: 'com.github.johnrengelman.shadow'
+apply plugin: 'com.matthewprenger.cursegradle'
+apply plugin: 'com.jfrog.bintray'
+apply plugin: 'maven-publish'
 
-version = "1.0"
-group = "de.mineformers.investiture" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = "investiture"
+def parseConfig(File config) {
+    config.withReader {
+        def prop = new Properties()
+        prop.load(it)
+        return (new ConfigSlurper().parse(prop))
+    }
+}
+
+ext.config = parseConfig(file('build.properties'))
+def privateConfig = file('private.properties').exists()
+if (privateConfig)
+    ext.priv = parseConfig(file('private.properties'))
+def tagMatcher = "git tag --contains HEAD".execute().text =~ /v[-\d.]+/
+ext["gitTag"] = tagMatcher.count > 0 ? tagMatcher[0] : null
+def isRelease() { return project.gitTag == "v${project.version}" && System.getenv("CI") == "true" }
+def forgeVersion = "${config.mc_version}-${config.forge_version}${config.forge_branch != '' ? '-' : ''}${config.forge_branch}"
+
+def updateUrl = "https://raw.githubusercontent.com/PaleoCrafter/investiture/master/metadata/promotions.json"
+version = "${config.mc_version}-${config.mod_version}"
+if (System.getenv("TRAVIS_BUILD_NUMBER") != null && System.getenv("TRAVIS_BRANCH") != "master") {
+    version = "$version+${System.getenv("TRAVIS_BRANCH")}.b${System.getenv("TRAVIS_BUILD_NUMBER")}"
+} else if (System.getenv("TRAVIS_BUILD_NUMBER") != null && !isRelease()) {
+    version = "$version+b${System.getenv("TRAVIS_BUILD_NUMBER")}"
+}
+group = 'de.mineformers.investiture'
+archivesBaseName = 'investiture'
 
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
 minecraft {
-    version = "1.9-12.16.0.1813-1.9"
-    runDir = "run"
-    mappings = "snapshot_20160330"
+    version = forgeVersion
+    runDir = 'run'
+    mappings = config.mappings
+    useDepAts = true
+
+    replace '@VERSION@', config.mod_version
+    replace 'acceptedMinecraftVersions = "*",', """acceptedMinecraftVersions = "[${config.mc_version}]","""
+    replace 'required-after:Forge', "required-after:Forge@[${config.forge_version},)"
+    replace '@UPDATE_URL@', updateUrl
+
+    replaceIn 'Investiture.java'
 }
 
 configurations {
-    provided
+    shade
+    compile.extendsFrom shade
 }
+
+repositories {
+    maven {
+        url  "http://dl.bintray.com/paleocrafter/MinecraftMods"
+    }
+}
+
+shadowJar {
+    configurations = [project.configurations.shade]
+    classifier ''
+}
+
+reobf {
+    shadowJar { mappingType = 'SEARGE' }
+}
+tasks.build.dependsOn reobfShadowJar
+
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
 
 processResources {
     // this will ensure that this task is redone when the versions change.
-    inputs.property "version", project.version
-    inputs.property "mcversion", project.minecraft.version
+    inputs.property 'version', config.mod_version
+    inputs.property 'mcversion', config.mc_version
 
     // replace stuff in mcmod.info, nothing else
     from(sourceSets.main.resources.srcDirs) {
         include 'mcmod.info'
 
-        // replace version and mcversion
-        expand 'version': project.version, 'mcversion': project.minecraft.version
+        expand 'version': project.version, 'mcversion': config.mc_version, 'updateUrl': updateUrl
     }
 
-    // copy everything else, thats not the mcmod.info
+    // copy everything else other than the mcmod.info
     from(sourceSets.main.resources.srcDirs) {
         exclude 'mcmod.info'
     }
 }
+
+def bintrayApi = privateConfig ? priv.bintray_api : System.getenv("PROJECT_BINTRAY_API")
+def bintrayUser = privateConfig ? priv.bintray_user : System.getenv("PROJECT_BINTRAY_USER")
+
+if (bintrayApi != null) {
+    bintray {
+        user = bintrayUser
+        key = bintrayApi
+        publications = ["Investiture"]
+
+        pkg {
+            repo = "MinecraftMods"
+            name = "Investiture"
+            licenses = ["MIT"]
+            websiteUrl = 'http://minecraft.curseforge.com/projects/investiture'
+            issueTrackerUrl = 'https://github.com/PaleoCrafter/investiture/issues'
+            vcsUrl = "https://github.com/PaleoCrafter/investiture.git"
+            publicDownloadNumbers = true
+            githubRepo = "PaleoCrafter/investiture"
+            publish = true
+
+            version {
+                name = project.version
+                released = new Date()
+                attributes = ["MC Version"        : config.mc_version,
+                              "Min. Forge Version": forgeVersion]
+
+                if (isRelease()) {
+                    vcsTag = project.gitTag
+                }
+            }
+        }
+    }
+}
+
+publishing {
+    publications {
+        Investiture(MavenPublication) {
+            from components.java
+
+            groupId 'de.mineformers.investiture'
+            artifactId 'investiture'
+            version project.version
+
+            artifact sourceJar {
+                classifier "sources"
+            }
+        }
+    }
+}
+
+sourceJar.dependsOn reobfShadowJar
+bintrayUpload.dependsOn reobfShadowJar
+
+def cfApi = privateConfig ? priv.cf_api : System.getenv("PROJECT_CURSE_API")
+def cfProject = privateConfig ? priv.cf_project : System.getenv("PROJECT_CURSE_PROJECT")
+def cfType = privateConfig ? priv.cf_type : System.getenv("PROJECT_CURSE_TYPE")
+
+if (cfApi != null) {
+    curseforge {
+        def changeFile = file('metadata/changes.json')
+        def changes = new JsonSlurper().parseText(changeFile.text)
+        def lists = []
+        [["additions", "addition"], ["changes", "change"], ["fixes", "fix"]].each {
+            def (String key, String label) = it
+            if (changes.containsKey(key) && !changes[key].isEmpty()) {
+                def list = "<li><b>${key.capitalize()}</b> <ul>"
+                changes[key].each {
+                    list += "<li>$it</li>"
+                }
+                list += "</ul></li>"
+                lists.add(list)
+            }
+        }
+        def changelogBody = "<ul>${lists.join("\n")}</ul>"
+
+        apiKey = cfApi
+        project {
+            id = cfProject
+            changelogType = 'html'
+            changelog = changelogBody
+            releaseType = cfType
+            addGameVersion config.mc_version
+
+            mainArtifact(shadowJar) {
+                displayName = "Investiture - ${config.mod_version}"
+            }
+        }
+    }
+
+    afterEvaluate {
+        curseforge.curseProjects.each { tasks["curseforge${it.id}"].dependsOn bintrayUpload }
+    }
+}
+
+task release() {
+    if (isRelease()) {
+        println "Triggering release build"
+        dependsOn "curseforge"
+    } else
+        dependsOn bintrayUpload
+}
+
+task generateChangelogs() {
+    doLast {
+        def changeFile = file('metadata/changes.json')
+        def changes = new JsonSlurper().parseText(changeFile.text)
+        def promotionFile = file('metadata/promotions.json')
+        def promotions = new JsonSlurper().parseText(promotionFile.text)
+        def promotionTexts = []
+        def lists = []
+        [["additions", "addition"], ["changes", "change"], ["fixes", "fix"]].each {
+            def (String key, String label) = it
+            if (changes.containsKey(key) && !changes[key].isEmpty()) {
+                promotionTexts.add(changes[key].collect { "${label.capitalize()}: $it" }.join("\n"))
+                def list = "  - **${key.capitalize()}**"
+                changes[key].each {
+                    list += "\n    - $it"
+                }
+                lists.add(list)
+            }
+        }
+        def promotionText = promotionTexts.join("\n")
+        promotions.promos["${config.mc_version}-latest"] = config.mod_version
+        promotions[config.mc_version][config.mod_version] = promotionText
+        def newPromos = JsonOutput.prettyPrint(JsonOutput.toJson(promotions))
+        promotionFile.text = newPromos
+        def changelogFile = file("CHANGELOG.md")
+        changelogFile.text = """Changelog
+=========
+
+### Version ${config.mod_version} for Minecraft ${config.mc_version}
+**Note:** This version of the mod requires at least Forge version *$forgeVersion*.
+${lists.join("\n")}
+${changelogFile.text.readLines().drop(2).join("\n")}"""
+    }
+}
+
+tasks.build.dependsOn(release)

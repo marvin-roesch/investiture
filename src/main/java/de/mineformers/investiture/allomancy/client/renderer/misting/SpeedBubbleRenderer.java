@@ -52,7 +52,7 @@ public class SpeedBubbleRenderer implements IResourceManagerReloadListener
     @SubscribeEvent
     public void onRender(RenderWorldLastEvent event)
     {
-        EntityPlayer player = Minecraft.getMinecraft().thePlayer;
+        EntityPlayer player = Minecraft.getMinecraft().player;
         if (player == null)
             return;
         pushMatrix();
@@ -70,11 +70,11 @@ public class SpeedBubbleRenderer implements IResourceManagerReloadListener
         else
             GlStateManager.shadeModel(GL_FLAT);
 
-        Minecraft.getMinecraft().getTextureManager().bindTexture(TextureMap.locationBlocksTexture);
+        Minecraft.getMinecraft().getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
         batchBuffer.getBuffer().begin(GL_QUADS, DefaultVertexFormats.ITEM);
         Frustum frustum = new Frustum();
         frustum.setPosition(pos.xCoord, pos.yCoord + player.getEyeHeight(), pos.zCoord);
-        AllomancyAPIImpl.INSTANCE.speedBubbles(player.worldObj).forEach(bubble -> {
+        AllomancyAPIImpl.INSTANCE.speedBubbles(player.world).forEach(bubble -> {
 //            if (!frustum.isBoundingBoxInFrustum(bubble.bounds))
 //                return;
             for (BakedQuad quad : model.getQuads(null, null, 0))

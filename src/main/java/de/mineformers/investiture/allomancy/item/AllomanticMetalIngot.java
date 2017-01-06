@@ -6,6 +6,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.translation.I18n;
 import net.minecraftforge.fml.relauncher.Side;
@@ -31,7 +32,7 @@ public class AllomanticMetalIngot extends Item
      */
     public static int clampDamage(int value)
     {
-        return MathHelper.clamp_int(value, 0, NAMES.length - 1);
+        return MathHelper.clamp(value, 0, NAMES.length - 1);
     }
 
     /**
@@ -85,7 +86,7 @@ public class AllomanticMetalIngot extends Item
 
     @Override
     @SideOnly(Side.CLIENT)
-    public void getSubItems(Item item, CreativeTabs tab, List<ItemStack> subItems)
+    public void getSubItems(Item item, CreativeTabs tab, NonNullList<ItemStack> subItems)
     {
         for (int dmg = 0; dmg < NAMES.length; dmg++)
         {

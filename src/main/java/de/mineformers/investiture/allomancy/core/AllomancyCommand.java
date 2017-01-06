@@ -14,6 +14,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentTranslation;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -28,7 +29,7 @@ public class AllomancyCommand extends CommandBase
     private static final String ACTION_ALL = "mistborn";
 
     @Override
-    public String getCommandName()
+    public String getName()
     {
         return Allomancy.DOMAIN;
     }
@@ -40,13 +41,13 @@ public class AllomancyCommand extends CommandBase
     }
 
     @Override
-    public String getCommandUsage(ICommandSender sender)
+    public String getUsage(ICommandSender sender)
     {
         return Allomancy.DOMAIN + ".commands.manage.usage";
     }
 
     @Override
-    public List<String> getTabCompletionOptions(MinecraftServer server, ICommandSender sender, String[] args, BlockPos pos)
+    public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, @Nullable BlockPos targetPos)
     {
         switch (args.length)
         {
@@ -57,10 +58,10 @@ public class AllomancyCommand extends CommandBase
                     return getListOfStringsMatchingLastWord(args, AllomancyAPIImpl.INSTANCE.getMistingNames());
             case 3:
                 if (ACTION_ALL.equalsIgnoreCase(args[0]) && args.length == 3)
-                    return super.getTabCompletionOptions(server, sender, args, pos);
-                return getListOfStringsMatchingLastWord(args, server.getAllUsernames());
+                    return super.getTabCompletions(server, sender, args, targetPos);
+                return getListOfStringsMatchingLastWord(args, server.getOnlinePlayerNames());
         }
-        return super.getTabCompletionOptions(server, sender, args, pos);
+        return super.getTabCompletions(server, sender, args, targetPos);
     }
 
     @Override
@@ -73,7 +74,7 @@ public class AllomancyCommand extends CommandBase
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
     {
         if (args.length < 1)
-            throw new WrongUsageException(getCommandUsage(sender));
+            throw new WrongUsageException(getUsage(sender));
         String action = args[0];
         switch (action)
         {
@@ -85,7 +86,7 @@ public class AllomancyCommand extends CommandBase
                 handleAll(server, sender, action, Arrays.copyOfRange(args, 1, args.length));
                 break;
             default:
-                throw new WrongUsageException(getCommandUsage(sender));
+                throw new WrongUsageException(getUsage(sender));
         }
     }
 
@@ -117,6 +118,6 @@ public class AllomancyCommand extends CommandBase
         if (!allomancer.isPresent())
             throw new CommandException(Allomancy.DOMAIN + ".commands.manage.no_allomancer");
         Metals.BASE_METALS.forEach(m -> allomancer.get().grantPower(m.mistingType()));
-        sender.addChatMessage(new TextComponentTranslation(Allomancy.DOMAIN + ".commands.manage.granted_all", sender.getDisplayName()));
+        sender.sendMessage(new TextComponentTranslation(Allomancy.DOMAIN + ".commands.manage.granted_all", sender.getDisplayName()));
     }
 }

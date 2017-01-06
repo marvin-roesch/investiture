@@ -15,10 +15,11 @@ public class TileMetalExtractorSlave extends TileEntity
     private BlockPos master = BlockPos.ORIGIN;
 
     @Override
-    public void writeToNBT(NBTTagCompound compound)
+    public NBTTagCompound writeToNBT(NBTTagCompound compound)
     {
-        super.writeToNBT(compound);
+        compound = super.writeToNBT(compound);
         compound.setLong("MasterPosition", master.toLong());
+        return compound;
     }
 
     @Override
@@ -47,7 +48,7 @@ public class TileMetalExtractorSlave extends TileEntity
     @Nullable
     public TileMetalExtractorMaster getMaster()
     {
-        TileEntity te = worldObj.getTileEntity(getMasterPosition());
+        TileEntity te = world.getTileEntity(getMasterPosition());
         if (te instanceof TileMetalExtractorMaster)
             return (TileMetalExtractorMaster) te;
         return null;

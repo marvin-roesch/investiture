@@ -17,7 +17,7 @@ public final class ExtractorOutput
     @Nonnull
     public static Optional<ExtractorOutput> optional(ItemStack result)
     {
-        return optional(result, new ItemStack(Blocks.cobblestone));
+        return optional(result, new ItemStack(Blocks.COBBLESTONE));
     }
 
     @Nonnull

@@ -21,12 +21,12 @@ public class AllomanticMetalItemHelper
     public static Optional<ItemStack> ore(Metal metal, int count)
     {
         if (metal == Metals.IRON)
-            return Optional.of(new ItemStack(Blocks.iron_ore, count));
+            return Optional.of(new ItemStack(Blocks.IRON_ORE, count));
         if (metal == Metals.GOLD)
-            return Optional.of(new ItemStack(Blocks.gold_ore, count));
+            return Optional.of(new ItemStack(Blocks.GOLD_ORE, count));
         int dmg = Arrays.asList(MetalOre.NAMES).indexOf(metal.id());
         if (dmg != -1)
-            return Optional.of(new ItemStack(Allomancy.Blocks.allomantic_ore, count, dmg));
+            return Optional.of(new ItemStack(Allomancy.Blocks.ORE, count, dmg));
         return Optional.empty();
     }
 

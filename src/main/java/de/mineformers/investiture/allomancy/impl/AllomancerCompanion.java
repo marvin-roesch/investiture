@@ -46,13 +46,13 @@ public class AllomancerCompanion
 
     public void sendTo(EntityPlayer target, Misting instance, Entity entity)
     {
-        if (!target.worldObj.isRemote)
+        if (!target.world.isRemote)
             Investiture.net().sendTo((EntityPlayerMP) target, allFields(instance, entity));
     }
 
     public void write(Misting instance, Entity entity)
     {
-        if (entity.worldObj.isRemote)
+        if (entity.world.isRemote)
             return;
         Set<Serialisation.FieldData> fields = Serialisation.INSTANCE.getNetFields(type, true)
                                                                     .stream()

@@ -5,15 +5,14 @@ import de.mineformers.investiture.allomancy.extractor.ExtractorPart;
 import de.mineformers.investiture.allomancy.tileentity.TileMetalExtractorMaster;
 import de.mineformers.investiture.allomancy.tileentity.TileMetalExtractorOutput;
 import de.mineformers.investiture.allomancy.tileentity.TileMetalExtractorSlave;
-import de.mineformers.investiture.inventory.Inventories;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.PropertyBool;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.particle.EffectRenderer;
-import net.minecraft.client.particle.EntityDiggingFX;
+import net.minecraft.client.particle.ParticleDigging;
+import net.minecraft.client.particle.ParticleManager;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
@@ -31,7 +30,9 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.items.CapabilityItemHandler;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Random;
 
@@ -48,7 +49,7 @@ public class MetalExtractorController extends Block implements ExtractorPart
      */
     public MetalExtractorController()
     {
-        super(Material.piston);
+        super(Material.PISTON);
         setDefaultState(blockState.getBaseState()
                                   .withProperty(BUILT, false)
                                   .withProperty(MASTER, false));
@@ -58,13 +59,14 @@ public class MetalExtractorController extends Block implements ExtractorPart
     }
 
     @Override
-    public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, ItemStack heldItem,
-                                    EnumFacing side, float hitX, float hitY, float hitZ)
+    public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, EnumFacing facing,
+                                    float hitX, float hitY, float hitZ)
     {
         if (!world.isRemote && !state.getValue(BUILT))
         {
             world.setBlockState(pos, state.withProperty(BUILT, true).withProperty(MASTER, true));
-            if (!((TileMetalExtractorMaster) world.getTileEntity(pos)).validateMultiBlock())
+            TileEntity tile = world.getTileEntity(pos);
+            if (tile instanceof TileMetalExtractorMaster && !((TileMetalExtractorMaster) tile).validateMultiBlock())
                 world.setBlockState(pos, state.withProperty(BUILT, false).withProperty(MASTER, false));
             return true;
         }
@@ -103,15 +105,23 @@ public class MetalExtractorController extends Block implements ExtractorPart
             {
                 TileMetalExtractorMaster tile = (TileMetalExtractorMaster) world.getTileEntity(pos);
                 ItemStack stack = ((EntityItem) entity).getEntityItem();
-                if (Inventories.insert(tile, stack, TileMetalExtractorMaster.INPUT_SLOT, tile.getOrientation().getOpposite()))
+                ItemStack remaining = tile.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null)
+                                          .insertItem(TileMetalExtractorMaster.INPUT_SLOT, stack, false);
+                if (remaining == ItemStack.EMPTY)
+                {
                     entity.setDead();
+                }
+                else
+                {
+                    ((EntityItem) entity).setEntityItemStack(remaining);
+                }
             }
         }
     }
 
     @Override
-    public void addCollisionBoxToList(IBlockState state, World world, BlockPos pos, AxisAlignedBB mask,
-                                      List<AxisAlignedBB> list, Entity collidingEntity)
+    public void addCollisionBoxToList(IBlockState state, World world, BlockPos pos, AxisAlignedBB mask, List<AxisAlignedBB> list,
+                                      @Nullable Entity collidingEntity, boolean actualState)
     {
         if (state.getValue(BUILT) && state.getValue(MASTER))
         {
@@ -140,11 +150,12 @@ public class MetalExtractorController extends Block implements ExtractorPart
             addCollisionBoxToList(pos, mask, list, right);
             return;
         }
-        super.addCollisionBoxToList(state, world, pos, mask, list, collidingEntity);
+        super.addCollisionBoxToList(state, world, pos, mask, list, collidingEntity, actualState);
     }
 
+    @Nullable
     @Override
-    public AxisAlignedBB getCollisionBoundingBox(IBlockState state, World world, BlockPos pos)
+    public AxisAlignedBB getCollisionBoundingBox(IBlockState state, IBlockAccess world, BlockPos pos)
     {
         return getBoundingBox(state, world, pos);
     }
@@ -203,36 +214,38 @@ public class MetalExtractorController extends Block implements ExtractorPart
         if (world.getTileEntity(pos) instanceof TileMetalExtractorMaster)
         {
             TileMetalExtractorMaster tile = (TileMetalExtractorMaster) world.getTileEntity(pos);
-            tile.getProcessing().ifPresent(p -> {
-                if (p.input.getItem() instanceof ItemBlock && tile.getPower() != 0)
-                {
-                    ItemBlock ib = (ItemBlock) p.input.getItem();
-                    int particleState = Block.getStateId(ib.getBlock().getStateFromMeta(ib.getMetadata(p.input)));
-                    double offset = 1.3 + 2 * (p.timer / tile.getProcessingTime());
-                    Vec3d start = new Vec3d(pos.getX() + tile.getOrientation().getFrontOffsetX() * offset,
-                                            pos.getY(),
-                                            pos.getZ() + tile.getOrientation().getFrontOffsetZ() * offset);
-                    int count = 8;
+            tile.getProcessing().ifPresent(p ->
+                                           {
+                                               if (p.input.getItem() instanceof ItemBlock && tile.getPower() != 0)
+                                               {
+                                                   ItemBlock ib = (ItemBlock) p.input.getItem();
+                                                   int particleState = Block.getStateId(ib.getBlock().getStateFromMeta(ib.getMetadata(p.input)));
+                                                   double offset = 1.3 + 2 * (p.timer / tile.getProcessingTime());
+                                                   Vec3d start = new Vec3d(pos.getX() + tile.getOrientation().getFrontOffsetX() * offset,
+                                                                           pos.getY(),
+                                                                           pos.getZ() + tile.getOrientation().getFrontOffsetZ() * offset);
+                                                   int count = 8;
 
-                    for (int j = 0; j < count; ++j)
-                    {
-                        for (int k = 0; k < count; ++k)
-                        {
-                            for (int l = 0; l < count; ++l)
-                            {
-                                double x = start.xCoord + (j + 0.5D) / count;
-                                double y = start.yCoord + (k + 0.5D) / count;
-                                double z = start.zCoord + (l + 0.5D) / count;
-                                EffectRenderer effects = Minecraft.getMinecraft().effectRenderer;
-                                ((EntityDiggingFX) effects.spawnEffectParticle(EnumParticleTypes.BLOCK_CRACK.getParticleID(), x, y, z,
-                                                                               x - start.xCoord - 0.5D,
-                                                                               y - start.yCoord - 0.5D,
-                                                                               z - start.zCoord - 0.5D, particleState)).setBlockPos(pos);
-                            }
-                        }
-                    }
-                }
-            });
+                                                   for (int j = 0; j < count; ++j)
+                                                   {
+                                                       for (int k = 0; k < count; ++k)
+                                                       {
+                                                           for (int l = 0; l < count; ++l)
+                                                           {
+                                                               double x = start.xCoord + (j + 0.5D) / count;
+                                                               double y = start.yCoord + (k + 0.5D) / count;
+                                                               double z = start.zCoord + (l + 0.5D) / count;
+                                                               ParticleManager effects = Minecraft.getMinecraft().effectRenderer;
+                                                               ((ParticleDigging) effects
+                                                                   .spawnEffectParticle(EnumParticleTypes.BLOCK_CRACK.getParticleID(), x, y, z,
+                                                                                        x - start.xCoord - 0.5D,
+                                                                                        y - start.yCoord - 0.5D,
+                                                                                        z - start.zCoord - 0.5D, particleState)).setBlockPos(pos);
+                                                           }
+                                                       }
+                                                   }
+                                               }
+                                           });
         }
     }
 

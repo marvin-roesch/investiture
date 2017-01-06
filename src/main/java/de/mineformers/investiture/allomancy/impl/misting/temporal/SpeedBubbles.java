@@ -20,7 +20,7 @@ public class SpeedBubbles extends WorldSavedData implements Iterable<SpeedBubble
 
     public static SpeedBubbles from(World world)
     {
-        WorldSavedData data = world.getPerWorldStorage().loadData(SpeedBubbles.class, ID);
+        WorldSavedData data = world.getPerWorldStorage().getOrLoadData(SpeedBubbles.class, ID);
         if (data == null)
         {
             data = new SpeedBubbles(ID);
@@ -64,7 +64,8 @@ public class SpeedBubbles extends WorldSavedData implements Iterable<SpeedBubble
     }
 
     @Override
-    public void writeToNBT(NBTTagCompound nbt)
+    public NBTTagCompound writeToNBT(NBTTagCompound nbt)
     {
+        return nbt;
     }
 }

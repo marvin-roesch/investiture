@@ -6,13 +6,14 @@ import de.mineformers.investiture.allomancy.api.metal.Metal;
 import de.mineformers.investiture.allomancy.api.metal.MetalHolder;
 import de.mineformers.investiture.allomancy.api.metal.MetalMapping;
 import de.mineformers.investiture.allomancy.api.metal.Metals;
+import net.minecraft.client.resources.I18n;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.translation.I18n;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.oredict.OreDictionary;
@@ -40,6 +41,7 @@ public class MetalItem extends Item implements MetalHolder<ItemStack>
         setHasSubtypes(true);
         setCreativeTab(Investiture.CREATIVE_TAB);
         setRegistryName(registryName);
+        setUnlocalizedName(getRegistryName().toString());
 
         this.name = name;
         this.names = names;
@@ -54,7 +56,7 @@ public class MetalItem extends Item implements MetalHolder<ItemStack>
      */
     public int clampDamage(int value)
     {
-        return MathHelper.clamp_int(value, 0, this.names.length - 1);
+        return MathHelper.clamp(value, 0, this.names.length - 1);
     }
 
     /**
@@ -96,11 +98,11 @@ public class MetalItem extends Item implements MetalHolder<ItemStack>
     {
         // Put purity in the tooltip
         int purity = getPurity(stack);
-        tooltip.add(I18n.translateToLocalFormatted("allomancy.message.purity", purity));
+        tooltip.add(I18n.format("allomancy.message.purity", purity));
     }
 
     @Override
-    public void getSubItems(Item item, CreativeTabs tab, List<ItemStack> subItems)
+    public void getSubItems(Item item, CreativeTabs tab, NonNullList<ItemStack> subItems)
     {
         for (int dmg = 0; dmg < this.names.length; dmg++)
         {
@@ -125,17 +127,12 @@ public class MetalItem extends Item implements MetalHolder<ItemStack>
     {
         Optional<Metal> metal = Metals.get(getName(stack));
 
-        if (metal.isPresent())
-        {
-            return metal.get();
-        }
-
-        return null;
+        return metal.orElse(null);
     }
 
     public float getMetalQuantity(ItemStack stack)
     {
-        return this.getItemType().conversion * stack.stackSize;
+        return this.getItemType().conversion * stack.getCount();
     }
 
     public Type getItemType()
@@ -162,11 +159,11 @@ public class MetalItem extends Item implements MetalHolder<ItemStack>
 
     public enum Type
     {
-        NUGGET(1, () -> Allomancy.Items.allomantic_nugget),
-        BEAD(0.5F, () -> Allomancy.Items.allomantic_bead),
-        INGOT(9, () -> Allomancy.Items.allomantic_ingot),
-        DUST(9, () -> Allomancy.Items.allomantic_dust),
-        CHUNK(9, () -> Allomancy.Items.allomantic_chunk);
+        NUGGET(1, () -> Allomancy.Items.NUGGET),
+        BEAD(0.5F, () -> Allomancy.Items.BEAD),
+        INGOT(9, () -> Allomancy.Items.INGOT),
+        DUST(9, () -> Allomancy.Items.DUST),
+        CHUNK(9, () -> Allomancy.Items.CHUNK);
 
         public final float conversion;
         public final Callable<MetalItem> getter;

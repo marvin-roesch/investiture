@@ -27,7 +27,7 @@ public class SliderImpl extends AbstractTimeManipulator implements Slider, ITick
     public void startBurning()
     {
         bubble = new SpeedBubble(entity.dimension, entity.getPosition(), 5);
-        SpeedBubbles.from(entity.worldObj).add(bubble);
+        SpeedBubbles.from(entity.world).add(bubble);
     }
 
     @Override
@@ -38,7 +38,7 @@ public class SliderImpl extends AbstractTimeManipulator implements Slider, ITick
             Vec3d bubblePos = new Vec3d(bubble.position.getX() + 0.5, bubble.position.getY(), bubble.position.getZ() + 0.5);
             if (entity.dimension != bubble.dimension || entity.getDistanceSq(bubblePos.xCoord, bubblePos.yCoord, bubblePos.zCoord) > 25)
             {
-//                if (!entity.worldObj.isRemote)
+//                if (!entity.world.isRemote)
 //                    allomancer.deactivate(Slider.class);
                 return;
             }
@@ -47,14 +47,14 @@ public class SliderImpl extends AbstractTimeManipulator implements Slider, ITick
             {
                 if (bubblePos.squareDistanceTo(new Vec3d(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5)) > bubble.radius * bubble.radius)
                     continue;
-                TileEntity tile = entity.worldObj.getTileEntity(pos);
+                TileEntity tile = entity.world.getTileEntity(pos);
                 if (tile instanceof ITickable)
                     ((ITickable) tile).update();
             }
-            if (entity.worldObj.isRemote)
+            if (entity.world.isRemote)
             {
                 BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
-                Random rand = entity.worldObj.rand;
+                Random rand = entity.world.rand;
                 Random random = new Random();
 
                 for (int i = 0; i < 1000; i++)
@@ -62,11 +62,11 @@ public class SliderImpl extends AbstractTimeManipulator implements Slider, ITick
                     int x = bubble.position.getX() + rand.nextInt(16) - rand.nextInt(16);
                     int y = bubble.position.getY() + rand.nextInt(16) - rand.nextInt(16);
                     int z = bubble.position.getZ() + rand.nextInt(16) - rand.nextInt(16);
-                    pos.set(x, y, z);
+                    pos.setPos(x, y, z);
                     if (bubblePos.squareDistanceTo(new Vec3d(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5)) > bubble.radius * bubble.radius)
                         continue;
-                    IBlockState state = entity.worldObj.getBlockState(pos);
-                    state.getBlock().randomDisplayTick(state, entity.worldObj, pos, random);
+                    IBlockState state = entity.world.getBlockState(pos);
+                    state.getBlock().randomDisplayTick(state, entity.world, pos, random);
                 }
             }
         }
@@ -75,7 +75,7 @@ public class SliderImpl extends AbstractTimeManipulator implements Slider, ITick
     @Override
     public void stopBurning()
     {
-        SpeedBubbles.from(entity.worldObj).remove(bubble);
+        SpeedBubbles.from(entity.world).remove(bubble);
         bubble = null;
     }
 }

@@ -54,7 +54,7 @@ public class AugurImpl extends AbstractMisting implements Augur, ITickable
     @Override
     public void update()
     {
-        if (!entity.worldObj.isRemote || position == null)
+        if (!entity.world.isRemote || position == null)
             return;
         if (!validPath && entity.dimension == deathDimension)
         {
@@ -78,9 +78,9 @@ public class AugurImpl extends AbstractMisting implements Augur, ITickable
     private void spawnParticles(BlockPos step)
     {
         Minecraft.getMinecraft().effectRenderer
-            .addEffect(new FootStep(entity.worldObj, new Vec3d(step).addVector(0.3, 0.0001, 0.3), 1f, 0, 0));
+            .addEffect(new FootStep(entity.world, new Vec3d(step).addVector(0.3, 0.0001, 0.3), 1f, 0, 0));
         Minecraft.getMinecraft().effectRenderer
-            .addEffect(new FootStep(entity.worldObj, new Vec3d(step).addVector(0.6, 0.0001, 0.6), 1f, 0, 0));
+            .addEffect(new FootStep(entity.world, new Vec3d(step).addVector(0.6, 0.0001, 0.6), 1f, 0, 0));
     }
 
     @Override
@@ -95,7 +95,7 @@ public class AugurImpl extends AbstractMisting implements Augur, ITickable
         public void onDeath(LivingDeathEvent event)
         {
             Entity entity = event.getEntity();
-            if (entity.worldObj.isRemote)
+            if (entity.world.isRemote)
                 return;
             AllomancyAPIImpl.INSTANCE.toAllomancer(entity).flatMap(a -> a.as(Augur.class)).ifPresent(a -> {
                 if (a instanceof AugurImpl)

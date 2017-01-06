@@ -74,7 +74,7 @@ public class MetalExtractorRenderer extends TileEntitySpecialRenderer<TileMetalE
             GlStateManager.pushMatrix();
             GlStateManager.enableRescaleNormal();
             GlStateManager.color(1, 1, 1, 1f);
-            Minecraft.getMinecraft().getTextureManager().bindTexture(TextureMap.locationBlocksTexture);
+            Minecraft.getMinecraft().getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
             GlStateManager.translate(x, y - 1, z);
             switch (orientation)
             {

@@ -1,16 +1,9 @@
 package de.mineformers.investiture.core;
 
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
-import de.mineformers.investiture.Investiture;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 
 /**
  * A "manifestation of Investiture" is a module for this mod.
@@ -50,21 +43,4 @@ public interface Manifestation
      * @param event the event that triggers this method
      */
     void postInit(FMLPostInitializationEvent event);
-
-    default Config loadConfig(FMLPreInitializationEvent event)
-    {
-        File file = event.getModConfigurationDirectory().toPath().resolve(id() + ".conf").toFile();
-        Config cfg = ConfigFactory.parseFile(file).resolve()
-                                  .withFallback(ConfigFactory.load(id()));
-        if (!file.exists())
-            try
-            {
-                Files.copy(getClass().getResourceAsStream("/" + id() + ".conf"), file.toPath());
-            }
-            catch (IOException e)
-            {
-                Investiture.log().error("Could not write config for module '" + id() + "' to '" + file.getAbsolutePath() + "'!", e);
-            }
-        return cfg;
-    }
 }

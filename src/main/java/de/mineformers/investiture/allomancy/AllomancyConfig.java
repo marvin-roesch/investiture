@@ -3,53 +3,54 @@
 
 package de.mineformers.investiture.allomancy;
 
-import com.typesafe.config.Config;
+import de.mineformers.investiture.Investiture;
+import net.minecraftforge.common.config.Config;
+import net.minecraftforge.common.config.Config.Comment;
+import net.minecraftforge.common.config.Config.RangeDouble;
 
+@Config(modid = Investiture.MOD_ID, name = Allomancy.DOMAIN)
 public class AllomancyConfig
 {
-    public final Mistings mistings;
+    @Comment("Manipulate individual misting types here")
+    public static Mistings mistings = new Mistings();
 
     public static class Mistings
     {
-        public final Thug thug;
+        public Thug thug = new Thug();
 
         public static class Thug
         {
-            public final double attackBoost;
-            public final double damageResistance;
-
-            public Thug(Config c)
-            {
-                this.attackBoost = c.hasPath("attackBoost") ? c.getDouble("attackBoost") : 6; // "double | 6"
-                this.damageResistance = c.hasPath("damageResistance") ? c.getDouble("damageResistance") : 2.5; // "double | 2.5"
-            }
+            @Comment({
+                "The thug's attack boost adds the given amount of damage to all his attacks.",
+                "The default value of 6 resembles an iron sword."
+            })
+            @RangeDouble(min = 0)
+            public double attackBoost = 6;
+            @Comment({
+                "A thug's damage resistance absorbs the given amount of damage whenever the Allomancer is hurt.",
+                "The default of 2.5 will reduce the maximum damage made by zombies to 0.5"
+            })
+            @RangeDouble(min = 0)
+            public double damageResistance = 2.5;
         }
 
-        public final Tineye tineye;
+        public Tineye tineye = new Tineye();
 
         public static class Tineye
         {
-            public final boolean fovEnabled;
-            public final float fovIncrease;
-            public final float fovZoom;
-
-            public Tineye(Config c)
-            {
-                this.fovEnabled = !c.hasPath("fovEnabled") || c.getBoolean("fovEnabled");
-                this.fovIncrease = c.hasPath("fovIncrease") ? (float) c.getDouble("fovIncrease") : 40; // "double | 40"
-                this.fovZoom = c.hasPath("fovZoom") ? (float) c.getDouble("fovZoom") : 10; // "double | 10"
-            }
+            @Comment("Specifies whether burning tin should increase the field of view.")
+            public boolean fovEnabled = true;
+            @Comment({
+                "Specifies the amount the Tineye's field of view will be increased when burning tin.",
+                "The default value of 40 will effectively change the default \"Normal\" setting to the maximum \"Quake Pro\"."
+            })
+            public float fovIncrease = 40;
+            @Comment({
+                "Specifies the desired field of view for the Tineye's zoom ability.",
+                "Note that this is an absolute value, not a modifier to the existing value.",
+                "The default value of 10 is equal to the minimal FOV setting possible (resulting in an appropriate zoom effect)."
+            })
+            public float fovZoom = 10;
         }
-
-        public Mistings(Config c)
-        {
-            this.thug = new Thug(c.getConfig("thug"));
-            this.tineye = new Tineye(c.getConfig("tineye"));
-        }
-    }
-
-    public AllomancyConfig(Config c)
-    {
-        this.mistings = new Mistings(c.getConfig("mistings"));
     }
 }

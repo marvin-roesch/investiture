@@ -67,12 +67,12 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
         affectedBlocks.clear();
         for (BlockPos pos : BlockPos.getAllInBox(entity.getPosition().subtract(new BlockPos(20, 20, 20)), entity.getPosition().add(20, 20, 20)))
         {
-            if (AllomancyAPIImpl.INSTANCE.isMetallic(entity.worldObj, pos))
+            if (AllomancyAPIImpl.INSTANCE.isMetallic(entity.world, pos))
                 affectedBlocks.add(pos);
         }
         affectedEntities.clear();
         affectedEntities.addAll(
-            entity.worldObj.getEntitiesInAABBexcluding(entity,
+            entity.world.getEntitiesInAABBexcluding(entity,
                                                        new AxisAlignedBB(entity.posX - 20, entity.posY - 20, entity.posZ - 20,
                                                                          entity.posX + 20, entity.posY + 20, entity.posZ + 20),
                                                        AllomancyAPIImpl.INSTANCE::isMetallic));
@@ -148,7 +148,7 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
         @SubscribeEvent
         public void onClientTick(TickEvent.ClientTickEvent event)
         {
-            EntityPlayer player = Minecraft.getMinecraft().thePlayer;
+            EntityPlayer player = Minecraft.getMinecraft().player;
             if (event.phase != TickEvent.Phase.END || player == null)
                 return;
             AllomancyAPIImpl.INSTANCE.toAllomancer(player).ifPresent(a -> {
@@ -205,7 +205,7 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
 
                 for (BlockPos p : allPositions)
                 {
-                    PositionWrapper wrapper = PositionWrapper.from(player.worldObj, p);
+                    PositionWrapper wrapper = PositionWrapper.from(player.world, p);
                     if (!positions.contains(wrapper) && !fadeInTimer.containsKey(wrapper))
                     {
                         fadeInTimer.put(wrapper, 0);
@@ -245,7 +245,7 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
             glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
             GlStateManager.glLineWidth(4);
 
-            Vec3d playerPos = Rendering.interpolatedPosition(Minecraft.getMinecraft().thePlayer, partialTicks);
+            Vec3d playerPos = Rendering.interpolatedPosition(Minecraft.getMinecraft().player, partialTicks);
             Tessellator tessellator = Tessellator.getInstance();
             VertexBuffer renderer = tessellator.getBuffer();
             renderer.begin(GL_LINES, DefaultVertexFormats.POSITION_COLOR);
@@ -280,7 +280,7 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
             Vec3d direction = element.subtract(start);
             Vec3d end = new Vec3d(direction.xCoord * progress, direction.yCoord * progress, direction.zCoord * progress);
 
-            EntityPlayer player = Minecraft.getMinecraft().thePlayer;
+            EntityPlayer player = Minecraft.getMinecraft().player;
             Vec3d off = new Vec3d(0, -0.06, 0.09D);
             off = off.rotatePitch(-(player.prevRotationPitch + (player.rotationPitch - player.prevRotationPitch) * partialTicks) *
                                       (float) Math.PI / 180.0F);

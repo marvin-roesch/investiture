@@ -1,5 +1,7 @@
 package de.mineformers.investiture.util;
 
+import de.mineformers.investiture.allomancy.extractor.ExtractorOutput;
+
 import java.util.Optional;
 
 /**
@@ -14,20 +16,6 @@ public class Functional
      * @return a flattened optional
      */
     public static <T> Optional<T> flatten(Optional<Optional<T>> optional)
-    {
-        if (optional.isPresent())
-            return optional.get();
-        else
-            return Optional.empty();
-    }
-
-    /**
-     * Flattens an optional of another optional, yielding a single optional value.
-     *
-     * @param optional the optional to flatten
-     * @return a flattened optional
-     */
-    public static <T> Optional<T> flatten(com.google.common.base.Optional<Optional<T>> optional)
     {
         if (optional.isPresent())
             return optional.get();

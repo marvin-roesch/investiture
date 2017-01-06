@@ -1,6 +1,5 @@
 package de.mineformers.investiture.allomancy.api.metal;
 
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import de.mineformers.investiture.allomancy.api.misting.Misting;
 import de.mineformers.investiture.allomancy.api.misting.enhancement.AluminiumGnat;
@@ -122,9 +121,10 @@ public final class Metals
         ALLOYS.add(ELECTRUM);
         ALLOYS.add(BENDALLOY);
 
-        MAPPINGS.add(new MetalMapping.MetalMappingItem(IRON, new ItemStack(Items.iron_ingot), MetalItem.Type.INGOT.conversion));
-        MAPPINGS.add(new MetalMapping.MetalMappingItem(GOLD, new ItemStack(Items.gold_ingot), MetalItem.Type.INGOT.conversion));
-        MAPPINGS.add(new MetalMapping.MetalMappingItem(GOLD, new ItemStack(Items.gold_nugget), MetalItem.Type.NUGGET.conversion));
+        MAPPINGS.add(new MetalMapping.MetalMappingItem(IRON, new ItemStack(Items.IRON_INGOT), MetalItem.Type.INGOT.conversion));
+        MAPPINGS.add(new MetalMapping.MetalMappingItem(IRON, new ItemStack(Items.field_191525_da), MetalItem.Type.NUGGET.conversion));
+        MAPPINGS.add(new MetalMapping.MetalMappingItem(GOLD, new ItemStack(Items.GOLD_INGOT), MetalItem.Type.INGOT.conversion));
+        MAPPINGS.add(new MetalMapping.MetalMappingItem(GOLD, new ItemStack(Items.GOLD_NUGGET), MetalItem.Type.NUGGET.conversion));
         MAPPINGS.add(new MetalMapping.MetalMappingOreDict(IRON, "ingotIron", MetalItem.Type.INGOT.conversion, true));
         MAPPINGS.add(new MetalMapping.MetalMappingOreDict(GOLD, "ingotGold", MetalItem.Type.INGOT.conversion, true));
     }
@@ -135,7 +135,7 @@ public final class Metals
      */
     public static Optional<Metal> get(String id)
     {
-        return Functional.convert(FluentIterable.from(METALS).firstMatch(m -> m.id().equals(id)));
+        return METALS.stream().filter(m -> m.id().equals(id)).findFirst();
     }
 
     /**

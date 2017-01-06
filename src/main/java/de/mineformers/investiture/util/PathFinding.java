@@ -25,7 +25,7 @@ public class PathFinding
         double y = entity.posY + (entity.posY - entity.lastTickPosY) / 2;
         double z = entity.posZ + (entity.posZ - entity.lastTickPosZ) / 2;
         BlockPos pos = new BlockPos(x, y, z);
-        return bresenham(entity.worldObj, pos, destination);
+        return bresenham(entity.world, pos, destination);
     }
 
     /**

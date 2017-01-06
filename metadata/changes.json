@@ -1,0 +1,10 @@
+{
+  "additions": [
+    "Recipe for the replicator"
+  ],
+  "changes": [
+  ],
+  "fixes": [
+    "Mod no longer crashes on servers"
+  ]
+}

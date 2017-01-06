@@ -1,42 +1,29 @@
 package de.mineformers.investiture.allomancy.tileentity;
 
-import de.mineformers.investiture.inventory.DelegatingInventory;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.ISidedInventory;
-import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
+import net.minecraftforge.common.capabilities.Capability;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Delegates inventory interactions to master
  */
-public class TileMetalExtractorOutput extends TileMetalExtractorSlave implements DelegatingInventory, ISidedInventory
+public class TileMetalExtractorOutput extends TileMetalExtractorSlave
 {
     @Override
-    public int[] getSlotsForFace(EnumFacing side)
+    public boolean hasCapability(Capability<?> capability, @Nullable EnumFacing facing)
     {
-        if (getMaster() == null)
-            return new int[0];
-        return getMaster().getSlotsForFace(side);
+        return getMaster().hasCapability(capability, facing) || super.hasCapability(capability, facing);
     }
 
+    @Nullable
     @Override
-    public boolean canInsertItem(int index, ItemStack stack, EnumFacing direction)
+    public <T> T getCapability(Capability<T> capability, @Nullable EnumFacing facing)
     {
-        return getMaster().canInsertItem(index, stack, direction);
-    }
-
-    @Override
-    public boolean canExtractItem(int index, ItemStack stack, EnumFacing direction)
-    {
-        return getMaster().canExtractItem(index, stack, direction);
-    }
-
-    @Nonnull
-    @Override
-    public IInventory getDelegate()
-    {
-        return getMaster();
+        if (getMaster().hasCapability(capability, facing))
+        {
+            return getMaster().getCapability(capability, facing);
+        }
+        return super.getCapability(capability, facing);
     }
 }

@@ -18,6 +18,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.IStringSerializable;
+import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.Explosion;
@@ -62,7 +63,7 @@ public class MetalExtractor extends Block implements ExtractorPart
      */
     public static int clampDamage(int value)
     {
-        return MathHelper.clamp_int(value, 0, Part.values().length - 1);
+        return MathHelper.clamp(value, 0, Part.values().length - 1);
     }
 
     /**
@@ -70,7 +71,7 @@ public class MetalExtractor extends Block implements ExtractorPart
      */
     public MetalExtractor()
     {
-        super(Material.piston);
+        super(Material.PISTON);
         setDefaultState(blockState.getBaseState()
                                   .withProperty(BUILT, false)
                                   .withProperty(PART, Part.FRAME));
@@ -124,7 +125,7 @@ public class MetalExtractor extends Block implements ExtractorPart
     }
 
     @Override
-    public void getSubBlocks(Item item, CreativeTabs tab, List<ItemStack> list)
+    public void getSubBlocks(Item item, CreativeTabs tab, NonNullList<ItemStack> list)
     {
         for (int dmg = 0; dmg < Part.values().length; dmg++)
         {
@@ -190,9 +191,9 @@ public class MetalExtractor extends Block implements ExtractorPart
     }
 
     @Override
-    public void onNeighborBlockChange(World world, BlockPos pos, IBlockState state, Block neighborBlock)
+    public void onNeighborChange(IBlockAccess world, BlockPos pos, BlockPos neighbor)
     {
-        if (!world.isRemote && state.getValue(PART) == Part.WHEEL)
+        if (world.getBlockState(pos).getValue(PART) == Part.WHEEL)
         {
             TileEntity tile = world.getTileEntity(pos);
             if (tile instanceof TileMetalExtractorSlave)

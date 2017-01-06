@@ -81,10 +81,10 @@ public abstract class AbstractEmotionManipulator extends AbstractMisting impleme
         EntityCreature entity = (EntityCreature) target.entityHit;
         if (entity instanceof EntityVillager && this.entity instanceof EntityPlayer)
         {
-            if (entity.worldObj.isRemote)
+            if (entity.world.isRemote)
                 return;
-            getVillage((EntityVillager) entity).setReputationForPlayer(this.entity.getName(), villagerReputation());
-            entity.worldObj.setEntityState(entity, (byte) (villagerReputation() > 0 ? 14 : 13));
+            getVillage((EntityVillager) entity).modifyPlayerReputation(this.entity.getName(), villagerReputation());
+            entity.world.setEntityState(entity, (byte) (villagerReputation() > 0 ? 14 : 13));
             return;
         }
         if (data.containsKey(entity))

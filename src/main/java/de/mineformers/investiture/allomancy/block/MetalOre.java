@@ -11,12 +11,12 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.BlockRenderLayer;
+import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * Used as the ore for all allomantic metals which are not alloys and can be collected directly through mining.
@@ -34,7 +34,7 @@ public class MetalOre extends Block
      */
     public static int clampDamage(int value)
     {
-        return MathHelper.clamp_int(value, 0, NAMES.length - 1);
+        return MathHelper.clamp(value, 0, NAMES.length - 1);
     }
 
     /**
@@ -42,7 +42,7 @@ public class MetalOre extends Block
      */
     public MetalOre()
     {
-        super(Material.rock);
+        super(Material.ROCK);
 
         setDefaultState(blockState.getBaseState().withProperty(METAL, NAMES[0]));
         setUnlocalizedName("allomantic_metal_ore");
@@ -62,7 +62,7 @@ public class MetalOre extends Block
     }
 
     @Override
-    public void getSubBlocks(Item item, CreativeTabs tab, List<ItemStack> list)
+    public void getSubBlocks(Item item, CreativeTabs tab, NonNullList<ItemStack> list)
     {
         for (int dmg = 0; dmg < NAMES.length; dmg++)
         {

@@ -10,7 +10,8 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.network.INetHandler;
 import net.minecraft.network.Packet;
-import net.minecraft.server.management.PlayerManager;
+import net.minecraft.network.play.server.SPacketUpdateTileEntity;
+import net.minecraft.server.management.PlayerChunkMap;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -145,7 +146,7 @@ public class FunctionalNetwork
 
     /**
      * Construct a minecraft packet from the supplied message. Can be used where minecraft packets are required, such as
-     * {@link TileEntity#getDescriptionPacket}.
+     * {@link TileEntity#getUpdatePacket()}.
      *
      * @param message The message to translate into packet form
      * @return A minecraft {@link Packet} suitable for use in minecraft APIs
@@ -229,12 +230,15 @@ public class FunctionalNetwork
      */
     public void sendDescription(TileEntity tileEntity)
     {
+        SPacketUpdateTileEntity packet = tileEntity.getUpdatePacket();
+        if (packet == null)
+            return;
         if (tileEntity.getWorld() instanceof WorldServer)
         {
-            PlayerManager manager = ((WorldServer) tileEntity.getWorld()).getPlayerChunkMap();
+            PlayerChunkMap manager = ((WorldServer) tileEntity.getWorld()).getPlayerChunkMap();
             for (EntityPlayer player : tileEntity.getWorld().playerEntities)
                 if (manager.isPlayerWatchingChunk((EntityPlayerMP) player, tileEntity.getPos().getX() >> 4, tileEntity.getPos().getZ() >> 4))
-                    ((EntityPlayerMP) player).playerNetServerHandler.sendPacket(tileEntity.getDescriptionPacket());
+                    ((EntityPlayerMP) player).connection.sendPacket(packet);
         }
     }
 
@@ -249,7 +253,7 @@ public class FunctionalNetwork
     {
         if (world instanceof WorldServer)
         {
-            PlayerManager manager = ((WorldServer) world).getPlayerChunkMap();
+            PlayerChunkMap manager = ((WorldServer) world).getPlayerChunkMap();
             for (EntityPlayer player : world.playerEntities)
                 if (manager.isPlayerWatchingChunk((EntityPlayerMP) player, pos.getX() >> 4, pos.getZ() >> 4))
                     sendTo((EntityPlayerMP) player, message);
@@ -264,9 +268,9 @@ public class FunctionalNetwork
      */
     public void sendToTracking(Entity entity, Message message)
     {
-        if (entity.worldObj instanceof WorldServer)
+        if (entity.world instanceof WorldServer)
         {
-            EntityTracker tracker = ((WorldServer) entity.worldObj).getEntityTracker();
+            EntityTracker tracker = ((WorldServer) entity.world).getEntityTracker();
             for (EntityPlayer p : tracker.getTrackingPlayers(entity))
                 sendTo((EntityPlayerMP) p, message);
             if (entity instanceof EntityPlayerMP)

@@ -39,7 +39,7 @@ public class OracleImpl extends AbstractMisting implements Oracle, ITickable
         if (entity instanceof EntityPlayer)
             spawnPoint = ((EntityPlayer) entity).getBedLocation();
         if (spawnPoint == null)
-            spawnPoint = entity.worldObj.getSpawnPoint();
+            spawnPoint = entity.world.getSpawnPoint();
         spawnDimension = entity.dimension;
         timer = 0;
         path.clear();
@@ -49,7 +49,7 @@ public class OracleImpl extends AbstractMisting implements Oracle, ITickable
     @Override
     public void update()
     {
-        if (!entity.worldObj.isRemote || path.isEmpty() || entity.dimension != spawnDimension)
+        if (!entity.world.isRemote || path.isEmpty() || entity.dimension != spawnDimension)
             return;
         timer++;
         if (timer > 5)
@@ -64,9 +64,9 @@ public class OracleImpl extends AbstractMisting implements Oracle, ITickable
     private void spawnParticles(BlockPos step)
     {
         Minecraft.getMinecraft().effectRenderer
-            .addEffect(new FootStep(entity.worldObj, new Vec3d(step).addVector(0.3, 0.0001, 0.3), 0.28627452f, 0.7254902f, 0.87058824f));
+            .addEffect(new FootStep(entity.world, new Vec3d(step).addVector(0.3, 0.0001, 0.3), 0.28627452f, 0.7254902f, 0.87058824f));
         Minecraft.getMinecraft().effectRenderer
-            .addEffect(new FootStep(entity.worldObj, new Vec3d(step).addVector(0.6, 0.0001, 0.6), 0.28627452f, 0.7254902f, 0.87058824f));
+            .addEffect(new FootStep(entity.world, new Vec3d(step).addVector(0.6, 0.0001, 0.6), 0.28627452f, 0.7254902f, 0.87058824f));
     }
 
     @Override
