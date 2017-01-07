@@ -1,7 +1,5 @@
 package de.mineformers.investiture.util;
 
-import de.mineformers.investiture.allomancy.extractor.ExtractorOutput;
-
 import java.util.Optional;
 
 /**

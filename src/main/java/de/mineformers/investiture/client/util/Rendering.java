@@ -87,7 +87,8 @@ public class Rendering
         drawRing(centreX, centreY, innerRadius, width, accuracy, startAngle, colour, colour);
     }
 
-    public static void drawRing(int centreX, int centreY, int innerRadius, int width, int accuracy, double startAngle, Colour innerColour, Colour outerColour)
+    public static void drawRing(int centreX, int centreY, int innerRadius, int width, int accuracy, double startAngle, Colour innerColour, Colour
+        outerColour)
     {
         Tessellator tess = Tessellator.getInstance();
         VertexBuffer wr = tess.getBuffer();

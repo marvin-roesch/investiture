@@ -15,6 +15,7 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
+import java.text.NumberFormat;
 import java.util.List;
 import java.util.Map;
 
@@ -67,6 +68,11 @@ public interface Proxy
     default float getFOV(EntityPlayer player)
     {
         return 0;
+    }
+
+    default NumberFormat getPercentageFormat()
+    {
+        return NumberFormat.getNumberInstance();
     }
 
     /**

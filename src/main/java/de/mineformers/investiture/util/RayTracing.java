@@ -36,10 +36,10 @@ public class RayTracing
         Entity result = null;
         Vec3d hitVec = null;
         List<Entity> list = camera.world.getEntitiesInAABBexcluding(camera, camera.getEntityBoundingBox()
-                                                                                     .addCoord(direction.xCoord * reach,
-                                                                                               direction.yCoord * reach,
-                                                                                               direction.zCoord * reach)
-                                                                                     .expand(1, 1, 1), EntitySelectors.NOT_SPECTATING);
+                                                                                  .addCoord(direction.xCoord * reach,
+                                                                                            direction.yCoord * reach,
+                                                                                            direction.zCoord * reach)
+                                                                                  .expand(1, 1, 1), EntitySelectors.NOT_SPECTATING);
         double minDistance = reach;
 
         for (Entity checkedEntity : list)

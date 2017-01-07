@@ -74,18 +74,23 @@ public class SpeedBubbleRenderer implements IResourceManagerReloadListener
         batchBuffer.getBuffer().begin(GL_QUADS, DefaultVertexFormats.ITEM);
         Frustum frustum = new Frustum();
         frustum.setPosition(pos.xCoord, pos.yCoord + player.getEyeHeight(), pos.zCoord);
-        AllomancyAPIImpl.INSTANCE.speedBubbles(player.world).forEach(bubble -> {
-//            if (!frustum.isBoundingBoxInFrustum(bubble.bounds))
-//                return;
-            for (BakedQuad quad : model.getQuads(null, null, 0))
-            {
-                LightUtil.renderQuadColor(batchBuffer.getBuffer(),
-                                          Modeling.scale(DefaultVertexFormats.ITEM, quad, new Vec3d(bubble.radius, bubble.radius, bubble.radius)),
-                                          0xFFFFFFFF);
-                batchBuffer.getBuffer()
-                           .putPosition(bubble.position.getX() + 0.5, bubble.position.getY(), bubble.position.getZ() + 0.5);
-            }
-        });
+        AllomancyAPIImpl.INSTANCE.speedBubbles(player.world)
+                                 .forEach(bubble ->
+                                          {
+                                              for (BakedQuad quad : model.getQuads(null, null, 0))
+                                              {
+                                                  LightUtil.renderQuadColor(batchBuffer.getBuffer(),
+                                                                            Modeling.scale(DefaultVertexFormats.ITEM, quad,
+                                                                                           new Vec3d(bubble.radius,
+                                                                                                     bubble.radius,
+                                                                                                     bubble.radius)),
+                                                                            0xFFFFFFFF);
+                                                  batchBuffer.getBuffer()
+                                                             .putPosition(bubble.position.getX() + 0.5,
+                                                                          bubble.position.getY(),
+                                                                          bubble.position.getZ() + 0.5);
+                                              }
+                                          });
         batchBuffer.getBuffer().sortVertexData((float) pos.xCoord, (float) pos.yCoord, (float) pos.zCoord);
         batchBuffer.draw();
         batchBuffer.getBuffer().getVertexState();

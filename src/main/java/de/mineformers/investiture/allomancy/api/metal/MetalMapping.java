@@ -5,48 +5,59 @@ import net.minecraftforge.oredict.OreDictionary;
 
 import javax.annotation.Nonnull;
 
-public interface MetalMapping extends MetalHolder<ItemStack>
+public interface MetalMapping
 {
     boolean matches(@Nonnull ItemStack stack);
 
-    abstract class AbstractMetalMapping implements MetalMapping
+    @Nonnull
+    Metal getMetal(@Nonnull ItemStack stack);
+
+    float getQuantity(@Nonnull ItemStack stack);
+
+    float getPurity(@Nonnull ItemStack stack);
+
+    abstract class Abstract implements MetalMapping
     {
         protected final Metal metal;
-        protected final float quantity;
+        protected final float conversionRate;
+        protected final float purity;
         protected final boolean nbt;
 
-        public AbstractMetalMapping(Metal metal, float quantity, boolean nbt)
+        public Abstract(Metal metal, float conversionRate, float purity, boolean nbt)
         {
             this.metal = metal;
-            this.quantity = quantity;
+            this.conversionRate = conversionRate;
+            this.purity = purity;
             this.nbt = nbt;
         }
 
+        @Nonnull
         @Override
-        public Metal getMetal(ItemStack stack)
+        public Metal getMetal(@Nonnull ItemStack stack)
         {
             return metal;
         }
 
         @Override
-        public float getMetalQuantity(ItemStack stack)
+        public float getQuantity(@Nonnull ItemStack stack)
         {
-            return quantity * stack.getCount();
+            return conversionRate * stack.getCount();
+        }
+
+        @Override
+        public float getPurity(@Nonnull ItemStack stack)
+        {
+            return purity;
         }
     }
 
-    class MetalMappingItem extends AbstractMetalMapping
+    class Item extends Abstract
     {
         protected final ItemStack stack;
 
-        public MetalMappingItem(Metal metal, ItemStack stack, float quantity)
+        public Item(ItemStack stack, Metal metal, float conversionRate, float purity, boolean nbt)
         {
-            this(metal, stack, quantity, false);
-        }
-
-        public MetalMappingItem(Metal metal, ItemStack stack, float quantity, boolean nbt)
-        {
-            super(metal, quantity, nbt);
+            super(metal, conversionRate, purity, nbt);
             this.stack = stack;
         }
 
@@ -62,13 +73,13 @@ public interface MetalMapping extends MetalHolder<ItemStack>
         }
     }
 
-    class MetalMappingOreDict extends AbstractMetalMapping
+    class OreDict extends Abstract
     {
         protected final String oreName;
 
-        public MetalMappingOreDict(Metal metal, String oreName, float quantity, boolean nbt)
+        public OreDict(String oreName, Metal metal, float conversionRate, float purity, boolean nbt)
         {
-            super(metal, quantity, nbt);
+            super(metal, conversionRate, purity, nbt);
             this.oreName = oreName;
         }
 

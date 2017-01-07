@@ -1,5 +1,6 @@
 package de.mineformers.investiture.allomancy.api;
 
+import de.mineformers.investiture.allomancy.api.metal.MetalMapping;
 import de.mineformers.investiture.allomancy.api.misting.Misting;
 import de.mineformers.investiture.allomancy.impl.misting.temporal.SpeedBubble;
 import net.minecraft.block.state.BlockWorldState;
@@ -26,29 +27,29 @@ import java.util.function.Predicate;
 public interface AllomancyAPI
 {
     /**
-     * Checks if the given entity is an Allomancer.
+     * Registers an additional Misting type. This doesn't necessarily match the lore (yet),
+     * but who knows what other metals will be useful allomantically?
      *
-     * @param entity the entity to check
-     * @return true if the entity is in fact an Allomancer, false otherwise.
+     * @param type    the base interface of the Misting type
+     * @param factory a factory generating instances of the Misting type
+     * @param <T>     the Misting type
      */
-    default boolean isAllomancer(Entity entity)
-    {
-        return toAllomancer(entity).isPresent();
-    }
-
-    /**
-     * Tries to get hold of the {@link Allomancer} instance associated with the given entity.
-     *
-     * @param entity the entity to get the instance for
-     * @return a present optional if the entity is an Allomancer, <code>Optional.empty()</code> otherwise
-     */
-    @Nonnull
-    Optional<Allomancer> toAllomancer(Entity entity);
-
     <T extends Misting> void registerMisting(Class<T> type, MistingFactory<? extends T> factory);
 
+    /**
+     * Registers a custom equality check to be used by the automatic synchronisation of Mistings.
+     *
+     * @param type      the class the equality holds up for
+     * @param predicate a predicate defining the actual equality relation
+     * @param <T>       the type the equality holds up for
+     */
     <T> void registerEquality(Class<T> type, BiPredicate<T, T> predicate);
 
+    /**
+     * Register an item which is to be considered metallic.
+     *
+     * @param predicate
+     */
     void registerMetallicItem(Predicate<ItemStack> predicate);
 
     void registerMetallicBlock(Predicate<BlockWorldState> predicate);
@@ -76,6 +77,7 @@ public interface AllomancyAPI
                 return null;
             }
 
+            @Nonnull
             @Override
             public IBlockState getBlockState()
             {
@@ -99,4 +101,8 @@ public interface AllomancyAPI
     Collection<Predicate<Entity>> metallicEntities();
 
     Iterable<SpeedBubble> speedBubbles(World world);
+
+    Optional<MetalMapping> getMapping(ItemStack stack);
+
+    void registerMetalMapping(MetalMapping mapping);
 }

@@ -3,10 +3,12 @@ package de.mineformers.investiture.allomancy.impl;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import de.mineformers.investiture.allomancy.api.Allomancer;
 import de.mineformers.investiture.allomancy.api.AllomancyAPI;
+import de.mineformers.investiture.allomancy.api.Capabilities;
 import de.mineformers.investiture.allomancy.api.MistingFactory;
+import de.mineformers.investiture.allomancy.api.metal.MetalMapping;
+import de.mineformers.investiture.allomancy.api.metal.Metals;
 import de.mineformers.investiture.allomancy.api.misting.Inject;
 import de.mineformers.investiture.allomancy.api.misting.Misting;
 import de.mineformers.investiture.allomancy.api.misting.mental.Rioter;
@@ -32,7 +34,7 @@ import net.minecraft.block.material.Material;
 import net.minecraft.block.state.BlockWorldState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
-import net.minecraft.init.Items;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ITickable;
@@ -58,11 +60,17 @@ public class AllomancyAPIImpl implements AllomancyAPI
     public static final AllomancyAPIImpl INSTANCE = new AllomancyAPIImpl();
     private static final List<Class<?>> INJECTABLE_TYPES = ImmutableList.of(Allomancer.class, Entity.class);
 
+    public static Optional<Allomancer> getAllomancer(Entity player)
+    {
+        return INSTANCE.toAllomancer(player);
+    }
+
     Map<Class<? extends Misting>, MistingData> factories = new HashMap<>();
     private Map<Class<?>, BiPredicate<?, ?>> equalities = new HashMap<>();
     private Set<Predicate<ItemStack>> metallicItems = new HashSet<>();
     private Set<Predicate<BlockWorldState>> metallicBlocks = new HashSet<>();
     private Set<Predicate<Entity>> metallicEntities = new HashSet<>();
+    private Set<MetalMapping> mappings = new HashSet<>();
 
     private AllomancyAPIImpl()
     {
@@ -85,9 +93,12 @@ public class AllomancyAPIImpl implements AllomancyAPI
         registerMisting(Pulser.class, PulserImpl::new);
         registerMisting(Slider.class, SliderImpl::new);
 
-//        TineyeImpl.init();
+        registerMetalMapping(new MetalMapping.OreDict("ingotIron", Metals.IRON, 9, 1, false));
+        registerMetalMapping(new MetalMapping.OreDict("ingotGold", Metals.GOLD, 9, 1, false));
+        registerMetalMapping(new MetalMapping.OreDict("nuggetIron", Metals.IRON, 1, 1, false));
+        registerMetalMapping(new MetalMapping.OreDict("nuggetGold", Metals.GOLD, 1, 1, false));
 
-        Set<Item> metallicItems = ImmutableSet.of(Items.IRON_INGOT, Items.GOLD_INGOT, Items.GOLD_NUGGET);
+        registerMetallicItem(stack -> Metals.getMetalStack(stack).isPresent());
         registerMetallicItem(stack ->
                              {
                                  Item item = stack.getItem();
@@ -113,10 +124,9 @@ public class AllomancyAPIImpl implements AllomancyAPI
     }
 
     @Nonnull
-    @Override
     public Optional<Allomancer> toAllomancer(Entity entity)
     {
-        return Optional.ofNullable(entity.getCapability(CapabilityHandler.ALLOMANCER_CAPABILITY, null));
+        return Optional.ofNullable(entity.getCapability(Capabilities.ALLOMANCER, null));
     }
 
     @Override
@@ -174,6 +184,18 @@ public class AllomancyAPIImpl implements AllomancyAPI
     public Iterable<SpeedBubble> speedBubbles(World world)
     {
         return SpeedBubbles.from(world);
+    }
+
+    @Override
+    public Optional<MetalMapping> getMapping(ItemStack stack)
+    {
+        return mappings.stream().filter(m -> m.matches(stack)).findFirst();
+    }
+
+    @Override
+    public void registerMetalMapping(MetalMapping mapping)
+    {
+        mappings.add(mapping);
     }
 
     @Nullable

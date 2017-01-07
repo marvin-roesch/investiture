@@ -3,7 +3,6 @@ package de.mineformers.investiture.allomancy.impl.misting.temporal;
 import de.mineformers.investiture.allomancy.api.misting.Inject;
 import de.mineformers.investiture.allomancy.api.misting.temporal.Augur;
 import de.mineformers.investiture.allomancy.client.particle.FootStep;
-import de.mineformers.investiture.allomancy.impl.AllomancyAPIImpl;
 import de.mineformers.investiture.allomancy.impl.misting.AbstractMisting;
 import de.mineformers.investiture.serialisation.Serialise;
 import de.mineformers.investiture.util.PathFinding;
@@ -20,6 +19,8 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import java.util.ArrayDeque;
 import java.util.Optional;
 import java.util.Queue;
+
+import static de.mineformers.investiture.allomancy.impl.AllomancyAPIImpl.getAllomancer;
 
 /**
  * ${JDOC}
@@ -97,13 +98,15 @@ public class AugurImpl extends AbstractMisting implements Augur, ITickable
             Entity entity = event.getEntity();
             if (entity.world.isRemote)
                 return;
-            AllomancyAPIImpl.INSTANCE.toAllomancer(entity).flatMap(a -> a.as(Augur.class)).ifPresent(a -> {
-                if (a instanceof AugurImpl)
-                {
-                    ((AugurImpl) a).deathDimension = entity.dimension;
-                    ((AugurImpl) a).position = entity.getPositionVector();
-                }
-            });
+            getAllomancer(entity).flatMap(a -> a.as(Augur.class))
+                                 .ifPresent(a ->
+                                            {
+                                                if (a instanceof AugurImpl)
+                                                {
+                                                    ((AugurImpl) a).deathDimension = entity.dimension;
+                                                    ((AugurImpl) a).position = entity.getPositionVector();
+                                                }
+                                            });
         }
     }
 }

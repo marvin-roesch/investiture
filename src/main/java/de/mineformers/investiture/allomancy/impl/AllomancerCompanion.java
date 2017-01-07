@@ -54,17 +54,17 @@ public class AllomancerCompanion
     {
         if (entity.world.isRemote)
             return;
-        Set<Serialisation.FieldData> fields = Serialisation.INSTANCE.getNetFields(type, true)
-                                                                    .stream()
-                                                                    .filter(f -> {
-                                                                        Object value = f.get(instance);
-                                                                        Optional<?> oldValue =
-                                                                            oldValues.contains(instance, f.name) ? oldValues.get(instance, f.name)
-                                                                                                                 : null;
-                                                                        return oldValue == null ||
-                                                                            !AllomancyAPIImpl.INSTANCE.equals(value, oldValue.orElse(null));
-                                                                    })
-                                                                    .collect(Collectors.toSet());
+        Set<Serialisation.FieldData> fields =
+            Serialisation.INSTANCE.getNetFields(type, true)
+                                  .stream()
+                                  .filter(f ->
+                                          {
+                                              Object value = f.get(instance);
+                                              Optional<?> oldValue = oldValues.contains(instance, f.name) ? oldValues.get(instance, f.name)
+                                                                                                          : null;
+                                              return oldValue == null || !AllomancyAPIImpl.INSTANCE.equals(value, oldValue.orElse(null));
+                                          })
+                                  .collect(Collectors.toSet());
         if (fields.isEmpty())
             return;
         ByteBuf buffer = Unpooled.buffer();

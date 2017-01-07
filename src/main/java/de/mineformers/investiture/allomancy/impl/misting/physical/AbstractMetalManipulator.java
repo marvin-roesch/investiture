@@ -30,6 +30,7 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import javax.annotation.Nonnull;
 import java.util.*;
 
+import static de.mineformers.investiture.allomancy.impl.AllomancyAPIImpl.getAllomancer;
 import static net.minecraft.client.renderer.GlStateManager.*;
 import static org.lwjgl.opengl.GL11.*;
 
@@ -73,9 +74,9 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
         affectedEntities.clear();
         affectedEntities.addAll(
             entity.world.getEntitiesInAABBexcluding(entity,
-                                                       new AxisAlignedBB(entity.posX - 20, entity.posY - 20, entity.posZ - 20,
-                                                                         entity.posX + 20, entity.posY + 20, entity.posZ + 20),
-                                                       AllomancyAPIImpl.INSTANCE::isMetallic));
+                                                    new AxisAlignedBB(entity.posX - 20, entity.posY - 20, entity.posZ - 20,
+                                                                      entity.posX + 20, entity.posY + 20, entity.posZ + 20),
+                                                    AllomancyAPIImpl.INSTANCE::isMetallic));
     }
 
     @Override
@@ -151,75 +152,80 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
             EntityPlayer player = Minecraft.getMinecraft().player;
             if (event.phase != TickEvent.Phase.END || player == null)
                 return;
-            AllomancyAPIImpl.INSTANCE.toAllomancer(player).ifPresent(a -> {
-                active = a.activePowers().contains(Coinshot.class) || a.activePowers().contains(Lurcher.class);
-                allEntities.clear();
-                allPositions.clear();
-                if (active)
-                {
-                    allEntities.addAll(a.as(Coinshot.class).map(MetalManipulator::affectedEntities).orElse(new HashSet<>()));
-                    allEntities.addAll(a.as(Lurcher.class).map(MetalManipulator::affectedEntities).orElse(new HashSet<>()));
-                    allPositions.addAll(a.as(Coinshot.class).map(MetalManipulator::affectedBlocks).orElse(new HashSet<>()));
-                    allPositions.addAll(a.as(Lurcher.class).map(MetalManipulator::affectedBlocks).orElse(new HashSet<>()));
-                }
+            getAllomancer(player).ifPresent(a ->
+                                            {
+                                                active = a.activePowers().contains(Coinshot.class) || a.activePowers().contains(Lurcher.class);
+                                                allEntities.clear();
+                                                allPositions.clear();
+                                                if (active)
+                                                {
+                                                    allEntities.addAll(a.as(Coinshot.class).map(MetalManipulator::affectedEntities)
+                                                                        .orElse(new HashSet<>()));
+                                                    allEntities.addAll(a.as(Lurcher.class).map(MetalManipulator::affectedEntities)
+                                                                        .orElse(new HashSet<>()));
+                                                    allPositions.addAll(a.as(Coinshot.class).map(MetalManipulator::affectedBlocks)
+                                                                         .orElse(new HashSet<>()));
+                                                    allPositions.addAll(a.as(Lurcher.class).map(MetalManipulator::affectedBlocks)
+                                                                         .orElse(new HashSet<>()));
+                                                }
 
-                Set<PositionWrapper> toRemove = new HashSet<>();
-                for (PositionWrapper p : fadeOutTimer.keySet())
-                {
-                    fadeOutTimer.increment(p);
-                    if (fadeOutTimer.get(p) > 20)
-                        toRemove.add(p);
-                }
-                for (PositionWrapper p : toRemove)
-                    fadeOutTimer.remove(p);
+                                                Set<PositionWrapper> toRemove = new HashSet<>();
+                                                for (PositionWrapper p : fadeOutTimer.keySet())
+                                                {
+                                                    fadeOutTimer.increment(p);
+                                                    if (fadeOutTimer.get(p) > 20)
+                                                        toRemove.add(p);
+                                                }
+                                                for (PositionWrapper p : toRemove)
+                                                    fadeOutTimer.remove(p);
 
-                toRemove.clear();
-                for (PositionWrapper p : fadeInTimer.keySet())
-                {
-                    fadeInTimer.increment(p);
-                    if (fadeInTimer.get(p) > 20)
-                    {
-                        positions.add(p);
-                        toRemove.add(p);
-                    }
-                    else if ((p.base instanceof BlockPos && !allPositions.contains(p.base)) ||
-                        (p.base instanceof Entity && !allEntities.contains(p.base)))
-                    {
-                        fadeOutTimer.put(p, 21 - fadeInTimer.get(p));
-                        toRemove.add(p);
-                    }
-                }
-                for (PositionWrapper p : toRemove)
-                    fadeInTimer.remove(p);
+                                                toRemove.clear();
+                                                for (PositionWrapper p : fadeInTimer.keySet())
+                                                {
+                                                    fadeInTimer.increment(p);
+                                                    if (fadeInTimer.get(p) > 20)
+                                                    {
+                                                        positions.add(p);
+                                                        toRemove.add(p);
+                                                    }
+                                                    else if ((p.base instanceof BlockPos && !allPositions.contains(p.base)) ||
+                                                        (p.base instanceof Entity && !allEntities.contains(p.base)))
+                                                    {
+                                                        fadeOutTimer.put(p, 21 - fadeInTimer.get(p));
+                                                        toRemove.add(p);
+                                                    }
+                                                }
+                                                for (PositionWrapper p : toRemove)
+                                                    fadeInTimer.remove(p);
 
-                for (Iterator<PositionWrapper> it = positions.iterator(); it.hasNext(); )
-                {
-                    PositionWrapper p = it.next();
-                    if ((p.base instanceof BlockPos && !allPositions.contains(p.base)) ||
-                        (p.base instanceof Entity && !allEntities.contains(p.base)))
-                    {
-                        fadeOutTimer.put(p, 0);
-                        it.remove();
-                    }
-                }
+                                                for (Iterator<PositionWrapper> it = positions.iterator(); it.hasNext(); )
+                                                {
+                                                    PositionWrapper p = it.next();
+                                                    if ((p.base instanceof BlockPos && !allPositions.contains(p.base)) ||
+                                                        (p.base instanceof Entity && !allEntities.contains(p.base)))
+                                                    {
+                                                        fadeOutTimer.put(p, 0);
+                                                        it.remove();
+                                                    }
+                                                }
 
-                for (BlockPos p : allPositions)
-                {
-                    PositionWrapper wrapper = PositionWrapper.from(player.world, p);
-                    if (!positions.contains(wrapper) && !fadeInTimer.containsKey(wrapper))
-                    {
-                        fadeInTimer.put(wrapper, 0);
-                    }
-                }
-                for (Entity e : allEntities)
-                {
-                    PositionWrapper wrapper = PositionWrapper.from(e);
-                    if (!positions.contains(wrapper) && !fadeInTimer.containsKey(wrapper))
-                    {
-                        fadeInTimer.put(wrapper, 0);
-                    }
-                }
-            });
+                                                for (BlockPos p : allPositions)
+                                                {
+                                                    PositionWrapper wrapper = PositionWrapper.from(player.world, p);
+                                                    if (!positions.contains(wrapper) && !fadeInTimer.containsKey(wrapper))
+                                                    {
+                                                        fadeInTimer.put(wrapper, 0);
+                                                    }
+                                                }
+                                                for (Entity e : allEntities)
+                                                {
+                                                    PositionWrapper wrapper = PositionWrapper.from(e);
+                                                    if (!positions.contains(wrapper) && !fadeInTimer.containsKey(wrapper))
+                                                    {
+                                                        fadeInTimer.put(wrapper, 0);
+                                                    }
+                                                }
+                                            });
         }
 
         @SubscribeEvent

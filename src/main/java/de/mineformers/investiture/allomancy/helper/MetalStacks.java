@@ -11,7 +11,7 @@ import net.minecraft.item.ItemStack;
 import java.util.Arrays;
 import java.util.Optional;
 
-public class AllomanticMetalItemHelper
+public class MetalStacks
 {
     public static Optional<ItemStack> ore(Metal metal)
     {
@@ -85,12 +85,13 @@ public class AllomanticMetalItemHelper
         try
         {
             MetalItem item = type.getter.call();
-            for (int i = 0; i < item.getNames().length; i++)
+            for (int i = 0; i < item.getMetalNames().length; i++)
             {
-                if (metal.id().equals(item.getNames()[i]))
+                if (metal.id().equals(item.getMetalNames()[i]))
                 {
                     ItemStack stack = new ItemStack(item, count, i);
-                    return Optional.of(item.setPurity(stack, purity));
+                    item.getMetalStack(stack).setPurity(purity / 100f);
+                    return Optional.of(stack);
                 }
             }
         }

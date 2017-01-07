@@ -78,11 +78,12 @@ public class EntityAllomancer implements Allomancer, INBTSerializable<NBTTagComp
     {
         if (activePowers.contains(type))
             return;
-        as(type).ifPresent(m -> {
-            activePowers.add(type);
-            m.startBurning();
-            sync();
-        });
+        as(type).ifPresent(m ->
+                           {
+                               activePowers.add(type);
+                               m.startBurning();
+                               sync();
+                           });
     }
 
     @Override
@@ -90,11 +91,12 @@ public class EntityAllomancer implements Allomancer, INBTSerializable<NBTTagComp
     {
         if (!activePowers.contains(type))
             return;
-        as(type).ifPresent(m -> {
-            activePowers.remove(type);
-            m.stopBurning();
-            sync();
-        });
+        as(type).ifPresent(m ->
+                           {
+                               activePowers.remove(type);
+                               m.stopBurning();
+                               sync();
+                           });
     }
 
     @Override

@@ -27,8 +27,6 @@ import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-import java.util.List;
-
 /**
  * Provides blocks for all parts of the metal extractor multi block structure.
  * The metal extractor will convert ores into slightly purified metal chunks.

@@ -93,50 +93,60 @@ public class ClientProxy extends de.mineformers.investiture.core.ClientProxy
 //            return null;
 //        });
 
-        Investiture.net().addHandler(MetalExtractorUpdate.class, Side.CLIENT, (msg, ctx) -> {
-            ctx.schedule(() -> {
-                if (ctx.player().world.getTileEntity(msg.pos) instanceof TileMetalExtractorMaster)
-                    ((TileMetalExtractorMaster) ctx.player().world.getTileEntity(msg.pos)).processUpdate(msg);
-            });
+        Investiture.net().addHandler(MetalExtractorUpdate.class, Side.CLIENT, (msg, ctx) ->
+        {
+            ctx.schedule(() ->
+                         {
+                             if (ctx.player().world.getTileEntity(msg.pos) instanceof TileMetalExtractorMaster)
+                                 ((TileMetalExtractorMaster) ctx.player().world.getTileEntity(msg.pos)).processUpdate(msg);
+                         });
             return null;
         });
 
-        Investiture.net().addHandler(AllomancerUpdate.class, Side.CLIENT, (msg, ctx) -> {
-            ctx.schedule(() -> {
-                Entity entity = ctx.player().world.getEntityByID(msg.entityId);
-                AllomancyAPIImpl.INSTANCE.toAllomancer(entity).ifPresent(a -> {
-                    if (a instanceof EntityAllomancer)
-                        ((EntityAllomancer) a).setActivePowers(msg.activePowers);
-                });
-            });
+        Investiture.net().addHandler(AllomancerUpdate.class, Side.CLIENT, (msg, ctx) ->
+        {
+            ctx.schedule(() ->
+                         {
+                             Entity entity = ctx.player().world.getEntityByID(msg.entityId);
+                             AllomancyAPIImpl.INSTANCE.toAllomancer(entity).ifPresent(a ->
+                                                                                      {
+                                                                                          if (a instanceof EntityAllomancer)
+                                                                                              ((EntityAllomancer) a)
+                                                                                                  .setActivePowers(msg.activePowers);
+                                                                                      });
+                         });
             return null;
         });
 
-        Investiture.net().addHandler(MistingUpdate.class, Side.CLIENT, (msg, ctx) -> {
-            ctx.schedule(() -> {
-                Entity entity = ctx.player().world.getEntityByID(msg.entityId);
-                try
-                {
-                    AllomancyAPIImpl.INSTANCE.read(entity, (Class<? extends Misting>) Class.forName(msg.type), msg.data);
-                }
-                catch (ClassNotFoundException e)
-                {
-                    Throwables.propagate(e);
-                }
-            });
+        Investiture.net().addHandler(MistingUpdate.class, Side.CLIENT, (msg, ctx) ->
+        {
+            ctx.schedule(() ->
+                         {
+                             Entity entity = ctx.player().world.getEntityByID(msg.entityId);
+                             try
+                             {
+                                 AllomancyAPIImpl.INSTANCE.read(entity, (Class<? extends Misting>) Class.forName(msg.type), msg.data);
+                             }
+                             catch (ClassNotFoundException e)
+                             {
+                                 Throwables.propagate(e);
+                             }
+                         });
             return null;
         });
 
-        Investiture.net().addHandler(SpeedBubbleUpdate.class, Side.CLIENT, (msg, ctx) -> {
-            ctx.schedule(() -> {
-                if (ctx.player().dimension != msg.dimension)
-                    return;
-                SpeedBubble bubble = new SpeedBubble(msg.dimension, msg.position, msg.radius);
-                if (msg.action == SpeedBubbleUpdate.ACTION_ADD)
-                    SpeedBubbles.from(ctx.player().world).add(bubble);
-                else if (msg.action == SpeedBubbleUpdate.ACTION_REMOVE)
-                    SpeedBubbles.from(ctx.player().world).remove(bubble);
-            });
+        Investiture.net().addHandler(SpeedBubbleUpdate.class, Side.CLIENT, (msg, ctx) ->
+        {
+            ctx.schedule(() ->
+                         {
+                             if (ctx.player().dimension != msg.dimension)
+                                 return;
+                             SpeedBubble bubble = new SpeedBubble(msg.dimension, msg.position, msg.radius);
+                             if (msg.action == SpeedBubbleUpdate.ACTION_ADD)
+                                 SpeedBubbles.from(ctx.player().world).add(bubble);
+                             else if (msg.action == SpeedBubbleUpdate.ACTION_REMOVE)
+                                 SpeedBubbles.from(ctx.player().world).remove(bubble);
+                         });
             return null;
         });
     }
@@ -151,7 +161,7 @@ public class ClientProxy extends de.mineformers.investiture.core.ClientProxy
     private void registerMetalResources(MetalItem item)
     {
         final List<ModelResourceLocation> resources =
-            Arrays.stream(item.getNames())
+            Arrays.stream(item.getMetalNames())
                   .map(n -> new ModelResourceLocation(Allomancy.DOMAIN + ":allomantic_metal_" + item.getItemType(), "metal=" + n))
                   .collect(Collectors.toList());
         ModelLoader.setCustomMeshDefinition(item, stack -> resources.get(item.clampDamage(stack.getItemDamage())));

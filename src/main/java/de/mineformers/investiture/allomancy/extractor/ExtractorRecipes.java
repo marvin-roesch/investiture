@@ -1,7 +1,7 @@
 package de.mineformers.investiture.allomancy.extractor;
 
 import de.mineformers.investiture.allomancy.api.metal.Metal;
-import de.mineformers.investiture.allomancy.helper.AllomanticMetalItemHelper;
+import de.mineformers.investiture.allomancy.helper.MetalStacks;
 import net.minecraft.item.ItemStack;
 
 import java.util.ArrayList;
@@ -42,17 +42,17 @@ public class ExtractorRecipes
 
     public static void register(Metal input, Metal result)
     {
-        register(AllomanticMetalItemHelper.ore(input).get(), result);
+        register(MetalStacks.ore(input).get(), result);
     }
 
     public static void register(Metal input, Metal primaryResult, Metal secondaryResult)
     {
-        register(AllomanticMetalItemHelper.ore(input).get(), primaryResult, secondaryResult);
+        register(MetalStacks.ore(input).get(), primaryResult, secondaryResult);
     }
 
     public static void register(Metal input, Metal primaryResult, Metal secondaryResult, float secondaryChance)
     {
-        register(AllomanticMetalItemHelper.ore(input).get(), primaryResult, secondaryResult, secondaryChance);
+        register(MetalStacks.ore(input).get(), primaryResult, secondaryResult, secondaryChance);
     }
 
     public static void register(ItemStack input, Metal result)

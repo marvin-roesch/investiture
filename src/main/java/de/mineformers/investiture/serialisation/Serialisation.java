@@ -639,25 +639,26 @@ public class Serialisation
             .flatMap(Arrays::stream)
             .filter(f -> (f.getModifiers() & Modifier.STATIC) == 0)
             .sorted((f1, f2) -> f1.getName().compareTo(f2.getName()))
-            .forEach(f -> {
-                if (f.getAnnotationsByType(ManualTranslation.class).length != 0)
-                    return;
-                Serialise serialise = f.getAnnotation(Serialise.class);
-                boolean nbt = true;
-                boolean net = true;
-                if (serialise != null)
-                {
-                    nbt = serialise.nbt();
-                    net = serialise.net();
-                }
-                else if (onlyAnnotated)
-                    return;
+            .forEach(f ->
+                     {
+                         if (f.getAnnotationsByType(ManualTranslation.class).length != 0)
+                             return;
+                         Serialise serialise = f.getAnnotation(Serialise.class);
+                         boolean nbt = true;
+                         boolean net = true;
+                         if (serialise != null)
+                         {
+                             nbt = serialise.nbt();
+                             net = serialise.net();
+                         }
+                         else if (onlyAnnotated)
+                             return;
 
-                fields.put(type.getName(), new FieldData(f, nbt, net));
-                // Cache the translator for each field, prevents disparities between different points in time
-                f.setAccessible(true);
-                fieldTranslators.put(type.getName(), f.getName(), findTranslator(f.getType()));
-            });
+                         fields.put(type.getName(), new FieldData(f, nbt, net));
+                         // Cache the translator for each field, prevents disparities between different points in time
+                         f.setAccessible(true);
+                         fieldTranslators.put(type.getName(), f.getName(), findTranslator(f.getType()));
+                     });
     }
 
     /**

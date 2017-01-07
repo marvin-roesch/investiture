@@ -33,7 +33,7 @@ public interface Metal
 
     default boolean matches(@Nonnull ItemStack stack)
     {
-        return stack.getItem() instanceof MetalHolder && this.equals(((MetalHolder<ItemStack>) stack.getItem()).getMetal(stack));
+        return Metals.getMetalStack(stack).map(s -> this.equals(s.getMetal())).orElse(false);
     }
 
     /**

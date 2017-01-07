@@ -45,6 +45,8 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.function.Function;
 
+import static de.mineformers.investiture.allomancy.impl.AllomancyAPIImpl.getAllomancer;
+
 /**
  * The "Allomancy" module is based on the "Mistborn" series of books by Brandon Sanderson.
  * <p>
@@ -82,6 +84,7 @@ public final class Allomancy implements Manifestation
     @Override
     public void preInit(FMLPreInitializationEvent event)
     {
+        CapabilityHandler.init();
         Metals.init();
         Blocks.register();
         Items.register();
@@ -97,7 +100,6 @@ public final class Allomancy implements Manifestation
         ExtractorRecipes.register(Metals.LEAD);
         GameRegistry.registerWorldGenerator(new MetalGenerator(), 0);
         AllomancyAPIImpl.INSTANCE.init();
-        CapabilityHandler.init();
 
         MinecraftForge.EVENT_BUS.register(new AugurImpl.EventHandler());
         CommonNetworking.init();
@@ -233,27 +235,21 @@ public final class Allomancy implements Manifestation
             // Add handler for toggling the burning of a metal
             Investiture.net().addHandler(ToggleBurningMetal.class, Side.SERVER, (msg, ctx) ->
             {
-                ctx.schedule(() -> AllomancyAPIImpl.INSTANCE.toAllomancer(ctx.player()).ifPresent(a ->
-                                                                                                  {
-                                                                                                      Optional<Metal> optional = Metals
-                                                                                                          .get(msg.metal);
+                ctx.schedule(() ->
+                                 getAllomancer(ctx.player())
+                                     .ifPresent(a ->
+                                                {
+                                                    Metal metal = Metals.get(msg.metal);
 
-                                                                                                      // Safety measures, in case the client sends
-                                                                                                      // bad data
-                                                                                                      if (optional.isPresent())
-                                                                                                      {
-                                                                                                          Metal metal = optional.get();
-                                                                                                          if (a.activePowers()
-                                                                                                               .contains(metal.mistingType()))
-                                                                                                          {
-                                                                                                              a.deactivate(metal.mistingType());
-                                                                                                          }
-                                                                                                          else
-                                                                                                          {
-                                                                                                              a.activate(metal.mistingType());
-                                                                                                          }
-                                                                                                      }
-                                                                                                  }));
+                                                    if (a.activePowers().contains(metal.mistingType()))
+                                                    {
+                                                        a.deactivate(metal.mistingType());
+                                                    }
+                                                    else
+                                                    {
+                                                        a.activate(metal.mistingType());
+                                                    }
+                                                }));
                 return null;
             });
 
@@ -264,21 +260,21 @@ public final class Allomancy implements Manifestation
                                  Entity entity = ctx.player().world.getEntityByID(msg.entityId);
                                  if (entity != null)
                                  {
-                                     AllomancyAPIImpl.INSTANCE.toAllomancer(entity)
-                                                              .flatMap(a ->
-                                                                       {
-                                                                           try
-                                                                           {
-                                                                               return a.as((Class<? extends Misting>) Class.forName(msg.type));
-                                                                           }
-                                                                           catch (ClassNotFoundException e)
-                                                                           {
-                                                                               Throwables.propagate(e);
-                                                                           }
-                                                                           return Optional.empty();
-                                                                       })
-                                                              .filter(m -> m instanceof Targeting && ((Targeting) m).isValid(msg.target))
-                                                              .ifPresent(t -> ((Targeting) t).apply(msg.target));
+                                     getAllomancer(entity)
+                                         .flatMap(a ->
+                                                  {
+                                                      try
+                                                      {
+                                                          return a.as((Class<? extends Misting>) Class.forName(msg.type));
+                                                      }
+                                                      catch (ClassNotFoundException e)
+                                                      {
+                                                          Throwables.propagate(e);
+                                                      }
+                                                      return Optional.empty();
+                                                  })
+                                         .filter(m -> m instanceof Targeting && ((Targeting) m).isValid(msg.target))
+                                         .ifPresent(t -> ((Targeting) t).apply(msg.target));
                                  }
                              });
                 return null;

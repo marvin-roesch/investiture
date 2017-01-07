@@ -2,6 +2,9 @@ package de.mineformers.investiture.allomancy.impl;
 
 import de.mineformers.investiture.allomancy.Allomancy;
 import de.mineformers.investiture.allomancy.api.Allomancer;
+import de.mineformers.investiture.allomancy.api.Capabilities;
+import de.mineformers.investiture.allomancy.api.metal.stack.MetalStack;
+import de.mineformers.investiture.allomancy.api.metal.stack.MetalStackMappingProvider;
 import de.mineformers.investiture.allomancy.api.misting.Misting;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -10,7 +13,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.CapabilityInject;
 import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.util.INBTSerializable;
@@ -27,9 +29,6 @@ import javax.annotation.Nullable;
  */
 public class CapabilityHandler
 {
-    @CapabilityInject(Allomancer.class)
-    public static Capability<Allomancer> ALLOMANCER_CAPABILITY;
-
     public static void init()
     {
         CapabilityManager.INSTANCE.register(Allomancer.class, new Capability.IStorage<Allomancer>()
@@ -44,6 +43,28 @@ public class CapabilityHandler
             @Override
             public void readNBT(Capability<Allomancer> capability, Allomancer instance, EnumFacing side, NBTBase nbt)
             {
+            }
+        }, () -> null);
+        CapabilityManager.INSTANCE.register(MetalStack.class, new Capability.IStorage<MetalStack>()
+        {
+            @Nullable
+            @Override
+            public NBTBase writeNBT(Capability<MetalStack> capability, MetalStack instance, EnumFacing side)
+            {
+                if (instance instanceof INBTSerializable)
+                {
+                    return ((INBTSerializable) instance).serializeNBT();
+                }
+                return null;
+            }
+
+            @Override
+            public void readNBT(Capability<MetalStack> capability, MetalStack instance, EnumFacing side, NBTBase nbt)
+            {
+                if (instance instanceof INBTSerializable)
+                {
+                    ((INBTSerializable<NBTBase>) instance).deserializeNBT(nbt);
+                }
             }
         }, () -> null);
         MinecraftForge.EVENT_BUS.register(new CapabilityHandler());
@@ -99,8 +120,8 @@ public class CapabilityHandler
     @SubscribeEvent
     public void onClone(PlayerEvent.Clone event)
     {
-        NBTTagCompound data = ((EntityAllomancer) event.getOriginal().getCapability(ALLOMANCER_CAPABILITY, null)).serializeNBT();
-        ((EntityAllomancer) event.getEntity().getCapability(ALLOMANCER_CAPABILITY, null)).deserializeNBT(data);
+        NBTTagCompound data = ((EntityAllomancer) event.getOriginal().getCapability(Capabilities.ALLOMANCER, null)).serializeNBT();
+        ((EntityAllomancer) event.getEntity().getCapability(Capabilities.ALLOMANCER, null)).deserializeNBT(data);
     }
 
     /**
@@ -125,6 +146,14 @@ public class CapabilityHandler
         }
     }
 
+    @SubscribeEvent
+    public void onAttach(AttachCapabilitiesEvent.Item event)
+    {
+        AllomancyAPIImpl.INSTANCE.getMapping(event.getItemStack())
+                                 .ifPresent(m -> event.addCapability(Allomancy.resource("metal_mapping"),
+                                                                     new MetalStackMappingProvider(event.getItemStack(), m)));
+    }
+
     private static class PlayerCapabilityProvider implements ICapabilityProvider, INBTSerializable<NBTTagCompound>
     {
         private Entity entity;
@@ -138,18 +167,17 @@ public class CapabilityHandler
         @Override
         public boolean hasCapability(Capability<?> capability, @Nullable EnumFacing facing)
         {
-            return capability == ALLOMANCER_CAPABILITY;
+            return capability == Capabilities.ALLOMANCER;
         }
 
-        @SuppressWarnings("unchecked")
         @Override
         public <T> T getCapability(Capability<T> capability, @Nullable EnumFacing facing)
         {
-            if (capability == ALLOMANCER_CAPABILITY)
+            if (capability == Capabilities.ALLOMANCER)
             {
                 if (allomancer == null)
                     allomancer = new EntityAllomancer(entity);
-                return (T) allomancer;
+                return Capabilities.ALLOMANCER.cast(allomancer);
             }
             return null;
         }

@@ -1,6 +1,5 @@
 package de.mineformers.investiture.allomancy.impl.misting.physical;
 
-import de.mineformers.investiture.allomancy.Allomancy;
 import de.mineformers.investiture.allomancy.AllomancyConfig;
 import de.mineformers.investiture.allomancy.api.misting.Inject;
 import de.mineformers.investiture.allomancy.api.misting.physical.Thug;

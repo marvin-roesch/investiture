@@ -9,7 +9,6 @@ import java.util.Map;
 
 public interface MetalAlloy extends Metal
 {
-
     Map<Metal, Float> getComponents();
 
     abstract class AbstractAlloy extends AbstractMetal implements MetalAlloy

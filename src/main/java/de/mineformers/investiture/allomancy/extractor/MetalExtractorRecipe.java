@@ -1,7 +1,7 @@
 package de.mineformers.investiture.allomancy.extractor;
 
 import de.mineformers.investiture.allomancy.api.metal.Metal;
-import de.mineformers.investiture.allomancy.helper.AllomanticMetalItemHelper;
+import de.mineformers.investiture.allomancy.helper.MetalStacks;
 import net.minecraft.item.ItemStack;
 
 import javax.annotation.Nonnull;
@@ -51,8 +51,8 @@ public class MetalExtractorRecipe implements ExtractorRecipe
     {
         if (ItemStack.areItemsEqual(input, this.input))
         {
-            ItemStack primary = AllomanticMetalItemHelper.chunk(primaryOutput, 1, RANDOM.nextInt(6) + 95).get();
-            ItemStack secondary = secondaryOutput != null ? AllomanticMetalItemHelper.chunk(secondaryOutput, 1, RANDOM.nextInt(6) + 95).get()
+            ItemStack primary = MetalStacks.chunk(primaryOutput, 1, RANDOM.nextInt(6) + 95).get();
+            ItemStack secondary = secondaryOutput != null ? MetalStacks.chunk(secondaryOutput, 1, RANDOM.nextInt(6) + 95).get()
                                                           : null;
             return ExtractorOutput.optional(primary, secondary, secondaryChance);
         }

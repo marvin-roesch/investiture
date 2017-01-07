@@ -3,6 +3,7 @@ package de.mineformers.investiture.core;
 import de.mineformers.investiture.client.util.Textures;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
@@ -10,6 +11,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.apache.commons.lang3.tuple.Pair;
 
+import java.text.NumberFormat;
 import java.util.Stack;
 
 /**
@@ -59,6 +61,12 @@ public class ClientProxy implements Proxy
                 return Minecraft.getMinecraft().gameSettings.fovSetting;
         }
         return 0;
+    }
+
+    @Override
+    public NumberFormat getPercentageFormat()
+    {
+        return NumberFormat.getPercentInstance(MinecraftForgeClient.getLocale());
     }
 
     private static class EventHandler

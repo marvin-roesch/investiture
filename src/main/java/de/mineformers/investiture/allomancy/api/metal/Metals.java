@@ -1,6 +1,8 @@
 package de.mineformers.investiture.allomancy.api.metal;
 
 import com.google.common.collect.ImmutableSet;
+import de.mineformers.investiture.allomancy.api.Capabilities;
+import de.mineformers.investiture.allomancy.api.metal.stack.MetalStack;
 import de.mineformers.investiture.allomancy.api.misting.Misting;
 import de.mineformers.investiture.allomancy.api.misting.enhancement.AluminiumGnat;
 import de.mineformers.investiture.allomancy.api.misting.enhancement.DuraluminGnat;
@@ -18,9 +20,6 @@ import de.mineformers.investiture.allomancy.api.misting.temporal.Augur;
 import de.mineformers.investiture.allomancy.api.misting.temporal.Oracle;
 import de.mineformers.investiture.allomancy.api.misting.temporal.Pulser;
 import de.mineformers.investiture.allomancy.api.misting.temporal.Slider;
-import de.mineformers.investiture.allomancy.item.MetalItem;
-import de.mineformers.investiture.util.Functional;
-import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 
 import javax.annotation.Nonnull;
@@ -83,9 +82,6 @@ public final class Metals
                                                                  BRONZE, BRASS, PEWTER, STEEL,
                                                                  DURALUMIN, NICROSIL, ELECTRUM, BENDALLOY);
 
-    // Mappings for non mod metals
-    private static final Set<MetalMapping> MAPPINGS = new HashSet<>();
-
     /**
      * Register all 16 basic metals
      */
@@ -120,22 +116,21 @@ public final class Metals
         ALLOYS.add(NICROSIL);
         ALLOYS.add(ELECTRUM);
         ALLOYS.add(BENDALLOY);
-
-        MAPPINGS.add(new MetalMapping.MetalMappingItem(IRON, new ItemStack(Items.IRON_INGOT), MetalItem.Type.INGOT.conversion));
-        MAPPINGS.add(new MetalMapping.MetalMappingItem(IRON, new ItemStack(Items.field_191525_da), MetalItem.Type.NUGGET.conversion));
-        MAPPINGS.add(new MetalMapping.MetalMappingItem(GOLD, new ItemStack(Items.GOLD_INGOT), MetalItem.Type.INGOT.conversion));
-        MAPPINGS.add(new MetalMapping.MetalMappingItem(GOLD, new ItemStack(Items.GOLD_NUGGET), MetalItem.Type.NUGGET.conversion));
-        MAPPINGS.add(new MetalMapping.MetalMappingOreDict(IRON, "ingotIron", MetalItem.Type.INGOT.conversion, true));
-        MAPPINGS.add(new MetalMapping.MetalMappingOreDict(GOLD, "ingotGold", MetalItem.Type.INGOT.conversion, true));
     }
 
     /**
      * @param id the ID of the searched metal
-     * @return a present {@link Optional} if the metal exists, {@link Optional#empty()} otherwise
+     * @return the requested metal
+     * @throws IllegalArgumentException if there is no metal for the given id
      */
-    public static Optional<Metal> get(String id)
+    public static Metal get(String id)
     {
-        return METALS.stream().filter(m -> m.id().equals(id)).findFirst();
+        Optional<Metal> result = METALS.stream().filter(m -> m.id().equals(id)).findFirst();
+        if (!result.isPresent())
+        {
+            throw new IllegalArgumentException("Requested metal '" + id + "' does not exist!");
+        }
+        return result.get();
     }
 
     /**
@@ -151,34 +146,13 @@ public final class Metals
         return Collections.unmodifiableSet(ALLOYS);
     }
 
-    public static Set<MetalMapping> mappings()
-    {
-        return Collections.unmodifiableSet(MAPPINGS);
-    }
-
-    public static void addMapping(@Nonnull MetalMapping mapping)
-    {
-        MAPPINGS.add(mapping);
-    }
-
     @SuppressWarnings("unchecked")
-    public static Optional<Metal> getMetal(@Nonnull ItemStack stack)
+    public static Optional<MetalStack> getMetalStack(@Nonnull ItemStack stack)
     {
-        if (stack.getItem() instanceof MetalHolder)
+        if (stack.hasCapability(Capabilities.METAL_STACK, null))
         {
-            return Optional.of(((MetalHolder<ItemStack>) stack.getItem()).getMetal(stack));
+            return Optional.ofNullable(stack.getCapability(Capabilities.METAL_STACK, null));
         }
-        else
-        {
-            for (MetalMapping mapping : MAPPINGS)
-            {
-                if (mapping.matches(stack))
-                {
-                    return Optional.of(mapping.getMetal(stack));
-                }
-            }
-        }
-
         return Optional.empty();
     }
 

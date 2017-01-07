@@ -13,6 +13,8 @@ import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
+import javax.annotation.Nullable;
+
 /**
  * A message is the means by which the network transfers information.
  * The requirements for a working message are that it has a public no-argument construct, only non-final fields and these fields must be
@@ -147,6 +149,7 @@ public class Message implements IMessage
          * @param ctx     the context the message was received in
          * @return another message to answer the received one or null if no answer is intended
          */
+        @Nullable
         OUT handle(IN message, Context ctx);
     }
 }
