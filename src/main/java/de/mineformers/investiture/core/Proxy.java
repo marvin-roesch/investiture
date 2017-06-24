@@ -1,6 +1,5 @@
 package de.mineformers.investiture.core;
 
-import com.google.common.collect.FluentIterable;
 import de.mineformers.investiture.client.renderer.block.ModuleStateMap;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
@@ -17,10 +16,12 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * A proxy acts as handler for side-specific operations. All actions involving classes, fields or methods marked with
- * {@link net.minecraftforge.fml.relauncher.SideOnly SideOnly} should go through a proxy.
+ * {@link SideOnly SideOnly} should go through a proxy.
  */
 public interface Proxy
 {
@@ -51,7 +52,8 @@ public interface Proxy
     {
     }
 
-    default void serverStart(FMLServerStartingEvent event) {
+    default void serverStart(FMLServerStartingEvent event)
+    {
 
     }
 
@@ -80,7 +82,8 @@ public interface Proxy
         Item item = Item.getItemFromBlock(block);
         List<IBlockState> states = block.getBlockState().getValidStates();
         ModuleStateMap mapper = map.withDomain(domain).build();
-        final Map<IBlockState, ModelResourceLocation> resources = FluentIterable.from(states).toMap(mapper::getModelResourceLocation);
+        final Map<IBlockState, ModelResourceLocation> resources =
+            states.stream().collect(Collectors.toMap(Function.identity(), mapper::getModelResourceLocation));
         ModelLoader.setCustomMeshDefinition(item, stack -> resources.get(block.getStateFromMeta(stack.getItemDamage())));
         ModelBakery.registerItemVariants(item, resources.values().toArray(new ModelResourceLocation[resources.size()]));
         ModelLoader.setCustomStateMapper(block, mapper);
