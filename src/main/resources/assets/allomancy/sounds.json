@@ -2,7 +2,7 @@
   "extractor.grind": {
     "sounds": [
       {
-        "name": "extractor/grind",
+        "name": "investiture:extractor/grind",
         "stream": true
       }
     ],

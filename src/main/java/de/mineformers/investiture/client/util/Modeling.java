@@ -140,7 +140,7 @@ public class Modeling
                     case POSITION:
                         float[] newData = new float[4];
                         Vector4f vec = new Vector4f(data);
-                        vec.set((float) scale.xCoord * vec.x, (float) scale.yCoord * vec.y, (float) scale.zCoord * vec.z, vec.w);
+                        vec.set((float) scale.x * vec.x, (float) scale.y * vec.y, (float) scale.z * vec.z, vec.w);
                         vec.get(newData);
                         parent.put(element, newData);
                         break;

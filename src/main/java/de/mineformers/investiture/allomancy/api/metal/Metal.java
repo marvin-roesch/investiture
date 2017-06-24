@@ -21,6 +21,10 @@ public interface Metal
      */
     String id();
 
+    default float burnRate() {
+        return 0f;
+    }
+
     /**
      * Determines whether the stack can be burned or is impure.
      *
@@ -33,7 +37,7 @@ public interface Metal
 
     default boolean matches(@Nonnull ItemStack stack)
     {
-        return Metals.getMetalStack(stack).map(s -> this.equals(s.getMetal())).orElse(false);
+        return Metals.getMetalStacks(stack).stream().anyMatch(s -> this.equals(s.getMetal()));
     }
 
     /**
@@ -41,7 +45,7 @@ public interface Metal
      *
      * @param entity the affected entity
      */
-    default void applyImpurityEffects(Entity entity)
+    default void applyImpurityEffects(Entity entity, float impurities)
     {
         if (entity instanceof EntityLivingBase)
         {
@@ -98,6 +102,12 @@ public interface Metal
             if (obj == null) return false;
             if (getClass() != obj.getClass()) return false;
             return Objects.equals(id(), ((Metal) obj).id());
+        }
+
+        @Override
+        public String toString()
+        {
+            return id();
         }
     }
 }

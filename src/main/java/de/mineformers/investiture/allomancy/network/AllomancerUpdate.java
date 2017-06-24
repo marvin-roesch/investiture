@@ -1,7 +1,9 @@
 package de.mineformers.investiture.allomancy.network;
 
 import com.google.common.base.Throwables;
+import de.mineformers.investiture.allomancy.api.metal.MetalStorage;
 import de.mineformers.investiture.allomancy.api.misting.Misting;
+import de.mineformers.investiture.allomancy.impl.SimpleMetalStorage;
 import de.mineformers.investiture.network.ManualTranslation;
 import de.mineformers.investiture.network.Message;
 import io.netty.buffer.ByteBuf;
@@ -18,15 +20,17 @@ public class AllomancerUpdate extends Message
     public int entityId;
     @ManualTranslation
     public Set<Class<? extends Misting>> activePowers;
+    public SimpleMetalStorage metalStorage;
 
     public AllomancerUpdate()
     {
     }
 
-    public AllomancerUpdate(int entityId, Set<Class<? extends Misting>> activePowers)
+    public AllomancerUpdate(int entityId, Set<Class<? extends Misting>> activePowers, SimpleMetalStorage metalStorage)
     {
         this.entityId = entityId;
         this.activePowers = activePowers;
+        this.metalStorage = metalStorage;
     }
 
     @Override

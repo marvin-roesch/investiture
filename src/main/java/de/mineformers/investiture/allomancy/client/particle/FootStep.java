@@ -3,9 +3,9 @@ package de.mineformers.investiture.allomancy.client.particle;
 import de.mineformers.investiture.client.util.Rendering;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.Particle;
+import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.VertexBuffer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.ResourceLocation;
@@ -26,7 +26,7 @@ public class FootStep extends Particle
 
     public FootStep(World world, Vec3d position, float r, float g, float b)
     {
-        super(world, position.xCoord, position.yCoord, position.zCoord, 0, 0, 0);
+        super(world, position.x, position.y, position.z, 0, 0, 0);
         motionX = motionY = motionZ;
         particleRed = r;
         particleGreen = g;
@@ -35,7 +35,7 @@ public class FootStep extends Particle
     }
 
     @Override
-    public void renderParticle(VertexBuffer renderer, Entity entity, float partialTicks,
+    public void renderParticle(BufferBuilder renderer, Entity entity, float partialTicks,
                                float rotationX, float rotationZ, float rotationYZ, float rotationXY, float rotationXZ)
     {
         float age = (this.particleAge + partialTicks) / (this.particleMaxAge + 1);
@@ -49,9 +49,9 @@ public class FootStep extends Particle
 
         disableLighting();
         Vec3d pos = Rendering.interpolatedPosition(Minecraft.getMinecraft().getRenderViewEntity(), partialTicks);
-        double x = this.posX - pos.xCoord;
-        double y = this.posY - pos.yCoord;
-        double z = this.posZ - pos.zCoord;
+        double x = this.posX - pos.x;
+        double y = this.posY - pos.y;
+        double z = this.posZ - pos.z;
         Minecraft.getMinecraft().getTextureManager().bindTexture(FOOTPRINT_TEXTURE);
         disableAlpha();
         enableBlend();

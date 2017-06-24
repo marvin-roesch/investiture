@@ -4,47 +4,53 @@ import com.google.common.base.Throwables;
 import de.mineformers.investiture.Investiture;
 import de.mineformers.investiture.allomancy.api.metal.Metal;
 import de.mineformers.investiture.allomancy.api.metal.Metals;
+import de.mineformers.investiture.allomancy.api.metal.stack.MetalStack;
 import de.mineformers.investiture.allomancy.api.misting.Misting;
 import de.mineformers.investiture.allomancy.api.misting.Targeting;
-import de.mineformers.investiture.allomancy.block.MetalExtractor;
-import de.mineformers.investiture.allomancy.block.MetalExtractorController;
 import de.mineformers.investiture.allomancy.block.MetalOre;
 import de.mineformers.investiture.allomancy.core.AllomancyCommand;
-import de.mineformers.investiture.allomancy.extractor.ExtractorRecipes;
+import de.mineformers.investiture.allomancy.crusher.CrusherRecipes;
 import de.mineformers.investiture.allomancy.impl.AllomancyAPIImpl;
-import de.mineformers.investiture.allomancy.impl.CapabilityHandler;
+import de.mineformers.investiture.allomancy.impl.CoreEventHandler;
+import de.mineformers.investiture.allomancy.impl.SimpleMetalStorage;
 import de.mineformers.investiture.allomancy.impl.misting.temporal.AugurImpl;
 import de.mineformers.investiture.allomancy.item.MetalItem;
 import de.mineformers.investiture.allomancy.network.*;
-import de.mineformers.investiture.allomancy.tileentity.TileMetalExtractorMaster;
-import de.mineformers.investiture.allomancy.tileentity.TileMetalExtractorOutput;
-import de.mineformers.investiture.allomancy.tileentity.TileMetalExtractorSlave;
 import de.mineformers.investiture.allomancy.world.MetalGenerator;
 import de.mineformers.investiture.core.Manifestation;
 import de.mineformers.investiture.core.Proxy;
+import de.mineformers.investiture.core.RegistryCollectionEvent;
 import de.mineformers.investiture.network.Message;
+import de.mineformers.investiture.serialisation.Serialisation;
 import de.mineformers.investiture.serialisation.Translator;
-import net.minecraft.block.Block;
+import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.Entity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.client.event.ModelRegistryEvent;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.network.ByteBufUtils;
 import net.minecraftforge.fml.common.registry.GameRegistry;
+import net.minecraftforge.fml.common.registry.GameRegistry.ObjectHolder;
 import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.oredict.OreDictionary;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
+import java.util.Set;
 
+import static de.mineformers.investiture.Investiture.MOD_ID;
+import static de.mineformers.investiture.allomancy.api.metal.Metals.*;
 import static de.mineformers.investiture.allomancy.impl.AllomancyAPIImpl.getAllomancer;
 
 /**
@@ -55,7 +61,7 @@ import static de.mineformers.investiture.allomancy.impl.AllomancyAPIImpl.getAllo
 public final class Allomancy implements Manifestation
 {
     public static final String DOMAIN = "allomancy";
-    @SidedProxy(modId = Investiture.MOD_ID,
+    @SidedProxy(modId = MOD_ID,
         clientSide = "de.mineformers.investiture.allomancy.core.ClientProxy",
         serverSide = "de.mineformers.investiture.allomancy.core.ServerProxy")
     public static Proxy proxy;
@@ -79,26 +85,24 @@ public final class Allomancy implements Manifestation
     public void serverStart(FMLServerStartingEvent event)
     {
         event.registerServerCommand(new AllomancyCommand());
+        proxy.serverStart(event);
     }
 
     @Override
     public void preInit(FMLPreInitializationEvent event)
     {
-        CapabilityHandler.init();
+        CoreEventHandler.init();
         Metals.init();
-        Blocks.register();
-        Items.register();
-        ExtractorRecipes.register(Metals.IRON);
-        ExtractorRecipes.register(Metals.GOLD);
-        ExtractorRecipes.register(Metals.COPPER);
-        ExtractorRecipes.register(Metals.ZINC, Metals.ZINC, Metals.CADMIUM, 0.5f);
-        ExtractorRecipes.register(Metals.TIN);
-        ExtractorRecipes.register(Metals.ALUMINIUM);
-        ExtractorRecipes.register(Metals.CHROMIUM);
-        ExtractorRecipes.register(Metals.SILVER);
-        ExtractorRecipes.register(Metals.BISMUTH);
-        ExtractorRecipes.register(Metals.LEAD);
-        GameRegistry.registerWorldGenerator(new MetalGenerator(), 0);
+        CrusherRecipes.register(IRON);
+        CrusherRecipes.register(GOLD);
+        CrusherRecipes.register(COPPER);
+        CrusherRecipes.register(ZINC, ZINC, CADMIUM, 0.5f);
+        CrusherRecipes.register(TIN);
+        CrusherRecipes.register(ALUMINIUM);
+        CrusherRecipes.register(CHROMIUM);
+        CrusherRecipes.register(SILVER);
+        CrusherRecipes.register(BISMUTH);
+        CrusherRecipes.register(LEAD);
         AllomancyAPIImpl.INSTANCE.init();
 
         MinecraftForge.EVENT_BUS.register(new AugurImpl.EventHandler());
@@ -111,6 +115,7 @@ public final class Allomancy implements Manifestation
     public void init(FMLInitializationEvent event)
     {
         proxy.init(event);
+        GameRegistry.registerWorldGenerator(new MetalGenerator(), 0);
     }
 
     @Override
@@ -122,86 +127,80 @@ public final class Allomancy implements Manifestation
     /**
      * Container class for all blocks in the Allomancy module.
      */
+    @ObjectHolder(MOD_ID)
+    @Mod.EventBusSubscriber(modid = MOD_ID)
     public static class Blocks
     {
-        public static MetalOre ORE;
-        public static MetalExtractor METAL_EXTRACTOR;
-        public static MetalExtractorController METAL_EXTRACTOR_CONTROLLER;
+        public static final MetalOre ALLOMANTIC_ORE = null;
 
-        /**
-         * Adds all blocks to the game's registry.
-         */
-        public static void register()
+        @SubscribeEvent
+        public static void collect(RegistryCollectionEvent event)
         {
-            register(ORE = new MetalOre(), MetalOre.ItemRepresentation::new);
-            register(METAL_EXTRACTOR = new MetalExtractor(), MetalExtractor.ItemRepresentation::new);
-            register(METAL_EXTRACTOR_CONTROLLER = new MetalExtractorController());
-            GameRegistry.registerTileEntity(TileMetalExtractorMaster.class, "allomancy:metal_extractor_master");
-            GameRegistry.registerTileEntity(TileMetalExtractorSlave.class, "allomancy:metal_extractor_slave");
-            GameRegistry.registerTileEntity(TileMetalExtractorOutput.class, "allomancy:metal_extractor_output");
+            event.registerBlock(MetalOre::new, MetalOre.ItemRepresentation::new);
+        }
 
+        @SubscribeEvent
+        public static void onRegistrationFinished(RegistryCollectionEvent.Post event)
+        {
             // Add ores to the ore dictionary
             for (int i = 0; i < MetalOre.NAMES.length; i++)
             {
-                OreDictionary.registerOre(String.format("ore%s", StringUtils.capitalize(MetalOre.NAMES[i])), new ItemStack(ORE, 1, i));
+                OreDictionary
+                    .registerOre(String.format("ore%s", StringUtils.capitalize(MetalOre.NAMES[i])), new ItemStack(ALLOMANTIC_ORE, 1, i));
             }
         }
 
-        private static void register(Block block)
+        @SubscribeEvent
+        @SideOnly(Side.CLIENT)
+        public static void registerModels(ModelRegistryEvent event)
         {
-            register(block, ItemBlock::new);
-        }
-
-        private static void register(Block block, @Nullable Function<Block, Item> itemFactory)
-        {
-            GameRegistry.register(block);
-            if (itemFactory == null)
-                return;
-            Item item = itemFactory.apply(block);
-            if (item != null)
-            {
-                item.setRegistryName(block.getRegistryName());
-                GameRegistry.register(item);
-            }
+            proxy.registerBlockResources(Allomancy.DOMAIN, Allomancy.Blocks.ALLOMANTIC_ORE);
         }
     }
 
     /**
      * Container class for all items in the Allomancy module.
      */
+    @ObjectHolder(MOD_ID)
+    @Mod.EventBusSubscriber(modid = MOD_ID)
     public static class Items
     {
-        public static MetalItem INGOT;
-        public static MetalItem NUGGET;
-        public static MetalItem BEAD;
-        public static MetalItem CHUNK;
-        public static MetalItem DUST;
+        public final static MetalItem INGOT = null;
+        public final static MetalItem NUGGET = null;
+        public final static MetalItem BEAD = null;
+        public final static MetalItem CHUNK = null;
+        public final static MetalItem DUST = null;
 
         /**
          * Adds all items to the game's registry.
          */
-        public static void register()
+        @SubscribeEvent
+        public static void collect(RegistryCollectionEvent event)
         {
-            GameRegistry.register(CHUNK = new MetalItem("chunk", "chunk", MetalItem.Type.CHUNK, new String[]{
-                "copper", "tin", "zinc", "iron", "lead", "aluminium", "chromium", "gold", "cadmium", "silver", "bismuth", "nickel"
+            event.registerItem(() -> new MetalItem("chunk", "chunk", MetalItem.Type.CHUNK, new Metal[]{
+                COPPER, TIN, ZINC, IRON, LEAD, ALUMINIUM, CHROMIUM, GOLD, CADMIUM, SILVER, BISMUTH, NICKEL
             }));
-            GameRegistry.register(DUST = new MetalItem("dust", "dust", MetalItem.Type.DUST, new String[]{
-                "bronze", "brass", "copper", "zinc", "tin", "pewter", "steel", "iron", "lead", "nickel", "silver", "bismuth", "gold", "duralumin",
-                "nicrosil", "aluminium", "chromium", "cadmium", "electrum", "bendalloy"
+            event.registerItem(() -> new MetalItem("dust", "dust", MetalItem.Type.DUST, new Metal[]{
+                BRONZE, BRASS, COPPER, ZINC, TIN, PEWTER, STEEL, IRON, LEAD, NICKEL, SILVER, BISMUTH, GOLD, DURALUMIN,
+                NICROSIL, ALUMINIUM, CHROMIUM, CADMIUM, ELECTRUM, BENDALLOY
             }));
-            GameRegistry.register(BEAD = new MetalItem("bead", "bead", MetalItem.Type.BEAD, new String[]{
-                "bronze", "brass", "copper", "zinc", "tin", "pewter", "steel", "iron", "lead", "nickel", "silver", "bismuth", "gold", "duralumin",
-                "nicrosil", "aluminium", "chromium", "cadmium", "electrum", "bendalloy"
+            event.registerItem(() -> new MetalItem("bead", "bead", MetalItem.Type.BEAD, new Metal[]{
+                BRONZE, BRASS, COPPER, ZINC, TIN, PEWTER, STEEL, IRON, LEAD, NICKEL, SILVER, BISMUTH, GOLD, DURALUMIN,
+                NICROSIL, ALUMINIUM, CHROMIUM, CADMIUM, ELECTRUM, BENDALLOY
             }));
-            GameRegistry.register(NUGGET = new MetalItem("nugget", "nugget", MetalItem.Type.NUGGET, new String[]{
-                "bronze", "brass", "copper", "zinc", "tin", "pewter", "steel", "iron", "lead", "nickel", "silver", "bismuth", "duralumin", "nicrosil",
-                "aluminium", "chromium", "cadmium", "electrum", "bendalloy"
+            event.registerItem(() -> new MetalItem("nugget", "nugget", MetalItem.Type.NUGGET, new Metal[]{
+                BRONZE, BRASS, COPPER, ZINC, TIN, PEWTER, STEEL, LEAD, NICKEL, SILVER, BISMUTH, DURALUMIN, NICROSIL,
+                ALUMINIUM, CHROMIUM, CADMIUM, ELECTRUM, BENDALLOY
             }));
-            GameRegistry.register(INGOT = new MetalItem("ingot", "ingot", MetalItem.Type.INGOT, new String[]{
-                "bronze", "brass", "copper", "zinc", "tin", "pewter", "steel", "lead", "nickel", "silver", "bismuth", "duralumin", "nicrosil",
-                "aluminium", "chromium", "cadmium", "electrum", "bendalloy"
+            event.registerItem(() -> new MetalItem("ingot", "ingot", MetalItem.Type.INGOT, new Metal[]{
+                BRONZE, BRASS, COPPER, ZINC, TIN, PEWTER, STEEL, LEAD, NICKEL, SILVER, BISMUTH, DURALUMIN, NICROSIL,
+                ALUMINIUM, CHROMIUM, CADMIUM, ELECTRUM, BENDALLOY
             }));
+        }
 
+        @SubscribeEvent
+        public static void onRegistrationFinished(RegistryCollectionEvent.Post event)
+        {
             // Add items to the ore dictionary
             CHUNK.registerOreDict();
             BEAD.registerOreDict();
@@ -224,9 +223,97 @@ public final class Allomancy implements Manifestation
         @SuppressWarnings("unchecked")
         public static void init()
         {
+            Serialisation.INSTANCE.registerTranslator(MetalStack.class, new Translator<MetalStack, NBTTagCompound>()
+            {
+                @Override
+                public void serialiseImpl(MetalStack value, ByteBuf buffer)
+                {
+                    ByteBufUtils.writeUTF8String(buffer, value.getMetal().id());
+                    buffer.writeFloat(value.getQuantity());
+                    buffer.writeFloat(value.getPurity());
+                }
+
+                @Override
+                public MetalStack deserialiseImpl(ByteBuf buffer)
+                {
+                    String id = ByteBufUtils.readUTF8String(buffer);
+                    float quantity = buffer.readFloat();
+                    float purity = buffer.readFloat();
+                    return new MetalStack(Metals.get(id), quantity, purity);
+                }
+
+                @Override
+                public NBTTagCompound serialiseImpl(MetalStack value)
+                {
+                    NBTTagCompound tag = new NBTTagCompound();
+                    tag.setString("Metal", value.getMetal().id());
+                    tag.setFloat("Quantity", value.getQuantity());
+                    tag.setFloat("Purity", value.getPurity());
+                    return tag;
+                }
+
+                @Override
+                public MetalStack deserialiseImpl(NBTTagCompound tag)
+                {
+                    return new MetalStack(tag);
+                }
+            });
+            Serialisation.INSTANCE.registerTranslator(SimpleMetalStorage.class, new Translator<SimpleMetalStorage, NBTTagCompound>()
+            {
+                @Override
+                public void serialiseImpl(SimpleMetalStorage value, ByteBuf buffer)
+                {
+                    Set<Metal> metals = value.getStoredMetals();
+                    buffer.writeInt(metals.size());
+                    for (Metal metal : metals)
+                    {
+                        ByteBufUtils.writeUTF8String(buffer, metal.id());
+                        List<? extends MetalStack> stacks = value.getStored(metal);
+                        buffer.writeInt(stacks.size());
+                        for (MetalStack stack : stacks)
+                        {
+                            Serialisation.INSTANCE.writeToBuffer(stack, buffer);
+                        }
+                    }
+                }
+
+                @Override
+                public SimpleMetalStorage deserialiseImpl(ByteBuf buffer)
+                {
+                    SimpleMetalStorage storage = new SimpleMetalStorage();
+                    int metalCount = buffer.readInt();
+                    for (int i = 0; i < metalCount; i++)
+                    {
+                        String id = ByteBufUtils.readUTF8String(buffer);
+                        Metal metal = Metals.get(id);
+                        int stackCount = buffer.readInt();
+                        for (int j = 0; j < stackCount; j++)
+                        {
+                            storage.storage.put(metal, Serialisation.INSTANCE.readFromBuffer(MetalStack.class, buffer));
+                        }
+                    }
+                    return storage;
+                }
+
+                @Override
+                public NBTTagCompound serialiseImpl(SimpleMetalStorage value)
+                {
+                    return value.serializeNBT();
+                }
+
+                @Override
+                public SimpleMetalStorage deserialiseImpl(NBTTagCompound tag)
+                {
+                    SimpleMetalStorage storage = new SimpleMetalStorage();
+                    storage.deserializeNBT(tag);
+                    return storage;
+                }
+            });
+
             Investiture.net().registerMessage(ToggleBurningMetal.class);
             Investiture.net().registerMessage(MetalExtractorUpdate.class);
             Investiture.net().registerMessage(AllomancerUpdate.class);
+            Investiture.net().registerMessage(AllomancerStorageUpdate.class);
             Investiture.net().registerMessage(MistingUpdate.class);
 
             Investiture.net().registerMessage(TargetEffect.class);

@@ -4,7 +4,12 @@ import gnu.trove.map.TObjectIntMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.Vec3d;
+import org.lwjgl.util.vector.Vector4f;
 import scala.io.Source;
+
+import javax.vecmath.Vector4d;
+import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
 
 import static org.lwjgl.opengl.GL11.GL_TRUE;
 import static org.lwjgl.opengl.GL11.glGetInteger;
@@ -208,7 +213,32 @@ public class Shader
      */
     public void setUniform(String name, Vec3d vector)
     {
-        setUniformFloat(name, (float) vector.xCoord, (float) vector.yCoord, (float) vector.zCoord);
+        setUniformFloat(name, (float) vector.x, (float) vector.y, (float) vector.z);
+    }
+
+    public void setUniform4Array(String name, Vector4f... vectors)
+    {
+        int location = getUniformLocation(name);
+        FloatBuffer buffer = ByteBuffer.allocateDirect(4 * 4 * vectors.length).asFloatBuffer();
+        for (Vector4f vec : vectors)
+        {
+            buffer.put(vec.x);
+            buffer.put(vec.y);
+            buffer.put(vec.z);
+            buffer.put(vec.w);
+        }
+        glUniform4(location, buffer);
+    }
+
+    public void setUniformFloatArray(String name, float... values)
+    {
+        int location = getUniformLocation(name);
+        FloatBuffer buffer = ByteBuffer.allocateDirect(4 * values.length).asFloatBuffer();
+        for (float value : values)
+        {
+            buffer.put(value);
+        }
+        glUniform1(location, buffer);
     }
 
     /**

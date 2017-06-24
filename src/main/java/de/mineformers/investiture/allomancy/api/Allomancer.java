@@ -1,7 +1,9 @@
 package de.mineformers.investiture.allomancy.api;
 
 import de.mineformers.investiture.allomancy.api.metal.Metal;
+import de.mineformers.investiture.allomancy.api.metal.MetalStorage;
 import de.mineformers.investiture.allomancy.api.misting.Misting;
+import net.minecraft.item.ItemStack;
 
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -52,13 +54,7 @@ public interface Allomancer
 
     void deactivate(Class<? extends Misting> type);
 
-    void increaseStrength();
-
-    void decreaseStrength();
-
-    void increaseStrength(Class<? extends Misting> type);
-
-    void decreaseStrength(Class<? extends Misting> type);
+    MetalStorage storage();
 
     /**
      * @return a view of all powers this Allomancer has access to

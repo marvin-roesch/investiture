@@ -4,7 +4,7 @@ import de.mineformers.investiture.Investiture;
 import de.mineformers.investiture.allomancy.network.SpeedBubbleUpdate;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldSavedData;
+import net.minecraft.world.storage.WorldSavedData;
 
 import java.util.HashSet;
 import java.util.Iterator;

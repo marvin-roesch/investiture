@@ -1,6 +1,6 @@
 package de.mineformers.investiture.allomancy.network;
 
-import de.mineformers.investiture.network.TileEntityUpdate;
+import de.mineformers.investiture.network.message.TileEntityUpdate;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;

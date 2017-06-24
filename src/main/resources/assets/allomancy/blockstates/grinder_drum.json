@@ -1,0 +1,30 @@
+{
+  "forge_marker": 1,
+  "defaults": {
+    "model": "allomancy:grinder_drum.obj",
+    "uvlock": true,
+    "transform": "forge:default-block",
+    "custom": {
+      "flip-v": true
+    }
+  },
+  "variants": {
+    "facing": {
+      "north": {
+      },
+      "south": {
+      },
+      "west": {
+      },
+      "east": {
+      },
+      "up": {
+      },
+      "down": {
+      }
+    },
+    "inventory": [
+      {}
+    ]
+  }
+}

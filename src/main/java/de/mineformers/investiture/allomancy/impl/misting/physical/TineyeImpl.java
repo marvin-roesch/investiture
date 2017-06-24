@@ -20,6 +20,8 @@ import net.minecraft.util.SoundCategory;
 import net.minecraftforge.client.event.MouseEvent;
 import net.minecraftforge.client.event.sound.PlaySoundEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.input.Keyboard;
 
 import java.util.Optional;
@@ -41,10 +43,13 @@ public class TineyeImpl extends AbstractMisting implements Tineye, ITickable
             EntityLivingBase living = (EntityLivingBase) entity;
             living.addPotionEffect(new PotionEffect(MobEffects.NIGHT_VISION, Short.MAX_VALUE, 0, false, false));
         }
-        if (AllomancyConfig.mistings.tineye.fovEnabled && entity instanceof EntityPlayer && entity == Investiture.proxy.localPlayer())
+        if (entity instanceof EntityPlayer && entity == Investiture.proxy.localPlayer())
         {
             prevFOV = Investiture.proxy.getFOV((EntityPlayer) entity);
-            Investiture.proxy.animateFOV(prevFOV + AllomancyConfig.mistings.tineye.fovIncrease, 10);
+            if (AllomancyConfig.mistings.tineye.fovEnabled)
+            {
+                Investiture.proxy.animateFOV(prevFOV + AllomancyConfig.mistings.tineye.fovIncrease, 10);
+            }
         }
     }
 
@@ -69,12 +74,13 @@ public class TineyeImpl extends AbstractMisting implements Tineye, ITickable
             EntityLivingBase living = (EntityLivingBase) entity;
             living.removePotionEffect(MobEffects.NIGHT_VISION);
         }
-        if (AllomancyConfig.mistings.tineye.fovEnabled && entity instanceof EntityPlayer && entity == Investiture.proxy.localPlayer())
+        if (entity instanceof EntityPlayer && entity == Investiture.proxy.localPlayer())
         {
             Investiture.proxy.animateFOV(prevFOV, 10);
         }
     }
 
+    @SideOnly(Side.CLIENT)
     public static class EventHandler
     {
         private float normalFOV = -1;

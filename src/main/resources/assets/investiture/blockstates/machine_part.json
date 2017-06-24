@@ -1,0 +1,51 @@
+{
+  "forge_marker": 1,
+  "defaults": {
+    "model": "investiture:cube_layered",
+    "uvlock": true,
+    "textures": {
+      "layer_base": "investiture:blocks/machine_part"
+    },
+    "transform": "forge:default-block"
+  },
+  "variants": {
+    "type": {
+      "frame": {
+        "model": "cube_all",
+        "textures": {
+          "all": "investiture:blocks/machine_part"
+        }
+      },
+      "power_input": {
+        "textures": {
+          "layer_overlay": "investiture:blocks/machine_part/power_input"
+        }
+      },
+      "power_output": {
+        "textures": {
+          "layer_overlay": "investiture:blocks/machine_part/power_output"
+        }
+      },
+      "item_input": {
+        "textures": {
+          "layer_overlay": "investiture:blocks/machine_part/item_input"
+      }
+      },
+      "item_output": {
+        "textures": {
+          "layer_overlay": "investiture:blocks/machine_part/item_output"
+        }
+      },
+      "fluid_input": {
+        "textures": {
+          "layer_overlay": "investiture:blocks/machine_part/fluid_input"
+        }
+      },
+      "fluid_output": {
+        "textures": {
+          "layer_overlay": "investiture:blocks/machine_part/fluid_output"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+	"textures": {
+		"particle": "investiture:blocks/conveyor_off",
+		"belt": "investiture:blocks/conveyor_on",
+		"rim": "investiture:blocks/conveyor_rim"
+	},
+	"elements": [
+		{
+			"__comment": "RightRimTop",
+			"from": [ 15, 15, 1 ],
+			"to": [ 16, 16, 15 ],
+			"faces": {
+				"up": { "uv": [ 15, 0, 1, 1 ], "texture": "#rim" },
+				"west": { "uv": [ 1, 0, 15, 1 ], "texture": "#rim" },
+				"east": { "uv": [ 1, 0, 15, 1 ], "texture": "#rim" }
+			}
+		}
+	]
+}

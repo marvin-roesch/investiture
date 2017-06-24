@@ -1,5 +1,6 @@
 package de.mineformers.investiture.allomancy.api.metal.stack;
 
+import com.google.common.collect.Range;
 import de.mineformers.investiture.allomancy.api.Capabilities;
 import de.mineformers.investiture.allomancy.api.metal.Metal;
 import net.minecraft.item.ItemStack;
@@ -12,61 +13,56 @@ import javax.annotation.Nullable;
 
 public class MetalStackItemProvider implements ICapabilityProvider
 {
-    private final ItemStack stack;
     private final Impl instance;
 
-    public MetalStackItemProvider(ItemStack stack, Metal metal, float conversionRate, float purity)
+    public MetalStackItemProvider(ItemStack stack, Metal metal, float conversionRate, float basePurity, Range<Float> purityRange)
     {
-        this.stack = stack;
-        this.instance = new Impl(metal, conversionRate, purity);
+        this.instance = new Impl(stack, new MetalStack(metal, conversionRate, basePurity), purityRange);
     }
 
     @Override
     public boolean hasCapability(@Nonnull Capability<?> capability, @Nullable EnumFacing facing)
     {
-        return capability == Capabilities.METAL_STACK;
+        return capability == Capabilities.METAL_STACK_PROVIDER;
     }
 
     @Nullable
     @Override
     public <T> T getCapability(@Nonnull Capability<T> capability, @Nullable EnumFacing facing)
     {
-        if (capability == Capabilities.METAL_STACK)
+        if (capability == Capabilities.METAL_STACK_PROVIDER)
         {
-            return Capabilities.METAL_STACK.cast(instance);
+            return Capabilities.METAL_STACK_PROVIDER.cast(instance);
         }
         return null;
     }
 
-    private class Impl implements MetalStack
+    public static class Impl extends SingleMetalStackProvider
     {
-        private final Metal metal;
-        private final float conversionRate;
-        private final float purity;
+        private final MetalStack metalStack;
+        private final Range<Float> purityRange;
 
-        private Impl(Metal metal, float conversionRate, float purity)
+        public Impl(ItemStack stack, MetalStack metalStack, Range<Float> purityRange)
         {
-            this.metal = metal;
-            this.conversionRate = conversionRate;
-            this.purity = purity;
+            super(stack, metalStack.getPurity());
+            this.metalStack = metalStack;
+            this.purityRange = purityRange;
         }
 
         @Override
-        public Metal getMetal()
+        public MetalStack baseStack()
         {
-            return metal;
+            return metalStack;
         }
 
-        @Override
-        public float getQuantity()
+        public float lowerPurityBound()
         {
-            return conversionRate * stack.getCount();
+            return purityRange.hasLowerBound() ? purityRange.lowerEndpoint() : 0;
         }
 
-        @Override
-        public float getPurity()
+        public float upperPurityBound()
         {
-            return purity;
+            return purityRange.hasUpperBound() ? purityRange.upperEndpoint() : 1;
         }
     }
 }

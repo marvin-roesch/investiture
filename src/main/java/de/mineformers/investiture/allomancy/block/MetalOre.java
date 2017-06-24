@@ -1,6 +1,7 @@
 package de.mineformers.investiture.allomancy.block;
 
 import de.mineformers.investiture.Investiture;
+import de.mineformers.investiture.block.AbstractBlock;
 import de.mineformers.investiture.block.properties.PropertyString;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
@@ -21,7 +22,7 @@ import java.util.Arrays;
 /**
  * Used as the ore for all allomantic metals which are not alloys and can be collected directly through mining.
  */
-public class MetalOre extends Block
+public class MetalOre extends AbstractBlock
 {
     public static final String[] NAMES = {"copper", "zinc", "tin", "aluminium", "chromium", "silver", "bismuth", "lead", "nickel"};
     public static final PropertyString METAL = new PropertyString("metal", NAMES);
@@ -45,9 +46,9 @@ public class MetalOre extends Block
         super(Material.ROCK);
 
         setDefaultState(blockState.getBaseState().withProperty(METAL, NAMES[0]));
-        setUnlocalizedName("allomantic_metal_ore");
+        setUnlocalizedName("allomantic_ore");
         setCreativeTab(Investiture.CREATIVE_TAB);
-        setRegistryName("allomantic_metal_ore");
+        setRegistryName("allomantic_ore");
     }
 
     /**
@@ -62,11 +63,11 @@ public class MetalOre extends Block
     }
 
     @Override
-    public void getSubBlocks(Item item, CreativeTabs tab, NonNullList<ItemStack> list)
+    public void getSubBlocks(CreativeTabs tab, NonNullList<ItemStack> list)
     {
         for (int dmg = 0; dmg < NAMES.length; dmg++)
         {
-            list.add(new ItemStack(item, 1, dmg));
+            list.add(new ItemStack(this, 1, dmg));
         }
     }
 

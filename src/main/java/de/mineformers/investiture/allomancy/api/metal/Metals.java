@@ -1,5 +1,6 @@
 package de.mineformers.investiture.allomancy.api.metal;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import de.mineformers.investiture.allomancy.api.Capabilities;
 import de.mineformers.investiture.allomancy.api.metal.stack.MetalStack;
@@ -23,10 +24,7 @@ import de.mineformers.investiture.allomancy.api.misting.temporal.Slider;
 import net.minecraft.item.ItemStack;
 
 import javax.annotation.Nonnull;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Provides access to all allomantic metals, especially the basic 16 ones provided by the Allomancy module itself.
@@ -36,42 +34,42 @@ public final class Metals
     private static final Set<Metal> METALS = new HashSet<>();
     private static final Set<MetalAlloy> ALLOYS = new HashSet<>();
     // Base metals
-    public static final Metal COPPER = new ItemMetalBurnable("copper", Smoker.class);
-    public static final Metal ZINC = new ItemMetalBurnable("zinc", Rioter.class);
-    public static final Metal TIN = new ItemMetalBurnable("tin", Tineye.class);
-    public static final Metal IRON = new ItemMetalBurnable("iron", Lurcher.class);
-    public static final Metal ALUMINIUM = new ItemMetalBurnable("aluminium", AluminiumGnat.class);
-    public static final Metal CHROMIUM = new ItemMetalBurnable("chromium", Leecher.class);
-    public static final Metal GOLD = new ItemMetalBurnable("gold", Augur.class);
-    public static final Metal CADMIUM = new ItemMetalBurnable("cadmium", Pulser.class);
+    public static final Metal COPPER = new ItemMetalBurnable("copper", Smoker.class, 1);
+    public static final Metal ZINC = new ItemMetalBurnable("zinc", Rioter.class, 1);
+    public static final Metal TIN = new ItemMetalBurnable("tin", Tineye.class, 1);
+    public static final Metal IRON = new ItemMetalBurnable("iron", Lurcher.class, 1);
+    public static final Metal ALUMINIUM = new ItemMetalBurnable("aluminium", AluminiumGnat.class, 1);
+    public static final Metal CHROMIUM = new ItemMetalBurnable("chromium", Leecher.class, 1);
+    public static final Metal GOLD = new ItemMetalBurnable("gold", Augur.class, 1);
+    public static final Metal CADMIUM = new ItemMetalBurnable("cadmium", Pulser.class, 1);
     public static final Metal LEAD = new ItemMetalNonBurnable("lead");
     public static final Metal BISMUTH = new ItemMetalNonBurnable("bismuth");
     public static final Metal SILVER = new ItemMetalNonBurnable("silver");
     public static final Metal NICKEL = new ItemMetalNonBurnable("nickel");
     public static final Metal CARBON = new ItemMetalNonBurnable("carbon");
     // MetalAlloy metals
-    public static final MetalAlloy BRONZE = new ItemAlloyBurnable("bronze", Seeker.class,
+    public static final MetalAlloy BRONZE = new ItemAlloyBurnable("bronze", Seeker.class, 1,
                                                                   COPPER, 0.75F,
                                                                   TIN, 0.25F);
-    public static final MetalAlloy BRASS = new ItemAlloyBurnable("brass", Soother.class,
+    public static final MetalAlloy BRASS = new ItemAlloyBurnable("brass", Soother.class, 1,
                                                                  COPPER, 0.65F,
                                                                  ZINC, 0.35F);
-    public static final MetalAlloy PEWTER = new ItemAlloyBurnable("pewter", Thug.class,
+    public static final MetalAlloy PEWTER = new ItemAlloyBurnable("pewter", Thug.class, 1,
                                                                   TIN, 0.91F,
                                                                   LEAD, 0.09F);
-    public static final MetalAlloy STEEL = new ItemAlloyBurnable("steel", Coinshot.class,
+    public static final MetalAlloy STEEL = new ItemAlloyBurnable("steel", Coinshot.class, 1,
                                                                  IRON, 0.98F,
                                                                  CARBON, 0.02F);
-    public static final MetalAlloy DURALUMIN = new ItemAlloyBurnable("duralumin", DuraluminGnat.class,
+    public static final MetalAlloy DURALUMIN = new ItemAlloyBurnable("duralumin", DuraluminGnat.class, 1,
                                                                      ALUMINIUM, 0.96F,
                                                                      COPPER, 0.04F);
-    public static final MetalAlloy NICROSIL = new ItemAlloyBurnable("nicrosil", Nicroburst.class,
+    public static final MetalAlloy NICROSIL = new ItemAlloyBurnable("nicrosil", Nicroburst.class, 1,
                                                                     NICKEL, 0.86F,
                                                                     CHROMIUM, 0.14F);
-    public static final MetalAlloy ELECTRUM = new ItemAlloyBurnable("electrum", Oracle.class,
+    public static final MetalAlloy ELECTRUM = new ItemAlloyBurnable("electrum", Oracle.class, 1,
                                                                     GOLD, 0.45F,
                                                                     SILVER, 0.55F);
-    public static final MetalAlloy BENDALLOY = new ItemAlloyBurnable("bendalloy", Slider.class,
+    public static final MetalAlloy BENDALLOY = new ItemAlloyBurnable("bendalloy", Slider.class, 1,
                                                                      BISMUTH, 0.5F,
                                                                      LEAD, 0.27F,
                                                                      TIN, 0.13F,
@@ -147,13 +145,13 @@ public final class Metals
     }
 
     @SuppressWarnings("unchecked")
-    public static Optional<MetalStack> getMetalStack(@Nonnull ItemStack stack)
+    public static List<MetalStack> getMetalStacks(@Nonnull ItemStack stack)
     {
-        if (stack.hasCapability(Capabilities.METAL_STACK, null))
+        if (stack.hasCapability(Capabilities.METAL_STACK_PROVIDER, null))
         {
-            return Optional.ofNullable(stack.getCapability(Capabilities.METAL_STACK, null));
+            return stack.getCapability(Capabilities.METAL_STACK_PROVIDER, null).get();
         }
-        return Optional.empty();
+        return ImmutableList.of();
     }
 
     /**
@@ -161,9 +159,18 @@ public final class Metals
      */
     private final static class ItemMetalBurnable extends Metal.AbstractMetal
     {
-        ItemMetalBurnable(@Nonnull String id, Class<? extends Misting> mistingType)
+        private final float burnRate;
+
+        ItemMetalBurnable(@Nonnull String id, Class<? extends Misting> mistingType, float burnRate)
         {
             super(id, mistingType);
+            this.burnRate = burnRate;
+        }
+
+        @Override
+        public float burnRate()
+        {
+            return burnRate;
         }
     }
 
@@ -188,9 +195,18 @@ public final class Metals
      */
     private final static class ItemAlloyBurnable extends MetalAlloy.AbstractAlloy
     {
-        ItemAlloyBurnable(@Nonnull String id, Class<? extends Misting> mistingType, Object... components)
+        private final float burnRate;
+
+        ItemAlloyBurnable(@Nonnull String id, Class<? extends Misting> mistingType, float burnRate, Object... components)
         {
             super(id, mistingType, components);
+            this.burnRate = burnRate;
+        }
+
+        @Override
+        public float burnRate()
+        {
+            return burnRate;
         }
     }
 }

@@ -2,6 +2,7 @@ package de.mineformers.investiture.allomancy.impl;
 
 import de.mineformers.investiture.Investiture;
 import de.mineformers.investiture.allomancy.api.Allomancer;
+import de.mineformers.investiture.allomancy.api.metal.MetalStorage;
 import de.mineformers.investiture.allomancy.api.misting.Misting;
 import de.mineformers.investiture.allomancy.network.AllomancerUpdate;
 import de.mineformers.investiture.serialisation.Serialisation;
@@ -28,6 +29,7 @@ public class EntityAllomancer implements Allomancer, INBTSerializable<NBTTagComp
     public final Entity entity;
     private final HashMap<Class<? extends Misting>, Misting> powers = new HashMap<>();
     private final Set<Class<? extends Misting>> activePowers = new HashSet<>();
+    private SimpleMetalStorage storage = new SimpleMetalStorage(this);
 
     public EntityAllomancer(Entity entity)
     {
@@ -100,27 +102,9 @@ public class EntityAllomancer implements Allomancer, INBTSerializable<NBTTagComp
     }
 
     @Override
-    public void increaseStrength()
+    public MetalStorage storage()
     {
-
-    }
-
-    @Override
-    public void decreaseStrength()
-    {
-
-    }
-
-    @Override
-    public void increaseStrength(Class<? extends Misting> type)
-    {
-
-    }
-
-    @Override
-    public void decreaseStrength(Class<? extends Misting> type)
-    {
-
+        return storage;
     }
 
     @Nonnull
@@ -147,15 +131,20 @@ public class EntityAllomancer implements Allomancer, INBTSerializable<NBTTagComp
         old.stream().filter(c -> !activePowers.contains(c)).forEach(p -> as(p).ifPresent(Misting::stopBurning));
     }
 
+    public void setStorage(SimpleMetalStorage storage)
+    {
+        this.storage = storage;
+    }
+
     public void sync()
     {
-        Investiture.net().sendToTracking(entity, new AllomancerUpdate(entity.getEntityId(), activePowers));
+        Investiture.net().sendToTracking(entity, new AllomancerUpdate(entity.getEntityId(), activePowers, storage));
     }
 
     public void sync(EntityPlayer player)
     {
         if (!player.world.isRemote)
-            Investiture.net().sendTo((EntityPlayerMP) player, new AllomancerUpdate(entity.getEntityId(), activePowers));
+            Investiture.net().sendTo((EntityPlayerMP) player, new AllomancerUpdate(entity.getEntityId(), activePowers, storage));
     }
 
     @Override
@@ -177,6 +166,7 @@ public class EntityAllomancer implements Allomancer, INBTSerializable<NBTTagComp
             activePowers.appendTag(new NBTTagString(power.getName()));
         }
         result.setTag("ActivePowers", activePowers);
+        result.setTag("Storage", storage.serializeNBT());
         return result;
     }
 
@@ -219,5 +209,6 @@ public class EntityAllomancer implements Allomancer, INBTSerializable<NBTTagComp
                 Investiture.log().error("Could not load misting with class '" + activePowers.getStringTagAt(i) + "', skipping.", e);
             }
         }
+        storage.deserializeNBT(nbt.getCompoundTag("Storage"));
     }
 }

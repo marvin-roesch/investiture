@@ -418,9 +418,9 @@ public class Serialisation
             @Override
             public void serialiseImpl(Vec3d value, ByteBuf buffer)
             {
-                buffer.writeDouble(value.xCoord);
-                buffer.writeDouble(value.yCoord);
-                buffer.writeDouble(value.zCoord);
+                buffer.writeDouble(value.x);
+                buffer.writeDouble(value.y);
+                buffer.writeDouble(value.z);
             }
 
             @Override
@@ -433,9 +433,9 @@ public class Serialisation
             public NBTTagCompound serialiseImpl(Vec3d value)
             {
                 NBTTagCompound result = new NBTTagCompound();
-                result.setDouble("X", value.xCoord);
-                result.setDouble("Y", value.yCoord);
-                result.setDouble("Z", value.zCoord);
+                result.setDouble("X", value.x);
+                result.setDouble("Y", value.y);
+                result.setDouble("Z", value.z);
                 return result;
             }
 
@@ -484,9 +484,9 @@ public class Serialisation
             public void serialiseImpl(RayTraceResult value, ByteBuf buffer)
             {
                 buffer.writeInt(value.typeOfHit.ordinal());
-                buffer.writeDouble(value.hitVec.xCoord);
-                buffer.writeDouble(value.hitVec.yCoord);
-                buffer.writeDouble(value.hitVec.zCoord);
+                buffer.writeDouble(value.hitVec.x);
+                buffer.writeDouble(value.hitVec.y);
+                buffer.writeDouble(value.hitVec.z);
                 switch (value.typeOfHit)
                 {
                     case ENTITY:
@@ -529,9 +529,9 @@ public class Serialisation
             {
                 NBTTagCompound result = new NBTTagCompound();
                 result.setInteger("TypeOfHit", value.typeOfHit.ordinal());
-                result.setDouble("HitX", value.hitVec.xCoord);
-                result.setDouble("HitY", value.hitVec.yCoord);
-                result.setDouble("HitZ", value.hitVec.zCoord);
+                result.setDouble("HitX", value.hitVec.x);
+                result.setDouble("HitY", value.hitVec.y);
+                result.setDouble("HitZ", value.hitVec.z);
                 switch (value.typeOfHit)
                 {
                     case ENTITY:
@@ -638,7 +638,7 @@ public class Serialisation
             .map(Class::getDeclaredFields)
             .flatMap(Arrays::stream)
             .filter(f -> (f.getModifiers() & Modifier.STATIC) == 0)
-            .sorted((f1, f2) -> f1.getName().compareTo(f2.getName()))
+            .sorted(Comparator.comparing(Field::getName))
             .forEach(f ->
                      {
                          if (f.getAnnotationsByType(ManualTranslation.class).length != 0)
@@ -771,6 +771,24 @@ public class Serialisation
             Translator<?, ?> translator = fieldTranslators.get(className, f.name);
             f.set(object, translator.deserialise(buffer));
         }
+    }
+
+    public <N extends NBTBase, T> Optional<N> translateToNBT(T o)
+    {
+        return (Optional<N>) findTranslator(o.getClass()).serialise(o);
+    }
+
+    public <T> T translateFromNBT(Class<T> type, Optional<NBTBase> nbt) {
+        return (T) findTranslator(type).deserialise(nbt);
+    }
+
+    public void writeToBuffer(Object o, ByteBuf buffer)
+    {
+        findTranslator(o.getClass()).serialise(o, buffer);
+    }
+
+    public <T> T readFromBuffer(Class<T> type, ByteBuf buffer) {
+        return (T) findTranslator(type).deserialise(buffer);
     }
 
     /**

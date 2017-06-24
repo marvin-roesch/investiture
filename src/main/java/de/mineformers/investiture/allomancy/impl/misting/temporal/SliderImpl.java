@@ -36,7 +36,7 @@ public class SliderImpl extends AbstractTimeManipulator implements Slider, ITick
         if (bubble != null)
         {
             Vec3d bubblePos = new Vec3d(bubble.position.getX() + 0.5, bubble.position.getY(), bubble.position.getZ() + 0.5);
-            if (entity.dimension != bubble.dimension || entity.getDistanceSq(bubblePos.xCoord, bubblePos.yCoord, bubblePos.zCoord) > 25)
+            if (entity.dimension != bubble.dimension || entity.getDistanceSq(bubblePos.x, bubblePos.y, bubblePos.z) > 25)
             {
 //                if (!entity.world.isRemote)
 //                    allomancer.deactivate(Slider.class);

@@ -56,13 +56,13 @@ void main()
     vec3 colourEnd = vec3(0, 0, 0);
 
 
-    if((1 - texCoord.y) <= metalLevel)
+    if(!hovered && (1 - texCoord.y) <= metalLevel)
     {
         // The UVs are beyond the metal level, so use the metal colour
         colourStart = metalColour;
         colourEnd = metalColourEnd;
     }
-    else if((1 - texCoord.y - metalLevel) <= impurityLevel)
+    else if(!hovered && (1 - texCoord.y - metalLevel) <= impurityLevel)
     {
         // The UVs are beyond the impurity level but above the metal one, so use the impurity colour
         colourStart = impurityColour;

@@ -1,6 +1,7 @@
 package de.mineformers.investiture.client;
 
 import net.minecraft.client.settings.KeyBinding;
+import net.minecraftforge.client.settings.KeyConflictContext;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import org.lwjgl.input.Keyboard;
 
@@ -12,7 +13,7 @@ public class KeyBindings
     /**
      * Key binding for the metal selection menu
      */
-    public static final KeyBinding SHOW_DIAL = new KeyBinding("key.showDial", Keyboard.KEY_F, "key.categories.allomancy");
+    public static final KeyBinding SHOW_DIAL = new KeyBinding("key.showDial", KeyConflictContext.IN_GAME, Keyboard.KEY_F, "key.categories.allomancy");
 
     public static void init()
     {

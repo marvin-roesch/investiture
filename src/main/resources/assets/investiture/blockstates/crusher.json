@@ -1,0 +1,38 @@
+{
+  "forge_marker": 1,
+  "defaults": {
+    "model": "investiture:piston.b3d",
+    "textures": {
+      "piston": "investiture:blocks/piston"
+    }
+  },
+  "variants": {
+    "static": {
+      "true": {
+        "custom": {
+          "mesh": [
+            "PistonBase"
+          ]
+        }
+      },
+      "false": {
+        "custom": {
+          "mesh": [
+            "PistonExtension"
+          ]
+        }
+      }
+    },
+    "inventory": [
+      {
+        "transform": "forge:default-block",
+        "custom": {
+          "mesh": [
+            "PistonBase",
+            "PistonExtension"
+          ]
+        }
+      }
+    ]
+  }
+}

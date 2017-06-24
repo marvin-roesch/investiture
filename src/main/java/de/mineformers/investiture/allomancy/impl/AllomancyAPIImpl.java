@@ -7,8 +7,10 @@ import de.mineformers.investiture.allomancy.api.Allomancer;
 import de.mineformers.investiture.allomancy.api.AllomancyAPI;
 import de.mineformers.investiture.allomancy.api.Capabilities;
 import de.mineformers.investiture.allomancy.api.MistingFactory;
+import de.mineformers.investiture.allomancy.api.metal.Metal;
 import de.mineformers.investiture.allomancy.api.metal.MetalMapping;
 import de.mineformers.investiture.allomancy.api.metal.Metals;
+import de.mineformers.investiture.allomancy.api.metal.stack.MetalStack;
 import de.mineformers.investiture.allomancy.api.misting.Inject;
 import de.mineformers.investiture.allomancy.api.misting.Misting;
 import de.mineformers.investiture.allomancy.api.misting.mental.Rioter;
@@ -28,6 +30,7 @@ import de.mineformers.investiture.allomancy.impl.misting.physical.LurcherImpl;
 import de.mineformers.investiture.allomancy.impl.misting.physical.ThugImpl;
 import de.mineformers.investiture.allomancy.impl.misting.physical.TineyeImpl;
 import de.mineformers.investiture.allomancy.impl.misting.temporal.*;
+import de.mineformers.investiture.allomancy.item.MetalItem;
 import de.mineformers.investiture.serialisation.Serialisation;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
@@ -40,6 +43,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.ITickable;
 import net.minecraft.world.World;
 import org.apache.commons.lang3.ClassUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -93,22 +97,31 @@ public class AllomancyAPIImpl implements AllomancyAPI
         registerMisting(Pulser.class, PulserImpl::new);
         registerMisting(Slider.class, SliderImpl::new);
 
-        registerMetalMapping(new MetalMapping.OreDict("ingotIron", Metals.IRON, 9, 1, false));
-        registerMetalMapping(new MetalMapping.OreDict("ingotGold", Metals.GOLD, 9, 1, false));
-        registerMetalMapping(new MetalMapping.OreDict("nuggetIron", Metals.IRON, 1, 1, false));
-        registerMetalMapping(new MetalMapping.OreDict("nuggetGold", Metals.GOLD, 1, 1, false));
+        registerOreDictMapping(Metals.IRON, MetalItem.Type.INGOT, false);
+        registerOreDictMapping(Metals.GOLD, MetalItem.Type.INGOT, false);
+        registerOreDictMapping(Metals.IRON, MetalItem.Type.NUGGET, false);
+        registerOreDictMapping(Metals.GOLD, MetalItem.Type.NUGGET, false);
 
-        registerMetallicItem(stack -> Metals.getMetalStack(stack).isPresent());
+        registerMetallicItem(stack -> !Metals.getMetalStacks(stack).isEmpty());
         registerMetallicItem(stack ->
                              {
                                  Item item = stack.getItem();
                                  Block block = Block.getBlockFromItem(item);
-                                 return isMetallic(block.getDefaultState()) || metallicItems.contains(item);
+                                 return isMetallic(block.getDefaultState());
                              });
 
         registerMetallicBlock(s -> s.getBlockState().getMaterial() == Material.IRON || s.getBlockState().getMaterial() == Material.ANVIL);
 
-        registerMetallicEntity(e -> e instanceof EntityItem && isMetallic(((EntityItem) e).getEntityItem()));
+        registerMetallicEntity(e -> e instanceof EntityItem && isMetallic(((EntityItem) e).getItem()));
+    }
+
+    private void registerOreDictMapping(Metal metal, MetalItem.Type type, boolean nbt)
+    {
+        String oreName = String.format("%s%s", type.name().toLowerCase(), StringUtils.capitalize(metal.id()));
+        registerMetalMapping(
+            new MetalMapping.OreDict(oreName, metal,
+                                     type.conversion, type.purityRange.hasLowerBound() ? type.purityRange.lowerEndpoint() : 0, type.purityRange,
+                                     nbt));
     }
 
     public Optional<Class<? extends Misting>> getMistingType(String identifier)
@@ -217,8 +230,40 @@ public class AllomancyAPIImpl implements AllomancyAPI
         {
             allomancer.as(type).ifPresent(m ->
                                           {
-                                              if (allomancer.activePowers().contains(type) && m instanceof ITickable)
-                                                  ((ITickable) m).update();
+                                              if (allomancer.activePowers().contains(type))
+                                              {
+                                                  if (entity.world.isRemote ||
+                                                      (entity instanceof EntityPlayer && ((EntityPlayer) entity).isCreative()))
+                                                  {
+                                                      if (m instanceof ITickable)
+                                                          ((ITickable) m).update();
+                                                  }
+                                                  else
+                                                  {
+                                                      Metal metal = m.baseMetal();
+                                                      Set<MetalStack> burned = allomancer.storage().burn(metal, metal.burnRate(), false);
+                                                      float available = burned.stream()
+                                                                              .reduce(0f, (acc, s) -> acc + s.getQuantity(), (a, b) -> a + b);
+                                                      float impurities =
+                                                          burned
+                                                              .stream()
+                                                              .reduce(0f, (acc, s) -> acc + s.getQuantity() * Math.max(0, 0.9f - s.getPurity()),
+                                                                      (a, b) -> a + b);
+                                                      if (available >= metal.burnRate())
+                                                      {
+                                                          if (m instanceof ITickable)
+                                                              ((ITickable) m).update();
+                                                      }
+                                                      else
+                                                      {
+                                                          allomancer.deactivate(type);
+                                                      }
+                                                      if (impurities > 0)
+                                                      {
+                                                          metal.applyImpurityEffects(entity, impurities);
+                                                      }
+                                                  }
+                                              }
                                               if (!entity.world.isRemote)
                                                   factories.get(type).companion.write(m, entity);
                                           });

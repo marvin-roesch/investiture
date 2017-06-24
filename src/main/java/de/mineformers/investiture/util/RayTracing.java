@@ -32,23 +32,23 @@ public class RayTracing
         // Effectively a copy of EntityRenderer.getMouseOver, see that for details
         Vec3d start = camera.getPositionEyes(1);
         Vec3d direction = camera.getLook(1);
-        Vec3d end = start.addVector(direction.xCoord * reach, direction.yCoord * reach, direction.zCoord * reach);
+        Vec3d end = start.addVector(direction.x * reach, direction.y * reach, direction.z * reach);
         Entity result = null;
         Vec3d hitVec = null;
         List<Entity> list = camera.world.getEntitiesInAABBexcluding(camera, camera.getEntityBoundingBox()
-                                                                                  .addCoord(direction.xCoord * reach,
-                                                                                            direction.yCoord * reach,
-                                                                                            direction.zCoord * reach)
-                                                                                  .expand(1, 1, 1), EntitySelectors.NOT_SPECTATING);
+                                                                                  .expand(direction.x * reach,
+                                                                                            direction.y * reach,
+                                                                                            direction.z * reach)
+                                                                                  .grow(1, 1, 1), EntitySelectors.NOT_SPECTATING);
         double minDistance = reach;
 
         for (Entity checkedEntity : list)
         {
             float borderSize = checkedEntity.getCollisionBorderSize();
-            AxisAlignedBB bounds = checkedEntity.getEntityBoundingBox().expand(borderSize, borderSize, borderSize);
+            AxisAlignedBB bounds = checkedEntity.getEntityBoundingBox().grow(borderSize, borderSize, borderSize);
             RayTraceResult mop = bounds.calculateIntercept(start, end);
 
-            if (bounds.isVecInside(start))
+            if (bounds.contains(start))
             {
                 if (predicate.test(checkedEntity) && minDistance >= 0.0D)
                 {
@@ -109,7 +109,7 @@ public class RayTracing
     {
         Vec3d start = camera.getPositionVector().addVector(0, camera.getEyeHeight(), 0);
         Vec3d look = camera.getLook(1);
-        Vec3d end = start.addVector(look.xCoord * reach, look.yCoord * reach, look.zCoord * reach);
+        Vec3d end = start.addVector(look.x * reach, look.y * reach, look.z * reach);
         return rayTraceBlocks(camera.world, start, end, predicate, stopOnLiquid, collideWithBoundingBoxesOnly, returnLastUncollidableBlock);
     }
 
@@ -133,16 +133,16 @@ public class RayTracing
                                                 boolean returnLastUncollidableBlock)
     {
         // See World.rayTraceBlocks, this just adds the predicate
-        if (!Double.isNaN(start.xCoord) && !Double.isNaN(start.yCoord) && !Double.isNaN(start.zCoord))
+        if (!Double.isNaN(start.x) && !Double.isNaN(start.y) && !Double.isNaN(start.z))
         {
-            if (!Double.isNaN(end.xCoord) && !Double.isNaN(end.yCoord) && !Double.isNaN(end.zCoord))
+            if (!Double.isNaN(end.x) && !Double.isNaN(end.y) && !Double.isNaN(end.z))
             {
-                int startX = MathHelper.floor(start.xCoord);
-                int startY = MathHelper.floor(start.yCoord);
-                int startZ = MathHelper.floor(start.zCoord);
-                int endX = MathHelper.floor(end.xCoord);
-                int endY = MathHelper.floor(end.yCoord);
-                int endZ = MathHelper.floor(end.zCoord);
+                int startX = MathHelper.floor(start.x);
+                int startY = MathHelper.floor(start.y);
+                int startZ = MathHelper.floor(start.z);
+                int endX = MathHelper.floor(end.x);
+                int endY = MathHelper.floor(end.y);
+                int endZ = MathHelper.floor(end.z);
                 BlockPos pos = new BlockPos(startX, startY, startZ);
                 {
                     IBlockState state = world.getBlockState(pos);
@@ -167,7 +167,7 @@ public class RayTracing
 
                 while (k1-- >= 0)
                 {
-                    if (Double.isNaN(start.xCoord) || Double.isNaN(start.yCoord) || Double.isNaN(start.zCoord))
+                    if (Double.isNaN(start.x) || Double.isNaN(start.y) || Double.isNaN(start.z))
                     {
                         return null;
                     }
@@ -226,23 +226,23 @@ public class RayTracing
                     double stepX = 999.0D;
                     double stepY = 999.0D;
                     double stepZ = 999.0D;
-                    double dX = end.xCoord - start.xCoord;
-                    double dY = end.yCoord - start.yCoord;
-                    double dZ = end.zCoord - start.zCoord;
+                    double dX = end.x - start.x;
+                    double dY = end.y - start.y;
+                    double dZ = end.z - start.z;
 
                     if (flag2)
                     {
-                        stepX = (x - start.xCoord) / dX;
+                        stepX = (x - start.x) / dX;
                     }
 
                     if (flag)
                     {
-                        stepY = (y - start.yCoord) / dY;
+                        stepY = (y - start.y) / dY;
                     }
 
                     if (flag1)
                     {
-                        stepZ = (z - start.zCoord) / dZ;
+                        stepZ = (z - start.z) / dZ;
                     }
 
                     if (stepX == -0.0D)
@@ -265,22 +265,22 @@ public class RayTracing
                     if (stepX < stepY && stepX < stepZ)
                     {
                         direction = endX > startX ? EnumFacing.WEST : EnumFacing.EAST;
-                        start = new Vec3d(x, start.yCoord + dY * stepX, start.zCoord + dZ * stepX);
+                        start = new Vec3d(x, start.y + dY * stepX, start.z + dZ * stepX);
                     }
                     else if (stepY < stepZ)
                     {
                         direction = endY > startY ? EnumFacing.DOWN : EnumFacing.UP;
-                        start = new Vec3d(start.xCoord + dX * stepY, y, start.zCoord + dZ * stepY);
+                        start = new Vec3d(start.x + dX * stepY, y, start.z + dZ * stepY);
                     }
                     else
                     {
                         direction = endZ > startZ ? EnumFacing.NORTH : EnumFacing.SOUTH;
-                        start = new Vec3d(start.xCoord + dX * stepZ, start.yCoord + dY * stepZ, z);
+                        start = new Vec3d(start.x + dX * stepZ, start.y + dY * stepZ, z);
                     }
 
-                    startX = MathHelper.floor(start.xCoord) - (direction == EnumFacing.EAST ? 1 : 0);
-                    startY = MathHelper.floor(start.yCoord) - (direction == EnumFacing.UP ? 1 : 0);
-                    startZ = MathHelper.floor(start.zCoord) - (direction == EnumFacing.SOUTH ? 1 : 0);
+                    startX = MathHelper.floor(start.x) - (direction == EnumFacing.EAST ? 1 : 0);
+                    startY = MathHelper.floor(start.y) - (direction == EnumFacing.UP ? 1 : 0);
+                    startZ = MathHelper.floor(start.z) - (direction == EnumFacing.SOUTH ? 1 : 0);
                     pos = new BlockPos(startX, startY, startZ);
                     IBlockState state = world.getBlockState(pos);
                     Block block = state.getBlock();

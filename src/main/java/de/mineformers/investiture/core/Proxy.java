@@ -6,16 +6,15 @@ import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.renderer.block.model.ModelBakery;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-import java.text.NumberFormat;
 import java.util.List;
 import java.util.Map;
 
@@ -52,27 +51,8 @@ public interface Proxy
     {
     }
 
-    default EntityPlayer localPlayer()
-    {
-        return null;
-    }
+    default void serverStart(FMLServerStartingEvent event) {
 
-    default void animateFOV(float desiredFOV, int animationDuration)
-    {
-    }
-
-    default void setFOV(EntityPlayer player, float value)
-    {
-    }
-
-    default float getFOV(EntityPlayer player)
-    {
-        return 0;
-    }
-
-    default NumberFormat getPercentageFormat()
-    {
-        return NumberFormat.getNumberInstance();
     }
 
     /**

@@ -26,7 +26,7 @@ public class MetalStacks
             return Optional.of(new ItemStack(Blocks.GOLD_ORE, count));
         int dmg = Arrays.asList(MetalOre.NAMES).indexOf(metal.id());
         if (dmg != -1)
-            return Optional.of(new ItemStack(Allomancy.Blocks.ORE, count, dmg));
+            return Optional.of(new ItemStack(Allomancy.Blocks.ALLOMANTIC_ORE, count, dmg));
         return Optional.empty();
     }
 
@@ -85,12 +85,12 @@ public class MetalStacks
         try
         {
             MetalItem item = type.getter.call();
-            for (int i = 0; i < item.getMetalNames().length; i++)
+            for (int i = 0; i < item.getMetals().length; i++)
             {
-                if (metal.id().equals(item.getMetalNames()[i]))
+                if (metal.equals(item.getMetals()[i]))
                 {
                     ItemStack stack = new ItemStack(item, count, i);
-                    item.getMetalStack(stack).setPurity(purity / 100f);
+                    item.getMetalStackProvider(stack).setPurity(purity / 100f);
                     return Optional.of(stack);
                 }
             }

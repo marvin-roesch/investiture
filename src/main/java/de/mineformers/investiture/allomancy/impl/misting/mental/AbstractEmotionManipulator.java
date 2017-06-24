@@ -32,7 +32,6 @@ public abstract class AbstractEmotionManipulator extends AbstractMisting impleme
     static
     {
         GET_VILLAGE = Reflection.getterHandle(EntityVillager.class)
-                                .mcpName("villageObj")
                                 .srgName("field_70954_d")
                                 .build();
     }

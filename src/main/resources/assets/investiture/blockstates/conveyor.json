@@ -1,0 +1,71 @@
+{
+  "forge_marker": 1,
+  "defaults": {
+    "model": "investiture:conveyor/base"
+  },
+  "variants": {
+    "facing": {
+      "north": {
+      },
+      "south": {
+        "y": 180
+      },
+      "west": {
+        "y": 270
+      },
+      "east": {
+        "y": 90
+      }
+    },
+    "interface_type": {
+      "none": {
+      },
+      "inserter": {
+        "submodel": "investiture:conveyor/inserter"
+      },
+      "extractor": {
+        "submodel": "investiture:conveyor/extractor"
+      }
+    },
+    "connected_front": {
+      "true": {
+        "submodel": "investiture:conveyor/belt_front"
+      },
+      "false": {}
+    },
+    "connected_back": {
+      "true": {
+        "submodel": "investiture:conveyor/belt_back"
+      },
+      "false": {}
+    },
+    "connected_left": {
+      "true": {},
+      "false": {
+        "submodel": "investiture:conveyor/left_rim_top"
+      }
+    },
+    "connected_right": {
+      "true": {},
+      "false": {
+        "submodel": "investiture:conveyor/right_rim_top"
+      }
+    },
+    "inventory_normal": [
+      {
+        "model": "investiture:conveyor",
+        "textures": {
+          "belt": "investiture:blocks/conveyor_off"
+        }
+      }
+    ],
+    "inventory_interface": [
+      {
+        "model": "investiture:conveyor_interface",
+        "textures": {
+          "belt": "investiture:blocks/conveyor_off"
+        }
+      }
+    ]
+  }
+}

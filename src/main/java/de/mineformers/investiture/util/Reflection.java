@@ -1,7 +1,10 @@
 package de.mineformers.investiture.util;
 
 import com.google.common.base.Throwables;
+import net.minecraft.launchwrapper.Launch;
+import net.minecraftforge.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper;
 import net.minecraftforge.fml.relauncher.ReflectionHelper;
+import org.objectweb.asm.Type;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -52,9 +55,9 @@ public class Reflection
      * @param clazz the class the method belongs to
      * @return a builder for the method
      */
-    public static MethodHandleBuilder<?> methodHandle(Class<?> clazz)
+    public static <T, R> MethodHandleBuilder<T, R> methodHandle(Class<T> clazz, Class<R> returnType)
     {
-        return new MethodHandleBuilder<>(clazz);
+        return new MethodHandleBuilder<>(clazz, returnType);
     }
 
     /**
@@ -132,6 +135,10 @@ public class Reflection
         {
             try
             {
+                if (mcpName == null && Launch.blackboard.get("fml.deobfuscatedEnvironment") == Boolean.TRUE)
+                {
+                    mcpName = FMLDeobfuscatingRemapper.INSTANCE.mapFieldName(clazz.getName().replace('.', '/'), srgName, null);
+                }
                 Field field = ReflectionHelper.findField(clazz, srgName, mcpName);
                 field.setAccessible(true);
                 if (setter)
@@ -151,16 +158,18 @@ public class Reflection
      * Builds a method handle pointing to a (private) method.
      * Provides a fluent interface and support for obfuscation to ease the creation of the method handle.
      */
-    public static class MethodHandleBuilder<T>
+    public static class MethodHandleBuilder<T, R>
     {
         private final Class<T> clazz;
+        private final Class<R> returnType;
         private String srgName;
         private String mcpName;
         private final List<Class<?>> types = new ArrayList<>();
 
-        MethodHandleBuilder(Class<T> clazz)
+        MethodHandleBuilder(Class<T> clazz, Class<R> returnType)
         {
             this.clazz = clazz;
+            this.returnType = returnType;
         }
 
         /**
@@ -169,7 +178,7 @@ public class Reflection
          * @param srgName the method's SRG name
          * @return this builder
          */
-        public MethodHandleBuilder<T> srgName(String srgName)
+        public MethodHandleBuilder<T, R> srgName(String srgName)
         {
             this.srgName = srgName;
             return this;
@@ -181,7 +190,7 @@ public class Reflection
          * @param mcpName the method's MCP name
          * @return this builder
          */
-        public MethodHandleBuilder<T> mcpName(String mcpName)
+        public MethodHandleBuilder<T, R> mcpName(String mcpName)
         {
             this.mcpName = mcpName;
             return this;
@@ -210,7 +219,17 @@ public class Reflection
         {
             try
             {
-                Method method = ReflectionHelper.findMethod(clazz, null, new String[]{srgName, mcpName}, types.toArray(new Class<?>[types.size()]));
+                if (mcpName == null && Launch.blackboard.get("fml.deobfuscatedEnvironment") == Boolean.TRUE)
+                {
+                    StringBuilder desc = new StringBuilder();
+                    desc.append("(");
+                    for (Class<?> t : types)
+                        desc.append(Type.getDescriptor(t));
+                    desc.append(")");
+                    desc.append(Type.getDescriptor(returnType));
+                    mcpName = FMLDeobfuscatingRemapper.INSTANCE.mapMethodName(clazz.getName().replace('.', '/'), srgName, desc.toString());
+                }
+                Method method = ReflectionHelper.findMethod(clazz, mcpName, srgName, types.toArray(new Class<?>[types.size()]));
                 method.setAccessible(true);
                 return MethodHandles.lookup().unreflect(method);
             }

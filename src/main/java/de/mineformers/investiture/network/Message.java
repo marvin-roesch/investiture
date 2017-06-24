@@ -80,7 +80,7 @@ public class Message implements IMessage
             }
             else
             {
-                return serverHandler().playerEntity;
+                return serverHandler().player;
             }
         }
 
@@ -105,7 +105,7 @@ public class Message implements IMessage
             }
             else
             {
-                ((WorldServer) serverHandler().playerEntity.world).addScheduledTask(f);
+                ((WorldServer) serverHandler().player.world).addScheduledTask(f);
             }
         }
 

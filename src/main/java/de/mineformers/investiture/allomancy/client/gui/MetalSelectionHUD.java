@@ -4,6 +4,7 @@ import de.mineformers.investiture.Investiture;
 import de.mineformers.investiture.allomancy.Allomancy;
 import de.mineformers.investiture.allomancy.api.Allomancer;
 import de.mineformers.investiture.allomancy.api.metal.Metal;
+import de.mineformers.investiture.allomancy.api.metal.MetalStorage;
 import de.mineformers.investiture.allomancy.api.metal.Metals;
 import de.mineformers.investiture.allomancy.impl.AllomancyAPIImpl;
 import de.mineformers.investiture.allomancy.network.ToggleBurningMetal;
@@ -95,7 +96,7 @@ public class MetalSelectionHUD
 //        Rendering.drawRectangle(centreX - 100, centreY - 100, 0, 0, 1, 1, 200, 200);
 
         // Draw the hovered metal's name in the circle's centre
-        FontRenderer font = Minecraft.getMinecraft().fontRendererObj;
+        FontRenderer font = Minecraft.getMinecraft().fontRenderer;
         if (hoveredMetal.isPresent())
         {
             Metal metal = hoveredMetal.get();
@@ -115,8 +116,25 @@ public class MetalSelectionHUD
     private void drawRings(int centreX, int centreY)
     {
         GlStateManager.disableTexture2D();
-        Rendering.drawRing(centreX, centreY, 30, 30, 8, 0, new Colour(0, 0, 0, 0.75f));
-        Rendering.drawRing(centreX, centreY, 70, 30, 8, 0, new Colour(0, 0, 0, 0.75f));
+        GlStateManager.shadeModel(GL_SMOOTH);
+        Rendering.drawRingQuarter(centreX, centreY, 30, 30, 8, 0,
+                                  Colour.fromHex(0x136F63, 0.7f), Colour.fromHex(0x136F63, 0.5f));
+        Rendering.drawRingQuarter(centreX, centreY, 30, 30, 8, 1,
+                                  Colour.fromHex(0x274C77, 0.7f), Colour.fromHex(0x274C77, 0.5f));
+        Rendering.drawRingQuarter(centreX, centreY, 30, 30, 8, 2,
+                                  Colour.fromHex(0xD04E46, 0.7f), Colour.fromHex(0xD04E46, 0.5f));
+        Rendering.drawRingQuarter(centreX, centreY, 30, 30, 8, 3,
+                                  Colour.fromHex(0x74BF56, 0.7f), Colour.fromHex(0x74BF56, 0.5f));
+
+        Rendering.drawRingQuarter(centreX, centreY, 70, 30, 8, 0,
+                                  Colour.fromHex(0x22AAA1, 0.7f), Colour.fromHex(0x22AAA1, 0.9f));
+        Rendering.drawRingQuarter(centreX, centreY, 70, 30, 8, 1,
+                                  Colour.fromHex(0x4E6C8F, 0.7f), Colour.fromHex(0x4E6C8F, 0.9f));
+        Rendering.drawRingQuarter(centreX, centreY, 70, 30, 8, 2,
+                                  Colour.fromHex(0xFE5F55, 0.7f), Colour.fromHex(0xFE5F55, 0.9f));
+        Rendering.drawRingQuarter(centreX, centreY, 70, 30, 8, 3,
+                                  Colour.fromHex(0x8DE969, 0.7f), Colour.fromHex(0x8DE969, 0.9f));
+        GlStateManager.shadeModel(GL_FLAT);
         GlStateManager.enableTexture2D();
     }
 
@@ -134,8 +152,8 @@ public class MetalSelectionHUD
         iconShader.activate();
         iconShader.setUniformInt("tex", 0);
         iconShader.setUniformFloat("deltaBrightness", 0.1f);
-        iconShader.setUniform("hoveredColour", new Vec3d(171 / 255f, 137 / 255f, 19 / 255f));
-        iconShader.setUniform("metalColour", new Vec3d(171 / 255f, 137 / 255f, 19 / 255f));
+        iconShader.setUniform("hoveredColour", new Vec3d(6 / 255f, 104 / 255f, 173 / 255f));
+        iconShader.setUniform("metalColour", new Vec3d(216 / 255f, 54 / 255f, 0 / 255f));
         iconShader.setUniform("impurityColour", new Vec3d(141 / 255f, 19 / 255f, 171 / 255f));
         for (int i = 0; i < METALS.length / 2; i++)
         {
@@ -145,9 +163,8 @@ public class MetalSelectionHUD
             // Change the main colour of the icon if the metal is burning
             iconShader.setUniform("backColour", allomancer.activePowers().contains(innerMetal.mistingType()) ? new Vec3d(205 / 255f, 43 / 255f, 0)
                                                                                                              : new Vec3d(0.9f, 0.9f, 0.9f));
-//            iconShader.setUniformFloat("metalLevel", (float) burner.get(innerMetal) / MetalStorage.MAX_STORAGE);
+            iconShader.setUniformFloat("metalLevel", allomancer.storage().getStoredQuantity(innerMetal) / 1000f);
 //            iconShader.setUniformFloat("impurityLevel", (float) burner.getImpurity(innerMetal) / MetalStorage.MAX_STORAGE);
-            iconShader.setUniformFloat("metalLevel", 0);
             iconShader.setUniformFloat("impurityLevel", 0);
 
             // The textures in the array are aligned in pairs of two
@@ -161,9 +178,8 @@ public class MetalSelectionHUD
             // Change the main colour of the icon if the metal is burning
             iconShader.setUniform("backColour", allomancer.activePowers().contains(outerMetal.mistingType()) ? new Vec3d(205 / 255f, 43 / 255f, 0)
                                                                                                              : new Vec3d(0.9f, 0.9f, 0.9f));
-//            iconShader.setUniformFloat("metalLevel", (float) burner.get(outerMetal) / MetalStorage.MAX_STORAGE);
+            iconShader.setUniformFloat("metalLevel", allomancer.storage().getStoredQuantity(outerMetal) / 1000f);
 //            iconShader.setUniformFloat("impurityLevel", (float) burner.getImpurity(outerMetal) / MetalStorage.MAX_STORAGE);
-            iconShader.setUniformFloat("metalLevel", 0);
             iconShader.setUniformFloat("impurityLevel", 0);
 
             // The textures in the array are aligned in pairs of two

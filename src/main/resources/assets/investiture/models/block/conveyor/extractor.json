@@ -1,0 +1,76 @@
+{
+  "textures": {
+    "interface": "investiture:blocks/conveyor_extractor"
+  },
+  "elements": [
+    {
+      "__comment": "Interface",
+      "from": [
+        1,
+        11,
+        8
+      ],
+      "to": [
+        15,
+        16,
+        16
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            1,
+            0,
+            15,
+            8
+          ],
+          "texture": "#interface"
+        },
+        "up": {
+          "uv": [
+            1,
+            8,
+            15,
+            16
+          ],
+          "texture": "#interface"
+        },
+        "north": {
+          "uv": [
+            1,
+            0,
+            15,
+            5
+          ],
+          "texture": "#interface"
+        },
+        "south": {
+          "uv": [
+            1,
+            0,
+            15,
+            5
+          ],
+          "texture": "#interface"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            8,
+            5
+          ],
+          "texture": "#interface"
+        },
+        "east": {
+          "uv": [
+            8,
+            0,
+            16,
+            5
+          ],
+          "texture": "#interface"
+        }
+      }
+    }
+  ]
+}

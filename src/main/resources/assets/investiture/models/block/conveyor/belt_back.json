@@ -1,0 +1,19 @@
+{
+	"textures": {
+		"particle": "investiture:blocks/conveyor_off",
+		"belt": "investiture:blocks/conveyor_on",
+		"rim": "investiture:blocks/conveyor_rim"
+	},
+	"elements": [
+		{
+			"__comment": "BeltBack",
+			"from": [ 1, 12, 14 ],
+			"to": [ 15, 15, 16 ],
+			"faces": {
+				"down": { "uv": [ 1, 16, 15, 14 ], "texture": "#belt" },
+				"up": { "uv": [ 1, 2, 15, 0 ], "texture": "#belt" },
+				"south": { "uv": [ 1, 5, 15, 2 ], "texture": "#belt", "cullface": "south" }
+			}
+		}
+	]
+}

@@ -4,8 +4,8 @@ import com.google.common.collect.ImmutableMap;
 import de.mineformers.investiture.allomancy.Allomancy;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraft.world.chunk.IChunkGenerator;
 import net.minecraft.world.chunk.IChunkProvider;
+import net.minecraft.world.gen.IChunkGenerator;
 import net.minecraft.world.gen.feature.WorldGenMinable;
 import net.minecraftforge.fml.common.IWorldGenerator;
 
@@ -45,7 +45,7 @@ public class MetalGenerator implements IWorldGenerator
             "aluminium", new Ore(0, 64, 20, 9),
             "chromium", new Ore(0, 64, 20, 9));
     private final static Map<String, WorldGenMinable> GENERATORS = ORES.entrySet().stream().collect(
-        Collectors.toMap(Map.Entry::getKey, e -> new WorldGenMinable(Allomancy.Blocks.ORE.fromMetal(e.getKey()), e.getValue().veinSize)));
+        Collectors.toMap(Map.Entry::getKey, e -> new WorldGenMinable(Allomancy.Blocks.ALLOMANTIC_ORE.fromMetal(e.getKey()), e.getValue().veinSize)));
 
     @Override
     public void generate(Random random, int chunkX, int chunkZ, World world, IChunkGenerator chunkGenerator, IChunkProvider chunkProvider)

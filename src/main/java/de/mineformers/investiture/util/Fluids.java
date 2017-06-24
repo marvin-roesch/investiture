@@ -23,8 +23,7 @@ public class Fluids
 
     static
     {
-        VANILLA_FLOW_VECTOR = Reflection.methodHandle(BlockLiquid.class)
-                                        .mcpName("getFlowVector")
+        VANILLA_FLOW_VECTOR = Reflection.methodHandle(BlockLiquid.class, Vec3d.class)
                                         .srgName("func_180687_h")
                                         .parameterType(IBlockAccess.class)
                                         .parameterType(BlockPos.class)

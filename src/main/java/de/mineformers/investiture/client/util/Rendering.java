@@ -3,10 +3,10 @@ package de.mineformers.investiture.client.util;
 import com.google.common.base.Throwables;
 import de.mineformers.investiture.util.Reflection;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.EntityRenderer;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.VertexBuffer;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
@@ -30,8 +30,7 @@ public class Rendering
 
     static
     {
-        VANILLA_CAMERA_TRANSFORMS = Reflection.methodHandle(EntityRenderer.class)
-                                              .mcpName("setupCameraTransform")
+        VANILLA_CAMERA_TRANSFORMS = Reflection.methodHandle(EntityRenderer.class, void.class)
                                               .srgName("func_78479_a")
                                               .parameterType(float.class)
                                               .parameterType(int.class)
@@ -65,7 +64,7 @@ public class Rendering
     public static void drawRectangle(int x, int y, float uMin, float vMin, float uMax, float vMax, int width, int height)
     {
         Tessellator tessellator = Tessellator.getInstance();
-        VertexBuffer wr = tessellator.getBuffer();
+        BufferBuilder wr = tessellator.getBuffer();
         wr.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
         wr.pos(x, y + height, 0)
           .tex(uMin, vMax)
@@ -87,11 +86,11 @@ public class Rendering
         drawRing(centreX, centreY, innerRadius, width, accuracy, startAngle, colour, colour);
     }
 
-    public static void drawRing(int centreX, int centreY, int innerRadius, int width, int accuracy, double startAngle, Colour innerColour, Colour
-        outerColour)
+    public static void drawRing(int centreX, int centreY, int innerRadius, int width, int accuracy, double startAngle,
+                                Colour innerColour, Colour outerColour)
     {
         Tessellator tess = Tessellator.getInstance();
-        VertexBuffer wr = tess.getBuffer();
+        BufferBuilder wr = tess.getBuffer();
         glPointSize(5);
         double step = Math.PI / accuracy * 2;
         double halfStep = Math.PI / accuracy;
@@ -116,6 +115,46 @@ public class Rendering
         tess.draw();
     }
 
+    public static void drawRingQuarter(int centreX, int centreY, int innerRadius, int width, int accuracy, int quarter,
+                                       Colour innerColour, Colour outerColour)
+    {
+        Tessellator tess = Tessellator.getInstance();
+        BufferBuilder wr = tess.getBuffer();
+        glPointSize(5);
+        double step = Math.PI / accuracy * 2;
+        double halfStep = Math.PI / accuracy;
+        double startAngle = Math.PI / 2 * quarter;
+        double endAngle = startAngle + Math.PI / 2;
+        wr.begin(GL_TRIANGLE_STRIP, DefaultVertexFormats.POSITION_COLOR);
+        wr.pos(centreX + cos(startAngle - (quarter % 2 == 0 ? halfStep : 0)) * (innerRadius + width),
+               centreY + sin(startAngle - (quarter % 2 == 1 ? halfStep : 0)) * (innerRadius + width), 0)
+          .color(outerColour.r(), outerColour.g(), outerColour.b(), outerColour.a())
+          .endVertex();
+        wr.pos(centreX + cos(startAngle - (quarter % 2 == 0 ? halfStep : 0)) * innerRadius,
+               centreY + sin(startAngle - (quarter % 2 == 1 ? halfStep : 0)) * innerRadius, 0)
+          .color(innerColour.r(), innerColour.g(), innerColour.b(), innerColour.a())
+          .endVertex();
+        for (int i = 0; i < accuracy / 4; i++)
+        {
+            double angle = i * step + halfStep + startAngle;
+            wr.pos(centreX + cos(angle) * (innerRadius + width), centreY + sin(angle) * (innerRadius + width), 0)
+              .color(outerColour.r(), outerColour.g(), outerColour.b(), outerColour.a())
+              .endVertex();
+            wr.pos(centreX + cos(angle) * innerRadius, centreY + sin(angle) * innerRadius, 0)
+              .color(innerColour.r(), innerColour.g(), innerColour.b(), innerColour.a())
+              .endVertex();
+        }
+        wr.pos(centreX + cos(endAngle - (quarter % 2 == 1 ? halfStep : 0)) * (innerRadius + width),
+               centreY + sin(endAngle - (quarter % 2 == 0 ? halfStep : 0)) * (innerRadius + width), 0)
+          .color(outerColour.r(), outerColour.g(), outerColour.b(), outerColour.a())
+          .endVertex();
+        wr.pos(centreX + cos(endAngle - (quarter % 2 == 1 ? halfStep : 0)) * innerRadius,
+               centreY + sin(endAngle - (quarter % 2 == 0 ? halfStep : 0)) * innerRadius, 0)
+          .color(innerColour.r(), innerColour.g(), innerColour.b(), innerColour.a())
+          .endVertex();
+        tess.draw();
+    }
+
     /**
      * Renders a baked model into the world. Transformations should be applied before calling this method.
      *
@@ -135,7 +174,7 @@ public class Rendering
     public static void drawModel(IBakedModel model, int colour)
     {
         Tessellator tessellator = Tessellator.getInstance();
-        VertexBuffer worldrenderer = tessellator.getBuffer();
+        BufferBuilder worldrenderer = tessellator.getBuffer();
 
         pushAttrib();
         RenderHelper.disableStandardItemLighting();

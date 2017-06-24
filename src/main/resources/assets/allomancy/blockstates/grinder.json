@@ -1,0 +1,19 @@
+{
+  "forge_marker": 1,
+  "defaults": {
+    "model": "allomancy:metal_grinder.obj",
+    "uvlock": true,
+    "transform": "forge:default-block",
+    "custom": {
+      "flip-v": true
+    }
+  },
+  "variants": {
+    "normal": [
+      {}
+    ],
+    "inventory": [
+      {}
+    ]
+  }
+}

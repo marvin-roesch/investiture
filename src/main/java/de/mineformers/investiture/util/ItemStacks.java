@@ -1,10 +1,16 @@
 package de.mineformers.investiture.util;
 
+import net.minecraft.block.Block;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.item.EntityItem;
+import net.minecraft.init.Blocks;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
+import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
@@ -13,6 +19,30 @@ import java.util.Random;
 public class ItemStacks
 {
     private static final Random RANDOM = new Random();
+
+    public static ItemStack from(@Nonnull final IBlockState state)
+    {
+        final Block block = state.getBlock();
+
+        final Item i = block.getItemDropped(state, RANDOM, 0);
+        final int meta = block.getMetaFromState(state);
+        final int damage = block.damageDropped(state);
+        final int amount = block.quantityDropped(state, 0, RANDOM);
+        final Item variant = Item.getItemFromBlock(block);
+
+        // darn conversions...
+        if (block == Blocks.GRASS)
+        {
+            return new ItemStack(Blocks.GRASS);
+        }
+
+        if (i == null || variant == null || variant != i)
+        {
+            return ItemStack.EMPTY;
+        }
+
+        return new ItemStack(i, amount, damage);
+    }
 
     /**
      * Spawns an item stack at a block's position.
@@ -38,14 +68,13 @@ public class ItemStacks
                 droppedCount = stack.getCount();
             }
 
-            stack.shrink(droppedCount);
             EntityItem entity = new EntityItem(world, pos.getX() + x, pos.getY() + y, pos.getZ() + z,
                                                new ItemStack(stack.getItem(), droppedCount, stack.getMetadata()));
-
             if (stack.hasTagCompound())
             {
-                entity.getEntityItem().setTagCompound(stack.getTagCompound().copy());
+                entity.getItem().setTagCompound(stack.getTagCompound().copy());
             }
+            stack.shrink(droppedCount);
 
             entity.motionX = RANDOM.nextGaussian() * 0.05;
             entity.motionY = RANDOM.nextGaussian() * 0.05 + 0.2;

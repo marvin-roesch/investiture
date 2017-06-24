@@ -1,5 +1,6 @@
 package de.mineformers.investiture.allomancy.item;
 
+import com.google.common.collect.Range;
 import de.mineformers.investiture.Investiture;
 import de.mineformers.investiture.allomancy.Allomancy;
 import de.mineformers.investiture.allomancy.api.Capabilities;
@@ -7,22 +8,16 @@ import de.mineformers.investiture.allomancy.api.metal.Metal;
 import de.mineformers.investiture.allomancy.api.metal.MetalMapping;
 import de.mineformers.investiture.allomancy.api.metal.Metals;
 import de.mineformers.investiture.allomancy.api.metal.stack.MetalStack;
-import de.mineformers.investiture.allomancy.api.metal.stack.ModifiableMetalStack;
+import de.mineformers.investiture.allomancy.api.metal.stack.PurifiableMetalStackProvider;
+import de.mineformers.investiture.allomancy.api.metal.stack.SingleMetalStackProvider;
 import de.mineformers.investiture.allomancy.impl.AllomancyAPIImpl;
-import net.minecraft.client.resources.I18n;
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
 import net.minecraft.util.NonNullList;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.TextComponentString;
-import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.util.INBTSerializable;
@@ -33,19 +28,18 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.List;
 import java.util.concurrent.Callable;
 
 public class MetalItem extends Item
 {
     protected String name;
-    protected String[] metalNames = {};
+    protected Metal[] metals = {};
     protected Type type;
 
     /**
      * Creates a new instance of the ingot.
      */
-    public MetalItem(String registryName, String name, Type type, String[] metalNames)
+    public MetalItem(String registryName, String name, Type type, Metal[] metals)
     {
         setMaxDamage(0);
         setHasSubtypes(true);
@@ -54,7 +48,7 @@ public class MetalItem extends Item
         setUnlocalizedName(getRegistryName().toString());
 
         this.name = name;
-        this.metalNames = metalNames;
+        this.metals = metals;
         this.type = type;
     }
 
@@ -66,53 +60,46 @@ public class MetalItem extends Item
      */
     public int clampDamage(int value)
     {
-        return MathHelper.clamp(value, 0, this.metalNames.length - 1);
+        return MathHelper.clamp(value, 0, this.metals.length - 1);
     }
 
     /**
      * @param stack the stack to get the name from
-     * @return the name of the metal represented by the given stack
+     * @return the metal represented by the given stack
      */
-    public String getName(ItemStack stack)
+    public Metal getMetal(ItemStack stack)
     {
-        return this.metalNames[clampDamage(stack.getItemDamage())];
+        return this.metals[clampDamage(stack.getItemDamage())];
     }
 
-    public ModifiableMetalStack getMetalStack(ItemStack stack)
+    public PurifiableMetalStackProvider getMetalStackProvider(ItemStack stack)
     {
-        return (ModifiableMetalStack) Metals.getMetalStack(stack).get();
+        return (PurifiableMetalStackProvider) stack.getCapability(Capabilities.METAL_STACK_PROVIDER, null);
+    }
+
+    public MetalStack getMetalStack(ItemStack stack)
+    {
+        return Metals.getMetalStacks(stack).get(0);
     }
 
     @Override
-    public EnumActionResult onItemUse(EntityPlayer player, World worldIn, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY,
-                                      float hitZ)
-    {
-        player.sendMessage(new TextComponentString("Purity: " + getMetalStack(player.getHeldItem(hand)).getPurity()));
-        return super.onItemUse(player, worldIn, pos, hand, facing, hitX, hitY, hitZ);
-    }
-
     @SideOnly(Side.CLIENT)
-    @Override
-    public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced)
+    public void getSubItems(CreativeTabs tab, NonNullList<ItemStack> subItems)
     {
-        // Put purity in the tooltip
-        MetalStack metal = getMetalStack(stack);
-        tooltip.add(I18n.format("allomancy.message.purity", Investiture.proxy.getPercentageFormat().format(metal.getPurity())));
-    }
-
-    @Override
-    public void getSubItems(Item item, CreativeTabs tab, NonNullList<ItemStack> subItems)
-    {
-        for (int dmg = 0; dmg < this.metalNames.length; dmg++)
+        if (!isInCreativeTab(tab))
+            return;
+        for (int dmg = 0; dmg < this.metals.length; dmg++)
         {
             // Add 50% pure metal to creative tab
-            ItemStack impureStack = new ItemStack(item, 1, dmg);
-            getMetalStack(impureStack).setPurity(0.5f);
+            ItemStack impureStack = new ItemStack(this, 1, dmg);
+            PurifiableMetalStackProvider impureProvider = getMetalStackProvider(impureStack);
+            impureProvider.setPurity(impureProvider.middlePurityBound());
             subItems.add(impureStack);
 
             // Add 100% pure metal to creative tab
-            ItemStack pureStack = new ItemStack(item, 1, dmg);
-            getMetalStack(pureStack).setPurity(1f);
+            ItemStack pureStack = new ItemStack(this, 1, dmg);
+            PurifiableMetalStackProvider pureProvider = getMetalStackProvider(pureStack);
+            pureProvider.setPurity(impureProvider.upperPurityBound());
             subItems.add(pureStack);
         }
     }
@@ -120,7 +107,7 @@ public class MetalItem extends Item
     @Override
     public String getUnlocalizedName(ItemStack stack)
     {
-        return String.format("item.%s_%s", getName(stack), this.name);
+        return String.format("item.%s_%s", getMetal(stack), this.name);
     }
 
     public Type getItemType()
@@ -130,19 +117,22 @@ public class MetalItem extends Item
 
     public void registerOreDict()
     {
-        for (int i = 0; i < this.metalNames.length; i++)
+        for (int i = 0; i < this.metals.length; i++)
         {
-            String oreName = String.format("ingot%s", StringUtils.capitalize(this.metalNames[i]));
+            String oreName = String.format("%s%s", type.name().toLowerCase(), StringUtils.capitalize(this.metals[i].id()));
             ItemStack stack = new ItemStack(this, 1, i);
-            MetalStack metal = Metals.getMetalStack(stack).get();
+            MetalStack metal = getMetalStack(stack);
             OreDictionary.registerOre(oreName, stack);
-            AllomancyAPIImpl.INSTANCE.registerMetalMapping(new MetalMapping.OreDict(oreName, metal.getMetal(), type.conversion, 1f, false));
+            AllomancyAPIImpl.INSTANCE.registerMetalMapping(
+                new MetalMapping.OreDict(oreName, metal.getMetal(),
+                                         type.conversion, type.purityRange.hasLowerBound() ? type.purityRange.lowerEndpoint() : 0, type.purityRange,
+                                         false));
         }
     }
 
-    public String[] getMetalNames()
+    public Metal[] getMetals()
     {
-        return this.metalNames;
+        return this.metals;
     }
 
     @Nullable
@@ -154,18 +144,20 @@ public class MetalItem extends Item
 
     public enum Type
     {
-        NUGGET(1, () -> Allomancy.Items.NUGGET),
-        BEAD(0.5F, () -> Allomancy.Items.BEAD),
-        INGOT(9, () -> Allomancy.Items.INGOT),
-        DUST(9, () -> Allomancy.Items.DUST),
-        CHUNK(9, () -> Allomancy.Items.CHUNK);
+        NUGGET(1, Range.closed(0.5f, 1f), () -> Allomancy.Items.NUGGET),
+        BEAD(0.5F, Range.closed(0.5f, 1f), () -> Allomancy.Items.BEAD),
+        INGOT(9, Range.closed(0.5f, 1f), () -> Allomancy.Items.INGOT),
+        DUST(9, Range.closed(0.5f, 1f), () -> Allomancy.Items.DUST),
+        CHUNK(9, Range.closed(0f, 0.25f), () -> Allomancy.Items.CHUNK);
 
         public final float conversion;
+        public final Range<Float> purityRange;
         public final Callable<MetalItem> getter;
 
-        Type(float conversion, Callable<MetalItem> getter)
+        Type(float conversion, Range<Float> purityRange, Callable<MetalItem> getter)
         {
             this.conversion = conversion;
+            this.purityRange = purityRange;
             this.getter = getter;
         }
 
@@ -190,7 +182,7 @@ public class MetalItem extends Item
         @Override
         public boolean hasCapability(@Nonnull Capability<?> capability, @Nullable EnumFacing facing)
         {
-            return capability == Capabilities.METAL_STACK;
+            return capability == Capabilities.METAL_STACK_PROVIDER;
         }
 
         @Override
@@ -209,53 +201,34 @@ public class MetalItem extends Item
         @Override
         public <T> T getCapability(@Nonnull Capability<T> capability, @Nullable EnumFacing facing)
         {
-            if (capability == Capabilities.METAL_STACK)
+            if (capability == Capabilities.METAL_STACK_PROVIDER)
             {
-                return Capabilities.METAL_STACK.cast(instance);
+                return Capabilities.METAL_STACK_PROVIDER.cast(instance);
             }
             return null;
         }
 
-        private class Impl implements ModifiableMetalStack, INBTSerializable<NBTTagCompound>
+        private class Impl extends SingleMetalStackProvider
         {
-            private float purity = 0;
-
-            @Override
-            public Metal getMetal()
+            private Impl()
             {
-                return Metals.get(getName(stack));
+                super(stack, type.purityRange.hasLowerBound() ? type.purityRange.lowerEndpoint() : 0);
+            }
+
+            public float lowerPurityBound()
+            {
+                return type.purityRange.hasLowerBound() ? type.purityRange.lowerEndpoint() : 0;
+            }
+
+            public float upperPurityBound()
+            {
+                return type.purityRange.hasUpperBound() ? type.purityRange.upperEndpoint() : 1;
             }
 
             @Override
-            public float getQuantity()
+            public MetalStack baseStack()
             {
-                return getItemType().conversion * stack.getCount();
-            }
-
-            @Override
-            public float getPurity()
-            {
-                return purity;
-            }
-
-            @Override
-            public void setPurity(float purity)
-            {
-                this.purity = MathHelper.clamp(purity, 0f, 1f);
-            }
-
-            @Override
-            public NBTTagCompound serializeNBT()
-            {
-                NBTTagCompound tag = new NBTTagCompound();
-                tag.setFloat("Purity", purity);
-                return tag;
-            }
-
-            @Override
-            public void deserializeNBT(NBTTagCompound nbt)
-            {
-                this.purity = nbt.getFloat("Purity");
+                return new MetalStack(getMetal(stack), getItemType().conversion, lowerPurityBound());
             }
         }
     }

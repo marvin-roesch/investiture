@@ -1,0 +1,51 @@
+{
+  "parameters": {
+    "progress": [
+      "-*",
+      "#animation_trigger",
+      40
+    ],
+    "trigger_anim": [
+      "--",
+      1,
+      "#animation_trigger"
+    ],
+    "trigger_hit": [
+      "--",
+      0.5,
+      "#animation_trigger"
+    ]
+  },
+  "clips": {
+    "model": "investiture:block/piston.b3d@main",
+    "up": [
+      "apply",
+      "#model",
+      0
+    ],
+    "pushing": [
+      "trigger_positive",
+      [
+        "trigger_positive",
+        [
+          "apply",
+          "#model",
+          "#progress"
+        ],
+        "#trigger_anim",
+        "!transition:up"
+      ],
+      "#trigger_hit",
+      "hit"
+    ]
+  },
+  "states": [
+    "up",
+    "pushing"
+  ],
+  "transitions": {
+    "up": "pushing",
+    "pushing": "up"
+  },
+  "start_state": "up"
+}
