@@ -88,6 +88,8 @@ public class RegistryCollectionEvent extends Event
         @Override
         void registerItem(IForgeRegistry<Item> registry)
         {
+            if (itemFactory == null)
+                return;
             Preconditions.checkNotNull(block, "Tried to create a new item for an unregistered block.");
             Item item = itemFactory.apply(block);
             item.setRegistryName(block.getRegistryName());
