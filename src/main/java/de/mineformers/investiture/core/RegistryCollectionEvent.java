@@ -8,6 +8,7 @@ import net.minecraft.item.ItemBlock;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.common.eventhandler.Event;
+import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.registries.IForgeRegistry;
 
@@ -45,16 +46,18 @@ public class RegistryCollectionEvent extends Event
 
     Iterable<Entry> getEntries()
     {
-        return Iterables.concat(blocks, items);
+        return Iterables.concat(blocks, items, tileEntities);
     }
 
     void clear()
     {
         blocks.clear();
         items.clear();
+        tileEntities.clear();
     }
 
-    public static class Post extends Event {
+    public static class Post extends Event
+    {
     }
 
     static abstract class Entry
@@ -70,7 +73,7 @@ public class RegistryCollectionEvent extends Event
         @Nullable
         private final Function<Block, Item> itemFactory;
         @Nullable
-        private Block block = null;
+        private ResourceLocation id = null;
 
         BlockEntry(Supplier<Block> factory, @Nullable Function<Block, Item> itemFactory)
         {
@@ -81,8 +84,9 @@ public class RegistryCollectionEvent extends Event
         @Override
         void registerBlock(IForgeRegistry<Block> registry)
         {
-            this.block = factory.get();
-            registry.register(this.block);
+            Block block = factory.get();
+            this.id = block.getRegistryName();
+            registry.register(block);
         }
 
         @Override
@@ -90,7 +94,8 @@ public class RegistryCollectionEvent extends Event
         {
             if (itemFactory == null)
                 return;
-            Preconditions.checkNotNull(block, "Tried to create a new item for an unregistered block.");
+            Preconditions.checkNotNull(id, "Tried to create a new item for an unregistered block.");
+            Block block = ForgeRegistries.BLOCKS.getValue(id);
             Item item = itemFactory.apply(block);
             item.setRegistryName(block.getRegistryName());
             registry.register(item);

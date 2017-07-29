@@ -157,6 +157,7 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
         @SubscribeEvent
         public void onClientTick(TickEvent.ClientTickEvent event)
         {
+            Minecraft.getMinecraft().mcProfiler.endStartSection("investiture:find_metals");
             EntityPlayer player = Minecraft.getMinecraft().player;
             if (event.phase != TickEvent.Phase.END || player == null)
                 return;
@@ -241,6 +242,7 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
         @SubscribeEvent
         public void onRenderOverlay(RenderGameOverlayEvent.Pre event)
         {
+            Minecraft.getMinecraft().mcProfiler.endStartSection("investiture:render_overlay");
             Minecraft mc = Minecraft.getMinecraft();
             if (event.getType() != RenderGameOverlayEvent.ElementType.HOTBAR || mc.world == null || mc.skipRenderWorld)
                 return;
@@ -266,6 +268,7 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
                 return;
             if (mayRender())
             {
+                Minecraft.getMinecraft().mcProfiler.endStartSection("investiture:render_tick");
                 pushMatrix();
                 boolean oldBobbing = mc.gameSettings.viewBobbing;
                 mc.gameSettings.viewBobbing = false;

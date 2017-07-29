@@ -92,42 +92,9 @@ public class SpeedBubbleRenderer implements IResourceManagerReloadListener
     @SubscribeEvent
     public void onRender(RenderWorldLastEvent event)
     {
-        Minecraft mc = Minecraft.getMinecraft();
         EntityPlayer player = Minecraft.getMinecraft().player;
         if (player == null)
             return;
-        if (entityOutlineShader == null)
-            postInit();
-        List<Entity> entities = player.world.getEntities(EntityChicken.class, e -> e.getDistanceSqToEntity(player) <= 400);
-        if (entities.isEmpty())
-            return;
-        this.entityOutlineFramebuffer.framebufferClear();
-        GlStateManager.depthFunc(519);
-        GlStateManager.disableFog();
-        this.entityOutlineFramebuffer.bindFramebuffer(false);
-        RenderHelper.disableStandardItemLighting();
-        mc.getRenderManager().setRenderOutlines(true);
-
-
-        for (Entity entity : entities)
-        {
-            mc.getRenderManager().renderEntityStatic(entity, event.getPartialTicks(), false);
-        }
-
-        mc.getRenderManager().setRenderOutlines(false);
-        RenderHelper.enableStandardItemLighting();
-        GlStateManager.depthMask(false);
-        this.entityOutlineShader.render(event.getPartialTicks());
-        saveGlTexture("test", entityOutlineFramebuffer.framebufferTexture, new File("./"));
-        GlStateManager.enableLighting();
-        GlStateManager.depthMask(true);
-//        GlStateManager.enableFog();
-        GlStateManager.enableBlend();
-        GlStateManager.enableColorMaterial();
-        GlStateManager.depthFunc(515);
-        GlStateManager.enableDepth();
-        GlStateManager.enableAlpha();
-        mc.getFramebuffer().bindFramebuffer(false);
         pushMatrix();
         pushAttrib();
         Vec3d pos = Rendering.interpolatedPosition(player, event.getPartialTicks());
