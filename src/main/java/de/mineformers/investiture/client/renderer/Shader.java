@@ -7,7 +7,7 @@ import net.minecraft.util.math.Vec3d;
 import org.lwjgl.util.vector.Vector4f;
 import scala.io.Source;
 
-import javax.vecmath.Vector4d;
+import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 
@@ -36,7 +36,7 @@ public class Shader
      * @param vertex   the location of the vertex shader to use in this program, null if there is no vertex shader
      * @param fragment the location of the fragment shader to use in this program, null if there is no fragment shader
      */
-    public Shader(ResourceLocation vertex, ResourceLocation fragment)
+    public Shader(@Nullable ResourceLocation vertex, @Nullable ResourceLocation fragment)
     {
         program = glCreateProgram();
         if (vertex != null)

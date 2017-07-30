@@ -26,7 +26,9 @@ public class SliderImpl extends AbstractTimeManipulator implements Slider, ITick
     @Override
     public void startBurning()
     {
-        bubble = new SpeedBubble(entity.dimension, entity.getPosition(), 5);
+        if (entity.world.isRemote)
+            return;
+        bubble = new SpeedBubble(entity.dimension, entity.getPosition(), 0.5);
         SpeedBubbles.from(entity.world).add(bubble);
     }
 
@@ -42,14 +44,13 @@ public class SliderImpl extends AbstractTimeManipulator implements Slider, ITick
 //                    allomancer.deactivate(Slider.class);
                 return;
             }
-            for (BlockPos pos : BlockPos.getAllInBox(bubble.position.add(-bubble.radius, -bubble.radius, -bubble.radius),
-                                                     bubble.position.add(bubble.radius, bubble.radius, bubble.radius)))
+            TileEntity tile = entity.world.getTileEntity(bubble.position);
+            if (tile instanceof ITickable)
             {
-                if (bubblePos.squareDistanceTo(new Vec3d(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5)) > bubble.radius * bubble.radius)
-                    continue;
-                TileEntity tile = entity.world.getTileEntity(pos);
-                if (tile instanceof ITickable)
+                for (int i = 0; i < 16; i++)
+                {
                     ((ITickable) tile).update();
+                }
             }
             if (entity.world.isRemote)
             {

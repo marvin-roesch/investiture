@@ -31,7 +31,6 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import org.lwjgl.util.vector.Vector4f;
 
 import javax.annotation.Nonnull;
 import java.util.*;
@@ -67,22 +66,39 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
     public void update()
     {
         updateCounter++;
-        if (updateCounter > 20)
+        if (updateCounter > 2)
             updateCounter = 0;
         else
             return;
+        entity.world.profiler.startSection("investiture:find_metals_" + entity.world.isRemote);
+        entity.world.profiler.startSection("blocks");
         affectedBlocks.clear();
-        for (BlockPos pos : BlockPos.getAllInBox(entity.getPosition().subtract(new BlockPos(20, 20, 20)), entity.getPosition().add(20, 20, 20)))
+        BlockPos entityPos = entity.getPosition();
+        BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+        for (int x = -12; x <= 12; x++)
         {
-            if (AllomancyAPIImpl.INSTANCE.isMetallic(entity.world, pos))
-                affectedBlocks.add(pos);
+            for (int y = -12; y <= 12; y++)
+            {
+                for (int z = -12; z <= 12; z++)
+                {
+                    pos.setPos(entityPos.getX() + x, entityPos.getY() + y, entityPos.getZ() + z);
+                    if (AllomancyAPIImpl.INSTANCE.isMetallic(entity.world, pos))
+                    {
+                        affectedBlocks.add(new BlockPos(pos));
+                    }
+                }
+            }
         }
+        entity.world.profiler.endSection();
+        entity.world.profiler.startSection("entities");
         affectedEntities.clear();
         affectedEntities.addAll(
             entity.world.getEntitiesInAABBexcluding(entity,
-                                                    new AxisAlignedBB(entity.posX - 20, entity.posY - 20, entity.posZ - 20,
-                                                                      entity.posX + 20, entity.posY + 20, entity.posZ + 20),
+                                                    new AxisAlignedBB(entity.posX - 12, entity.posY - 12, entity.posZ - 12,
+                                                                      entity.posX + 12, entity.posY + 12, entity.posZ + 12),
                                                     AllomancyAPIImpl.INSTANCE::isMetallic));
+        entity.world.profiler.endSection();
+        entity.world.profiler.endSection();
     }
 
     @Override
@@ -148,7 +164,7 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
     {
         private Set<BlockPos> allPositions = new HashSet<>();
         private Set<Entity> allEntities = new HashSet<>();
-        private List<PositionWrapper> positions = new ArrayList<>();
+        private Set<PositionWrapper> positions = new HashSet<>();
         private TObjectIntMap<PositionWrapper> fadeInTimer = new TObjectIntHashMap<>();
         private TObjectIntMap<PositionWrapper> fadeOutTimer = new TObjectIntHashMap<>();
         private boolean active;
@@ -157,10 +173,10 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
         @SubscribeEvent
         public void onClientTick(TickEvent.ClientTickEvent event)
         {
-            Minecraft.getMinecraft().mcProfiler.endStartSection("investiture:find_metals");
             EntityPlayer player = Minecraft.getMinecraft().player;
             if (event.phase != TickEvent.Phase.END || player == null)
                 return;
+            player.world.profiler.startSection("investiture:find_metals");
             getAllomancer(player).ifPresent(a ->
                                             {
                                                 active = a.activePowers().contains(Coinshot.class) || a.activePowers().contains(Lurcher.class);
@@ -182,7 +198,7 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
                                                 for (PositionWrapper p : fadeOutTimer.keySet())
                                                 {
                                                     fadeOutTimer.increment(p);
-                                                    if (fadeOutTimer.get(p) > 20)
+                                                    if (fadeOutTimer.get(p) > 10)
                                                         toRemove.add(p);
                                                 }
                                                 for (PositionWrapper p : toRemove)
@@ -192,7 +208,7 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
                                                 for (PositionWrapper p : fadeInTimer.keySet())
                                                 {
                                                     fadeInTimer.increment(p);
-                                                    if (fadeInTimer.get(p) > 10)
+                                                    if (fadeInTimer.get(p) > 5)
                                                     {
                                                         positions.add(p);
                                                         toRemove.add(p);
@@ -200,7 +216,7 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
                                                     else if ((p.base instanceof BlockPos && !allPositions.contains(p.base)) ||
                                                         (p.base instanceof Entity && !allEntities.contains(p.base)))
                                                     {
-                                                        fadeOutTimer.put(p, 11 - fadeInTimer.get(p));
+                                                        fadeOutTimer.put(p, 6 - fadeInTimer.get(p));
                                                         toRemove.add(p);
                                                     }
                                                 }
@@ -235,6 +251,7 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
                                                     }
                                                 }
                                             });
+            player.world.profiler.endSection();
         }
 
         boolean hasRendered = false;
@@ -242,12 +259,12 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
         @SubscribeEvent
         public void onRenderOverlay(RenderGameOverlayEvent.Pre event)
         {
-            Minecraft.getMinecraft().mcProfiler.endStartSection("investiture:render_overlay");
             Minecraft mc = Minecraft.getMinecraft();
             if (event.getType() != RenderGameOverlayEvent.ElementType.HOTBAR || mc.world == null || mc.skipRenderWorld)
                 return;
             if (mayRender())
             {
+                mc.mcProfiler.startSection("investiture:render_overlay");
                 pushMatrix();
                 boolean oldBobbing = mc.gameSettings.viewBobbing;
                 mc.gameSettings.viewBobbing = false;
@@ -256,6 +273,7 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
                 mc.gameSettings.viewBobbing = oldBobbing;
                 popMatrix();
                 mc.entityRenderer.setupOverlayRendering();
+                mc.mcProfiler.endSection();
             }
             hasRendered = true;
         }
@@ -268,7 +286,7 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
                 return;
             if (mayRender())
             {
-                Minecraft.getMinecraft().mcProfiler.endStartSection("investiture:render_tick");
+                mc.mcProfiler.startSection("investiture:render_tick");
                 pushMatrix();
                 boolean oldBobbing = mc.gameSettings.viewBobbing;
                 mc.gameSettings.viewBobbing = false;
@@ -276,6 +294,7 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
                 renderLines(event.renderTickTime);
                 mc.gameSettings.viewBobbing = oldBobbing;
                 popMatrix();
+                mc.mcProfiler.endSection();
             }
             hasRendered = false;
         }
@@ -288,8 +307,6 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
         private void renderLines(float partialTicks)
         {
             pushMatrix();
-            pushAttrib();
-            disableLighting();
             disableDepth();
             depthMask(false);
             disableTexture2D();
@@ -301,33 +318,35 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
             glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
             GlStateManager.glLineWidth(4);
 
-            lineShader.activate();
-            lineShader.setUniformInt("numStops", 2);
-            lineShader.setUniformFloatArray("stops", 0, 1);
+//            lineShader.activate();
+//            lineShader.setUniformInt("numStops", 2);
+//            lineShader.setUniformFloatArray("stops", 0, 1);
+            Tessellator tessellator = Tessellator.getInstance();
+            BufferBuilder renderer = tessellator.getBuffer();
+            renderer.begin(GL_LINES, DefaultVertexFormats.POSITION_COLOR);
             Vec3d playerPos = Rendering.interpolatedPosition(Minecraft.getMinecraft().player, partialTicks);
             for (PositionWrapper pos : fadeInTimer.keySet())
             {
-                drawPos(playerPos, pos, partialTicks, (fadeInTimer.get(pos) + partialTicks) / 11f);
+                drawPos(playerPos, pos, partialTicks, (fadeInTimer.get(pos) + partialTicks) / 6f);
             }
             for (PositionWrapper pos : fadeOutTimer.keySet())
             {
-                drawPos(playerPos, pos, partialTicks, (21 - fadeOutTimer.get(pos) - partialTicks) / 21f);
+                drawPos(playerPos, pos, partialTicks, (11 - fadeOutTimer.get(pos) - partialTicks) / 11f);
             }
             for (PositionWrapper pos : positions)
             {
                 drawPos(playerPos, pos, partialTicks, 1);
             }
-            lineShader.deactivate();
+            tessellator.draw();
+//            lineShader.deactivate();
 
             tryBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
             blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             disableBlend();
             depthMask(true);
-            enableLighting();
             enableTexture2D();
             enableDepth();
             color(1f, 1f, 1f, 1f);
-            popAttrib();
             popMatrix();
         }
 
@@ -336,8 +355,7 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
             Tessellator tessellator = Tessellator.getInstance();
             BufferBuilder renderer = tessellator.getBuffer();
             Vec3d element = pos.center();
-            Vec3d direction = element.subtract(start);
-            Vec3d end = new Vec3d(direction.x * progress, direction.y * progress, direction.z * progress);
+            Vec3d end = element.subtract(start);
 
             EntityPlayer player = Minecraft.getMinecraft().player;
             Vec3d off = new Vec3d(0, -0.06, 0.09D);
@@ -360,21 +378,15 @@ public abstract class AbstractMetalManipulator extends AbstractMisting implement
                 pEye -= 0.5;
             }
 
-            double x = pX - element.x;
-            double y = pY - element.y + pEye;
-            double z = pZ - element.z;
-
-            lineShader.setUniform4Array("color",
-                                        new Vector4f(0.28627452f, 0.7254902f, 0.87058824f, 0f),
-                                        new Vector4f(0.28627452f, 0.7254902f, 0.87058824f, progress * 0.5f));
-            renderer.begin(GL_LINES, DefaultVertexFormats.POSITION_TEX);
-            renderer.pos(element.x - start.x + x, element.y - start.y + y, element.z - start.z + z)
-                    .tex(0, 0)
+//            lineShader.setUniform4Array("color",
+//                                        new Vector4f(0.28627452f, 0.7254902f, 0.87058824f, 0f),
+//                                        new Vector4f(0.28627452f, 0.7254902f, 0.87058824f, progress * 0.5f));
+            renderer.pos(pX - start.x, pY + pEye - start.y, pZ - start.z)
+                    .color(0, 0.17647f, 0.62352f, progress)
                     .endVertex();
             renderer.pos(end.x, end.y, end.z)
-                    .tex(1, 0)
+                    .color(0, 0.17647f, 0.62352f, progress)
                     .endVertex();
-            tessellator.draw();
         }
 
         private abstract static class PositionWrapper

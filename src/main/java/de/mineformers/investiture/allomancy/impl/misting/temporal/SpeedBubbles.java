@@ -42,7 +42,7 @@ public class SpeedBubbles extends WorldSavedData implements Iterable<SpeedBubble
     {
         bubbles.add(bubble);
         if (!world.isRemote)
-            Investiture.net().sendToAll(new SpeedBubbleUpdate(SpeedBubbleUpdate.ACTION_REMOVE, bubble));
+            Investiture.net().sendToAll(new SpeedBubbleUpdate(SpeedBubbleUpdate.ACTION_ADD, bubble));
     }
 
     public void remove(SpeedBubble bubble)

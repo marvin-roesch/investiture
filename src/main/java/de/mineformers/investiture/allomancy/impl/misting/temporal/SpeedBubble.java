@@ -25,8 +25,7 @@ public class SpeedBubble
         this.radius = radius;
         BlockPos boundsMin = position.add(-radius, -radius, -radius);
         BlockPos boundsMax = position.add(radius, radius, radius);
-        this.bounds = new AxisAlignedBB(boundsMin.getX(), boundsMin.getY(), boundsMin.getZ(),
-                                        boundsMax.getX(), boundsMax.getY(), boundsMax.getZ());
+        this.bounds = new AxisAlignedBB(boundsMin, boundsMax);
     }
 
     @Override

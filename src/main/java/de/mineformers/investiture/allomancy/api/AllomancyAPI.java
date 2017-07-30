@@ -1,5 +1,6 @@
 package de.mineformers.investiture.allomancy.api;
 
+import com.google.common.collect.FluentIterable;
 import de.mineformers.investiture.allomancy.api.metal.MetalMapping;
 import de.mineformers.investiture.allomancy.api.misting.Misting;
 import de.mineformers.investiture.allomancy.impl.misting.temporal.SpeedBubble;
@@ -64,7 +65,10 @@ public interface AllomancyAPI
     default boolean isMetallic(World world, BlockPos pos)
     {
         BlockWorldState state = new BlockWorldState(world, pos, true);
-        return metallicBlocks().stream().anyMatch(p -> p.test(state));
+        world.profiler.startSection("investiture:metallic_check");
+        boolean result = metallicBlocks().stream().anyMatch(p -> p.test(state));
+        world.profiler.endSection();
+        return result;
     }
 
     default boolean isMetallic(IBlockState state)
