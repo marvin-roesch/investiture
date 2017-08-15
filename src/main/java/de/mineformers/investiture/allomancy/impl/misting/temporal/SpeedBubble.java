@@ -6,6 +6,7 @@ import net.minecraft.util.math.BlockPos;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Objects;
+import java.util.UUID;
 
 /**
  * ${JDOC}
@@ -13,13 +14,15 @@ import java.util.Objects;
 @ParametersAreNonnullByDefault
 public class SpeedBubble
 {
+    public final UUID owner;
     public final int dimension;
     public final BlockPos position;
     public final double radius;
     public final AxisAlignedBB bounds;
 
-    public SpeedBubble(int dimension, BlockPos position, double radius)
+    public SpeedBubble(UUID owner, int dimension, BlockPos position, double radius)
     {
+        this.owner = owner;
         this.dimension = dimension;
         this.position = position;
         this.radius = radius;

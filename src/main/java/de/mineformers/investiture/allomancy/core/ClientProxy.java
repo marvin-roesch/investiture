@@ -150,11 +150,10 @@ public class ClientProxy implements ManifestationProxy
                          {
                              if (ctx.player().dimension != msg.dimension)
                                  return;
-                             SpeedBubble bubble = new SpeedBubble(msg.dimension, msg.position, msg.radius);
                              if (msg.action == SpeedBubbleUpdate.ACTION_ADD)
-                                 SpeedBubbles.from(ctx.player().world).add(bubble);
+                                 SpeedBubbles.from(ctx.player().world).add(msg.owner, msg.dimension, msg.position, msg.radius);
                              else if (msg.action == SpeedBubbleUpdate.ACTION_REMOVE)
-                                 SpeedBubbles.from(ctx.player().world).remove(bubble);
+                                 SpeedBubbles.from(ctx.player().world).remove(msg.owner);
                          });
             return null;
         });

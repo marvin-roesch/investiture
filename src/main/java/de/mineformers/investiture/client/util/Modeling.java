@@ -24,7 +24,10 @@ import javax.vecmath.Vector4f;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.Function;
+
+import static net.minecraft.client.renderer.vertex.VertexFormatElement.EnumUsage.POSITION;
 
 /**
  * Provides utility methods dealing with Minecraft's and Forge's model system.
@@ -123,6 +126,21 @@ public class Modeling
 
     public static BakedQuad scale(VertexFormat format, BakedQuad quad, Vec3d scale)
     {
+        return transform(format, quad, (usage, data) -> {
+            if (usage == POSITION)
+            {
+                float[] newData = new float[4];
+                Vector4f vec = new Vector4f(data);
+                vec.set((float) scale.x * vec.x, (float) scale.y * vec.y, (float) scale.z * vec.z, vec.w);
+                vec.get(newData);
+                return newData;
+            }
+            return data;
+        });
+    }
+
+    public static BakedQuad transform(VertexFormat format, BakedQuad quad, BiFunction<VertexFormatElement.EnumUsage, float[], float[]> transformer)
+    {
         UnpackedBakedQuad.Builder builder = new UnpackedBakedQuad.Builder(format);
         IVertexConsumer cons = new VertexTransformer(builder)
         {
@@ -130,19 +148,7 @@ public class Modeling
             public void put(int element, float... data)
             {
                 VertexFormatElement el = format.getElement(element);
-                switch (el.getUsage())
-                {
-                    case POSITION:
-                        float[] newData = new float[4];
-                        Vector4f vec = new Vector4f(data);
-                        vec.set((float) scale.x * vec.x, (float) scale.y * vec.y, (float) scale.z * vec.z, vec.w);
-                        vec.get(newData);
-                        parent.put(element, newData);
-                        break;
-                    default:
-                        parent.put(element, data);
-                        break;
-                }
+                parent.put(element, transformer.apply(el.getUsage(), data));
             }
         };
         quad.pipe(cons);

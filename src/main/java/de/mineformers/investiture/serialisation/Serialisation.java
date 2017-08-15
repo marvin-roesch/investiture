@@ -570,6 +570,38 @@ public class Serialisation
                 }
             }
         });
+
+
+        // Ray trace result translator
+        registerTranslator(UUID.class, new Translator<UUID, NBTTagCompound>()
+        {
+            @Override
+            public void serialiseImpl(UUID value, ByteBuf buffer)
+            {
+                buffer.writeLong(value.getMostSignificantBits());
+                buffer.writeLong(value.getLeastSignificantBits());
+            }
+
+            @Override
+            public UUID deserialiseImpl(ByteBuf buffer)
+            {
+                return new UUID(buffer.readLong(), buffer.readLong());
+            }
+
+            @Override
+            public NBTTagCompound serialiseImpl(UUID value)
+            {
+                NBTTagCompound result = new NBTTagCompound();
+                result.setUniqueId("Value", value);
+                return result;
+            }
+
+            @Override
+            public UUID deserialiseImpl(NBTTagCompound tag)
+            {
+                return tag.getUniqueId("Value");
+            }
+        });
     }
 
     /**
@@ -778,7 +810,8 @@ public class Serialisation
         return (Optional<N>) findTranslator(o.getClass()).serialise(o);
     }
 
-    public <T> T translateFromNBT(Class<T> type, Optional<NBTBase> nbt) {
+    public <T> T translateFromNBT(Class<T> type, Optional<NBTBase> nbt)
+    {
         return (T) findTranslator(type).deserialise(nbt);
     }
 
@@ -787,7 +820,8 @@ public class Serialisation
         findTranslator(o.getClass()).serialise(o, buffer);
     }
 
-    public <T> T readFromBuffer(Class<T> type, ByteBuf buffer) {
+    public <T> T readFromBuffer(Class<T> type, ByteBuf buffer)
+    {
         return (T) findTranslator(type).deserialise(buffer);
     }
 

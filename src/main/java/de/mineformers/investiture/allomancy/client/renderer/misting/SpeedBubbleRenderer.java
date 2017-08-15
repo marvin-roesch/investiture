@@ -7,15 +7,14 @@ import de.mineformers.investiture.allomancy.impl.AllomancyAPIImpl;
 import de.mineformers.investiture.client.renderer.Shader;
 import de.mineformers.investiture.client.util.Modeling;
 import de.mineformers.investiture.client.util.Rendering;
-import jline.internal.Log;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.culling.Frustum;
-import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.client.renderer.vertex.VertexFormatElement;
 import net.minecraft.client.resources.IReloadableResourceManager;
 import net.minecraft.client.resources.IResourceManager;
 import net.minecraft.client.resources.IResourceManagerReloadListener;
@@ -28,20 +27,13 @@ import net.minecraftforge.client.model.pipeline.LightUtil;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL12;
 
-import javax.imageio.ImageIO;
-import java.awt.Graphics2D;
-import java.awt.geom.AffineTransform;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.nio.IntBuffer;
+import java.util.Random;
 
+import static java.lang.Math.sin;
 import static net.minecraft.client.renderer.GlStateManager.*;
-import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL11.GL_QUADS;
 
 /**
  * ${JDOC}
@@ -50,13 +42,18 @@ import static org.lwjgl.opengl.GL11.*;
 public class SpeedBubbleRenderer implements IResourceManagerReloadListener
 {
     private IBakedModel model;
-    private Tessellator batchBuffer = new Tessellator(0x200000);
+    private Framebuffer buffer;
     private final Shader distortionShader = new Shader(null, new ResourceLocation(Allomancy.DOMAIN, "distortion"));
+    private final Minecraft mc;
+    private int displayWidth, displayHeight;
 
     public SpeedBubbleRenderer()
     {
-        ((IReloadableResourceManager) Minecraft.getMinecraft().getResourceManager()).registerReloadListener(this);
+        mc = Minecraft.getMinecraft();
+        ((IReloadableResourceManager) mc.getResourceManager()).registerReloadListener(this);
         distortionShader.init();
+        displayWidth = mc.displayWidth;
+        displayHeight = mc.displayHeight;
     }
 
     @Override
@@ -67,36 +64,61 @@ public class SpeedBubbleRenderer implements IResourceManagerReloadListener
                                    ImmutableList.of("speed_bubble"));
     }
 
+    private void onResize(int newWidth, int newHeight)
+    {
+        if (buffer == null)
+        {
+            buffer = new Framebuffer(newWidth, newHeight, true);
+        }
+        buffer.createBindFramebuffer(newWidth, newHeight);
+        this.displayWidth = newWidth;
+        this.displayHeight = newHeight;
+    }
+
     @SubscribeEvent
     public void onRender(RenderWorldLastEvent event)
     {
-        EntityPlayer player = Minecraft.getMinecraft().player;
+        EntityPlayer player = mc.player;
         if (player == null)
             return;
+        if (displayWidth != mc.displayWidth || displayHeight != mc.displayHeight || buffer == null)
+        {
+            onResize(mc.displayWidth, mc.displayHeight);
+        }
+
+        Framebuffer vanillaBuffer = Minecraft.getMinecraft().getFramebuffer();
+        buffer.framebufferClear();
+        buffer.bindFramebuffer(false);
+        pushMatrix();
+        mc.entityRenderer.setupOverlayRendering();
+        vanillaBuffer.framebufferRender(displayWidth, displayHeight);
+        popMatrix();
+        enableDepth();
+        enableAlpha();
+        Rendering.setupCameraTransforms(event.getPartialTicks(), 2);
+
         pushMatrix();
         Vec3d pos = Rendering.interpolatedPosition(player, event.getPartialTicks());
         translate(-pos.x, -pos.y, -pos.z);
-//        disableCull();
-//        disableDepth();
-//        GL11.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-//        GL11.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        disableCull();
         color(1f, 1f, 1f, 1f);
-
-        depthMask(false);
-
+        vanillaBuffer.bindFramebuffer(false);
         distortionShader.activate();
         distortionShader.setUniformInt("tex", 0);
         distortionShader.setUniformInt("noiseTex", 2);
-        distortionShader.setUniformFloat("windowWidth", Minecraft.getMinecraft().displayWidth);
-        distortionShader.setUniformFloat("windowHeight", Minecraft.getMinecraft().displayHeight);
-        distortionShader.setUniformFloat("ticks", ((player.world.getTotalWorldTime() + event.getPartialTicks()) % 1000) * 0f);
-        distortionShader.setUniformFloat("strength", 0.05f);
+        distortionShader.setUniformFloat("windowWidth", mc.displayWidth);
+        distortionShader.setUniformFloat("windowHeight", mc.displayHeight);
+        float t = (player.world.getTotalWorldTime() + event.getPartialTicks());
+        double pi2 = 2 * Math.PI;
+        double basePeriod = pi2 / 20f;
+        float anim = (float) ((0.5f * sin(basePeriod * t)) + 1.5f);
+        distortionShader.setUniformFloat("speed", 0);
+        distortionShader.setUniformFloat("strength",  0.02f);
 
-        Framebuffer frameBuffer = Minecraft.getMinecraft().getFramebuffer();
         setActiveTexture(OpenGlHelper.lightmapTexUnit + 1);
         Minecraft.getMinecraft().getTextureManager().bindTexture(new ResourceLocation(Allomancy.DOMAIN, "textures/misc/distortion_noise.png"));
         setActiveTexture(OpenGlHelper.defaultTexUnit);
-        frameBuffer.bindFramebufferTexture();
+        buffer.bindFramebufferTexture();
 
         GL11.glFlush();
         Tessellator batchBuffer = Tessellator.getInstance();
@@ -106,13 +128,22 @@ public class SpeedBubbleRenderer implements IResourceManagerReloadListener
         AllomancyAPIImpl.INSTANCE.speedBubbles(player.world)
                                  .forEach(bubble ->
                                           {
+                                              int seed = 0;//new Random(bubble.position.toLong()).nextInt(256);
                                               for (BakedQuad quad : model.getQuads(null, null, 0))
                                               {
                                                   LightUtil.renderQuadColor(batchBuffer.getBuffer(),
-                                                                            Modeling.scale(DefaultVertexFormats.ITEM, quad,
-                                                                                           new Vec3d(2 * bubble.radius + 0.05,
-                                                                                                     2 * bubble.radius + 0.05,
-                                                                                                     2 * bubble.radius + 0.05)),
+                                                                            Modeling.transform(DefaultVertexFormats.ITEM,
+                                                                                               Modeling.scale(DefaultVertexFormats.ITEM, quad,
+                                                                                                              new Vec3d(2 * bubble.radius + 0.05,
+                                                                                                                        2 * bubble.radius + 0.05,
+                                                                                                                        2 * bubble.radius + 0.05)),
+                                                                                               (usage, data) -> {
+                                                                                                   if (usage == VertexFormatElement.EnumUsage.COLOR)
+                                                                                                   {
+                                                                                                       data[0] = seed;
+                                                                                                   }
+                                                                                                   return data;
+                                                                                               }),
                                                                             0xFFFFFFFF);
                                                   batchBuffer.getBuffer()
                                                              .putPosition(bubble.position.getX() + 0.5,
@@ -123,50 +154,10 @@ public class SpeedBubbleRenderer implements IResourceManagerReloadListener
         batchBuffer.getBuffer().sortVertexData((float) pos.x, (float) pos.y + player.getEyeHeight(), (float) pos.z);
         batchBuffer.draw();
         batchBuffer.getBuffer().getVertexState();
-        frameBuffer.unbindFramebufferTexture();
         distortionShader.deactivate();
 
-        depthMask(true);
         enableCull();
-        enableDepth();
+        depthMask(true);
         popMatrix();
-    }
-
-    public static void saveGlTexture(String name, int textureId, File outputFolder) {
-        GL11.glBindTexture(GL11.GL_TEXTURE_2D, textureId);
-
-        GL11.glPixelStorei(GL11.GL_PACK_ALIGNMENT, 1);
-        GL11.glPixelStorei(GL11.GL_UNPACK_ALIGNMENT, 1);
-
-        int width = GL11.glGetTexLevelParameteri(GL11.GL_TEXTURE_2D, 0, GL11.GL_TEXTURE_WIDTH);
-        int height = GL11.glGetTexLevelParameteri(GL11.GL_TEXTURE_2D, 0, GL11.GL_TEXTURE_HEIGHT);
-        int size = width * height;
-
-        BufferedImage bufferedimage = new BufferedImage(width, height, 2);
-        String fileName = name + ".png";
-
-        File output = new File(outputFolder, fileName);
-        IntBuffer buffer = BufferUtils.createIntBuffer(size);
-        int[] data = new int[size];
-
-        GL11.glGetTexImage(GL11.GL_TEXTURE_2D, 0, GL12.GL_BGRA, GL12.GL_UNSIGNED_INT_8_8_8_8_REV, buffer);
-//        buffer.get(data);
-//        bufferedimage.setRGB(0, 0, width, height, data, 0, width);
-//        BufferedImage newImage = new BufferedImage(
-//            bufferedimage.getWidth(), bufferedimage.getHeight(),
-//            BufferedImage.TYPE_INT_ARGB);
-//        Graphics2D g = newImage.createGraphics();
-//        AffineTransform at = new AffineTransform();
-//        at.concatenate(AffineTransform.getScaleInstance(1, -1));
-//        at.concatenate(AffineTransform.getTranslateInstance(0, -bufferedimage.getHeight()));
-//        g.transform(at);
-//        g.drawImage(bufferedimage, 0, 0, null);
-//        g.dispose();
-//
-//        try {
-//            ImageIO.write(newImage, "png", output);
-//        } catch (IOException ioexception) {
-//            Log.info("Unable to write: ", ioexception);
-//        }
     }
 }
